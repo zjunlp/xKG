@@ -7,3 +7,4 @@ CLAUDE.md
 /logs/
 /test*.py
 /out*.txt
+.vscode/
