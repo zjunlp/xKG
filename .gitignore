@@ -1,0 +1,9 @@
+.env
+CLAUDE.md
+*.pyc
+/venv/
+/.venv/
+/storage/
+/logs/
+/test*.py
+/out*.txt
