@@ -8,3 +8,4 @@ CLAUDE.md
 /test*.py
 /out*.txt
 .vscode/
+__pycache__/
