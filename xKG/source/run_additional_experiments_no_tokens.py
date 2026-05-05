@@ -11,7 +11,7 @@ import json
 # 导入你的模块
 # 请确保这里的导入路径是正确的
 from .utils import get_config, initialize_app
-from .tools import ArxivScraper, GithubScraper, PaperParser, CodeParser, GraphHandler
+from .components import ArxivScraper, GithubScraper, PaperParser, CodeParser, GraphHandler
 
 # ==============================================================================
 #  1. 定义要处理的源任务

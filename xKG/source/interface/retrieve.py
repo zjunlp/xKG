@@ -13,7 +13,7 @@ import logging
 import json
 from typing import Optional, List, Tuple
 
-from ..tools.graph_handler import GraphHandler
+from ..components.graph_handler import GraphHandler
 from ..schema.garph import Node, Technique
 from ..schema.paper import Paper
 from ..schema.code import Code

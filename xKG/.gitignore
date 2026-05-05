@@ -1,9 +1,0 @@
-.env
-__pycache__/
-*.pyc
-/venv/
-/.venv/
-/storage/
-/logs/
-/test*.py
-/out*.txt

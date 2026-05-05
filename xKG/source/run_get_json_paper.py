@@ -10,7 +10,7 @@ import logging
 
 # 确保这里的导入路径相对于您的项目结构是正确的
 from .utils import get_config, initialize_app
-from .tools import ArxivScraper, PaperParser, GraphHandler
+from .components import ArxivScraper, PaperParser, GraphHandler
 
 # ==============================================================================
 #  1. 定义要处理的论文标题 (仅此而已)

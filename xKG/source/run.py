@@ -1,7 +1,7 @@
 import argparse
 from .utils import *
 from .llm import *
-from .tools import *
+from .components import *
 from .schema import *
 from .interface import *
 initialize_kg()

@@ -9,7 +9,7 @@ import json # 用于记录结果
 
 from .utils import get_config, initialize_app
 # ArxivScraper 和 GithubScraper 不再需要，但保留以防未来使用
-from .tools import ArxivScraper, GithubScraper, PaperParser, CodeParser, GraphHandler
+from .components import ArxivScraper, GithubScraper, PaperParser, CodeParser, GraphHandler
 from .schema import Paper, Code
 
 # ==============================================================================

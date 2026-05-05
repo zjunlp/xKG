@@ -11,7 +11,7 @@ from multiprocessing import Manager  # 保留Manager
 
 # 导入你的模块
 from .utils import get_config, initialize_app
-from .tools import ArxivScraper, GithubScraper, PaperParser, CodeParser, GraphHandler
+from .components import ArxivScraper, GithubScraper, PaperParser, CodeParser, GraphHandler
 from .llm import llm_def # 保留llm_def的导入
 
 # ==============================================================================

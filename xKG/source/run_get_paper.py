@@ -11,7 +11,7 @@ import logging
 
 # 确保这里的导入路径相对于您的项目结构是正确的
 from .utils import get_config, initialize_app
-from .tools import ArxivScraper, PaperParser, GraphHandler
+from .components import ArxivScraper, PaperParser, GraphHandler
 from .llm import llm_def  # <-- 新增：导入llm_def以进行猴子补丁
 
 # ==============================================================================

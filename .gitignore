@@ -1,11 +1,11 @@
 .env
 CLAUDE.md
 *.pyc
+__pycache__/
 /venv/
 /.venv/
-/storage/
-/logs/
+storage/
+logs/
 /test*.py
 /out*.txt
 .vscode/
-__pycache__/

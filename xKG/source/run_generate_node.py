@@ -2,7 +2,7 @@ import argparse
 import concurrent.futures
 import json
 from .utils import get_config, initialize_app
-from .tools import GraphHandler, PaperParser
+from .components import GraphHandler, PaperParser
 from .schema import Paper, Code
 
 # 将单个文件的处理逻辑封装成一个函数，供线程池调用
