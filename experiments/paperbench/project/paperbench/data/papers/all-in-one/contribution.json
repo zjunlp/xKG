@@ -1,0 +1,366 @@
+{
+    "id": "6fb3259f-edad-4b55-85fb-0deb441df867",
+    "requirements": "The paper \"All-in-one simulation-based inference\" has been reproduced.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "8c706efd-f14e-4756-a8e9-303d747db56a",
+            "requirements": "Variance Exploding SDE (VESDE) is implemented, as described in A2.1",
+            "weight": 1,
+            "sub_tasks": [
+                {
+                    "id": "0ac16f05-bdb9-48c8-9103-764068f5301a",
+                    "requirements": "The drift term for Variance Exploding SDE is defined as $f(x, t)=0$",
+                    "weight": 2,
+                    "sub_tasks": [],
+                    "task_category": "Code Development"
+                },
+                {
+                    "id": "1402caf0-ee17-48a4-b0f5-ee4523807747",
+                    "requirements": "The diffusion term for Variance Exploding SDE is defined as $g(t)=\\sigma_{min} \\cdot (\\frac{\\sigma_{max}}{\\sigma_{min}})^t \\cdot \\sqrt{2 \\log \\frac{\\sigma_{max}}{\\sigma_{min}}}$",
+                    "weight": 2,
+                    "sub_tasks": [],
+                    "task_category": "Code Development"
+                },
+                {
+                    "id": "396c0b27-9d8c-49d4-a9e8-667b7c1a9e5c",
+                    "requirements": "The perturbation kernel for the Variance Exploding SDE is defined as $p(x_t|x_0) = \\mathcal{N}(x_t, x_t, \\sigma(t)I)$ where $\\sigma(t) = \\sigma_{min}^2\\left( \\frac{\\sigma_{max}}{\\sigma_{min}} \\right)^{2t}$",
+                    "weight": 2,
+                    "sub_tasks": [],
+                    "task_category": "Code Development"
+                },
+                {
+                    "id": "07f7aac1-c623-46e0-b7cc-3991331cbd9c",
+                    "requirements": "The constant $\\sigma_{max}$ for VESDE is set to 15",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Development"
+                },
+                {
+                    "id": "c6cd56ae-e565-4512-978e-80a8afaae037",
+                    "requirements": "The constant $\\sigma_{min}$ for VESDE is set to 0.0001",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Development"
+                },
+                {
+                    "id": "ac3759f1-14f6-4859-a64f-84db470eb2db",
+                    "requirements": "In VESDE, samples are drawn from the time interval [1e-5, 1]",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Development"
+                }
+            ],
+            "task_category": null
+        },
+        {
+            "id": "a439cf9c-8942-4211-a74c-5bf1eae37b3b",
+            "requirements": "The Simformer model, training process and inference process has been implemented",
+            "weight": 3,
+            "sub_tasks": [
+                {
+                    "id": "84ed0540-5940-4906-bc72-5d91da73dac5",
+                    "requirements": "The Simformer architecture and tokenizer has been implemented",
+                    "weight": 2,
+                    "sub_tasks": [
+                        {
+                            "id": "452f012f-547c-4330-abce-315c043e6594",
+                            "requirements": "The tokenizer for the Simformer has been implemented",
+                            "weight": 1,
+                            "sub_tasks": [
+                                {
+                                    "id": "e94e3aee-6a46-40d1-84a8-df21110f104c",
+                                    "requirements": "The tokenizer correctly tokenizes and embeds the identifiers",
+                                    "weight": 1,
+                                    "sub_tasks": [
+                                        {
+                                            "id": "437abe9f-4b33-4293-9c64-d9cf83fd2a55",
+                                            "requirements": "Each unique variable has an integer identifier. Multiple observations of the same variable share the same identifier",
+                                            "weight": 1,
+                                            "sub_tasks": [],
+                                            "task_category": "Code Development"
+                                        },
+                                        {
+                                            "id": "714bdd7e-b21c-4407-aa3d-f50307633bb4",
+                                            "requirements": "The tokenizer uses learnable vector embeddings to embed each identifier",
+                                            "weight": 1,
+                                            "sub_tasks": [],
+                                            "task_category": "Code Development"
+                                        }
+                                    ],
+                                    "task_category": null
+                                },
+                                {
+                                    "id": "af5cd308-83c7-4b2b-bc9f-b006183ea3ed",
+                                    "requirements": "The embedding for a single value is created by repeating the scalar value to match the desired dimensionality. For example, to embed the value 1 to desired dimensionality N, we would have a vector [1, 1, ...., 1] of length N",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "2e46fc8d-2ecb-46f3-86b1-0c80fceec733",
+                                    "requirements": "The tokenizer correctly tokenizes and embeds the metadata (if required); the tokenizer applies a learnable linear mapping of a random Fourier embedding of the elements in the index set to the desired dimensionality.",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "2ff0a481-00b4-47e9-939a-4dd7f7a00361",
+                                    "requirements": "The tokenizer uses learnable vector embeddings to embed each value in a condition state - \"True\" values are mapped to a shared learnable vector embedding, whereas \"False\" values are mapped to zeros (of the desired dimensionality)",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "407dcc3b-5f84-48b4-b5e5-730336b97fbe",
+                                    "requirements": "For each input, the tokenizer concatenates the embeddings of the identifier, value, metadata (if used), and condition state in that order",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "c6eb15a5-65f9-4ac9-9927-f50f3118d8fe",
+                                    "requirements": "The tokenizer takes inputs: a sequence of scalar values, a sequence of integer variable identifiers, a condition mask $M_C$, and optional metadata if required. It embeds these inputs into a sequence of tokens, each of equal dimensionality",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                }
+                            ],
+                            "task_category": null
+                        },
+                        {
+                            "id": "518fdd2a-c60f-4bbe-b12a-ae0fc80a98d4",
+                            "requirements": "The Simformer architecture has been implemented",
+                            "weight": 1,
+                            "sub_tasks": [
+                                {
+                                    "id": "09008e24-26e7-4aa9-8d9a-881feb20538f",
+                                    "requirements": "The Simformer model is a slightly modified vanilla encoder-only transformer following the implementation proposed by (Vaswani et al., 2017). The only modification is that the decoder is a single linear layer that produces a single scalar score for each variable token in the input sequence. The Simformer model is described in Section 3, Figure 2, and Appendix A.1",
+                                    "weight": 2,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "b1b80f04-e17c-49f6-831c-3cd3d15acf26",
+                                    "requirements": "Diffusion time is embedded as a random Gaussian Fourier embedding, and a linear projection of diffusion time is added to the output of each feed-forward block in the transformer",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "25eecc1a-cc2c-48e5-addc-082fdb7f638b",
+                                    "requirements": "The Simformer takes inputs: the diffusion time $t$, a sequence of tokens from the tokenizer, and an attention mask. These are projected to a sequence of scalar outputs, representing the marginal scores of the diffusion process at time $t$.",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                }
+                            ],
+                            "task_category": null
+                        }
+                    ],
+                    "task_category": null
+                },
+                {
+                    "id": "99653fba-a2b3-4f81-bf6a-41d49c939527",
+                    "requirements": "The condition and attention masks are correctly computed for each sample passed to the Simformer",
+                    "weight": 2,
+                    "sub_tasks": [
+                        {
+                            "id": "be65afa3-69f8-4f5a-8b0a-a2f7895b0b85",
+                            "requirements": "During training, for each training sample, the condition mask $M_C$ is randomly sampled as either 1) the joint distribution, where $M_C=[0, 0, ..., 0]$, 2) the posterior distribution where data variables are observed and parameters are unobserved, 3) the likelihood function where data variables are unobserved and parameter variables are observed, 4) a Bernoulli distribution with p=0.3 (resampled for each element), 5) a Bernoulli distribution with p=0.7 (resampled for each element)",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        },
+                        {
+                            "id": "dbb4968e-bfba-45c3-9c54-45879fefbd9c",
+                            "requirements": "The attention mask $M_E$ is correctly computed for each sample passed to the Simformer",
+                            "weight": 1,
+                            "sub_tasks": [
+                                {
+                                    "id": "3e515973-3a59-46ca-b0b6-be1d8b4fea96",
+                                    "requirements": "$M_E$ is selected to be undirected, directed, or fully dense",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "8e07cc4f-6176-4391-a8bb-578831aa3aa4",
+                                    "requirements": "If $M_E$ is selected to be fully dense, every token is allowed to attend to every other token",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "0cb084f8-8c30-4111-8822-b6f8aa7967b2",
+                                    "requirements": "The attention mask $M_E$ is correctly computed for the undirected and directed cases",
+                                    "weight": 3,
+                                    "sub_tasks": [
+                                        {
+                                            "id": "08a90ef1-cf86-4bfa-b17a-9269e223a57e",
+                                            "requirements": "For both undirected and directed cases, the attention mask $M_E$ is computed to capture the known dependencies of the current task. Specifically, each task provides $M_E$ as given by the adjacency matrix of a directed/undirected graphical model with the diagonal set to True.",
+                                            "weight": 1,
+                                            "sub_tasks": [],
+                                            "task_category": "Code Development"
+                                        },
+                                        {
+                                            "id": "6f05f0cf-c61a-4ad9-b2b0-a353b7cab492",
+                                            "requirements": "If $M_E$ is directed it must be updated for a given $M_C$. The algorithm proposed by Webb at al. (2018) is used to add the minimal number of edges required to represent additional dependencies from conditioning as specified in $M_C$",
+                                            "weight": 1,
+                                            "sub_tasks": [],
+                                            "task_category": "Code Development"
+                                        }
+                                    ],
+                                    "task_category": null
+                                }
+                            ],
+                            "task_category": null
+                        }
+                    ],
+                    "task_category": null
+                },
+                {
+                    "id": "2c102351-18e1-4eb5-9812-9eea70a83e88",
+                    "requirements": "The code for training the Simformer model has been implemented",
+                    "weight": 2,
+                    "sub_tasks": [
+                        {
+                            "id": "34b6fc70-d083-4bef-986e-336b09845a3c",
+                            "requirements": "When training the Simformer, for each training sample $\\hat{x}_0$, the noise level $t$ is sampled in the range [1e-5, 1] to generate a (partially) noisy sample $\\hat{\\mathbf{x}}_t^{M_C} = (1 - M_C) \\cdot \\hat{\\mathbf{x}}_t + M_C \\cdot \\hat{\\mathbf{x}}_0$ i.e. variables that we want to condition on remain clean.",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        },
+                        {
+                            "id": "284fd942-573c-4da6-81bd-2f92cdc4f2b7",
+                            "requirements": "The loss function for the Simformer is correctly defined",
+                            "weight": 1,
+                            "sub_tasks": [
+                                {
+                                    "id": "0e335268-1035-4b34-b99c-97054665db5c",
+                                    "requirements": "A diffusion model loss is used that targets (un)conditional marginal score $\\nabla_{\\mathbf{x}_t^{\\text{unobserved}}}\\,\\log p_t(\\mathbf{x}_t^{\\text{unobserved}} \\mid \\mathbf{x}^{\\text{observed}})$ as defined by the condition mask $M_C$ and p(x).",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "b3e915ef-1f57-4b70-b3da-546947d6c1b5",
+                                    "requirements": "As defined in Section 3.3, for each (partially) noisy training sample $\\hat{x}_t^{M_c}$, the Simformer loss is defined as: $\\ell(\\phi, M_C, t, \\hat{\\mathbf{x}}_0, \\hat{\\mathbf{x}}_t) = (1-M_C)\\cdot \\left(s_\\phi^{M_E}(\\hat{\\mathbf{x}}_t^{M_C}, t) - \\nabla_{\\hat{\\mathbf{x}}_t} \\log p_t(\\hat{\\mathbf{x}}_t|\\hat{\\mathbf{x}}_0)\\right)$, where $s_\\phi^{M_E}$ denotes the score model equipped with a specific attention mask $M_E$",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "e3cd228e-467b-4c47-a23d-6e212249115e",
+                                    "requirements": "The Simformer loss is only computed over samples that are unobserved, i.e., they have a value of 0 in $M_C$",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "2cb4d86f-19c4-438f-b6f1-52c588ba9d09",
+                                    "requirements": "The total Simformer loss per mini-match is given by a weighted sum, as given by a positive weighting function $\\lambda(t)$ e.g. $\\lambda(t)=g(t)^2$ where $g(t)$ is the diffusion coefficient of the VESDE.",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                }
+                            ],
+                            "task_category": null
+                        }
+                    ],
+                    "task_category": null
+                },
+                {
+                    "id": "2165e285-6f2c-4257-bb16-802ffb1c30a4",
+                    "requirements": "Code for sampling arbitrary conditionals from a trained Simformer model has been implemented",
+                    "weight": 2,
+                    "sub_tasks": [
+                        {
+                            "id": "79df6718-c5e7-4967-92b0-4a66d1e8998e",
+                            "requirements": "When performing inference using Simformer, the reverse diffusion process is run on all unobserved variables. Observed variables are kept constant at their initial values",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        },
+                        {
+                            "id": "f7905b54-4c68-46c1-a359-282166d871fd",
+                            "requirements": "Euler-Maruyama discretization has been implemented to run the diffusion process backward",
+                            "weight": 1,
+                            "sub_tasks": [
+                                {
+                                    "id": "7c953e3a-a3ec-4c91-a897-c6691ed60a80",
+                                    "requirements": "Euler-Maruyama discretization has been implemented to run the diffusion process backward for Simformer",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "23d6d4c9-f750-4f5d-8965-b9c2277d5c6a",
+                                    "requirements": "500 steps are used in the Euler-Maruyama discretization process for Simformer",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                }
+                            ],
+                            "task_category": null
+                        }
+                    ],
+                    "task_category": null
+                },
+                {
+                    "id": "225db93c-4bf3-4b1c-b1fa-13ea37cb7513",
+                    "requirements": "The Simformer supports conditioning on intervals.",
+                    "weight": 1,
+                    "sub_tasks": [
+                        {
+                            "id": "32a938b0-0c5c-4e86-a1c0-966aa43d77a4",
+                            "requirements": "Algorithm 1 has been implemented such that conditioning on intervals can optionally be selected",
+                            "weight": 1,
+                            "sub_tasks": [
+                                {
+                                    "id": "386472cc-f299-4e46-89c9-95e9b9a4addf",
+                                    "requirements": "For conditioning on intervals, the self-recurrence is implemented such that a mutable hyperparameter $r$ specifies how many times future points undergo a forward diffusion step followed by a reverse step, incrementally refining each sample.",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "39362fd2-1f41-4f81-97ec-ce3c1e893502",
+                                    "requirements": "For conditioning on intervals, the constraint function is defined as $c(\\hat{x}) = \\hat{x} - u$, where $u$ is a mutable hyperparameter",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "091fd46a-e09e-4989-986b-2a14ba8b6e25",
+                                    "requirements": "For conditioning on intervals, the scaling function $s(t)$ is defined as $s(t)=\\frac{1}{\\sigma(t)^2)|$, i.e., inversely proportional to the variance",
+                                    "weight": 1,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                },
+                                {
+                                    "id": "58d5bd8c-e8c0-41d7-aa31-684e0e0ddc61",
+                                    "requirements": "Algorithm 1 has been fully implemented to sample from conditions specified by the constraint function.",
+                                    "weight": 3,
+                                    "sub_tasks": [],
+                                    "task_category": "Code Development"
+                                }
+                            ],
+                            "task_category": null
+                        },
+                        {
+                            "id": "f5b9aa3e-f51e-4071-ad3c-fa381e0c060b",
+                            "requirements": "Conditioning on intervals can optionally be used when sampling",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        }
+                    ],
+                    "task_category": null
+                }
+            ],
+            "task_category": null
+        }
+    ],
+    "task_category": null
+}

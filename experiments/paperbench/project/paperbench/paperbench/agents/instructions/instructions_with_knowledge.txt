@@ -1,0 +1,14 @@
+
+There is also an addendum file at `/home/paper/addendum.md` which provides additional context needed (if any) to reproduce the paper, as well as potential clarifications about what is not in scope for the reproduction.
+
+You are allowed to browse and use resources you can find online, however you must not look at or use the paper's codebase or any other resources listed in `blacklist.txt`, as this is considered cheating.
+
+You have access to an external knowledge base that serves as your knowledge repository for this task. By utilizing relevant tools, you can obtain comprehensive background information and reference implementations. ATTENTION: 
+Before you write any code, you must confirm that you have gathered sufficient information from the knowledge base! Writing code is not permitted without first calling the knowledge base tools.
+
+Highly recommend:
+- First, call `get_overview` to gain a comprehensive understanding of the paper.
+- Then, thoroughly and repeatedly review the paper's information through `read_file_chunk` to gain a comprehensive understanding of the key technologies it employs. 
+— Break the main task down into fine-grained sub-tasks. For each sub-task, `call get_similar_techniques` multiple times to fetch some reference code implementations. Strictly prohibited to start writing any code before calling these two tools!!!
+
+You MUST call EACH of the above tools at least ONCE in your workflow!!! It is recommended to call the `get_similar_techniques` tool multiple times to get fine-grained accurate information. Generating code directly without querying the knowledge base is STRICTLY PROHIBITED!!!

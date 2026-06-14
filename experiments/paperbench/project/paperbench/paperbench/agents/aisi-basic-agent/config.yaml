@@ -1,0 +1,255 @@
+env-config-vars: &env-config-vars
+  INSPECT_PY_LOGGER_FILE: /home/logs/inspect.log
+  INSPECT_PY_LOGGER_LEVEL: DEBUG
+  
+# Common settings for all aisi-basic-agent configurations
+common: &common_settings
+  start: aisi-basic-agent/start.sh
+  dockerfile: aisi-basic-agent/Dockerfile
+  mount_docker_socket: true
+
+# Note:  Just for short time testing, not for production use
+# Dev configurations
+
+aisi-basic-agent-openai-dev:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/gpt-4o-mini
+    MAX_TIME_IN_HOURS: 0.1
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+aisi-basic-agent-anthropic-dev:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: anthropic/claude-3-5-haiku-latest
+    MAX_TIME_IN_HOURS: 0.1
+    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+aisi-basic-agent-gemini-dev:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: google/gemini-1.5-pro-002
+    MAX_TIME_IN_HOURS: 0.1
+    GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+
+aisi-basic-agent-r1-dev:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openrouter/deepseek-ai/DeepSeek-R1
+    MAX_TIME_IN_HOURS: 0.5
+    OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+aisi-basic-agent-claude-3-7-sonnet-dev:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openrouter/anthropic/claude-3.7-sonnet:thinking
+    MAX_TIME_IN_HOURS: 0.1
+    OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+aisi-basic-agent-my-v3-dev:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/DMXAPI-HuoShan-DeepSeek-V3
+    MAX_TIME_IN_HOURS: 8
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+
+aisi-basic-agent-my-o3-dev:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 8
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+
+# Note: Official configurations for aisi-basic-agent, running for 12h
+# OpenAI
+
+aisi-basic-agent-4o:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/gpt-4o
+    MAX_TIME_IN_HOURS: 12
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+aisi-basic-agent-o1:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o1
+    MAX_TIME_IN_HOURS: 12
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+aisi-basic-agent-o3-mini:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 12
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+# Anthropic
+
+aisi-basic-agent-claude-3-5-sonnet:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openrouter/anthropic/claude-3.5-sonnet
+    MAX_TIME_IN_HOURS: 12
+    OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+aisi-basic-agent-claude-3-7-sonnet:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openrouter/anthropic/claude-3.7-sonnet:thinking
+    MAX_TIME_IN_HOURS: 12
+    OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+# Google
+
+aisi-basic-agent-geminevali-2.0-flash:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: google/gemini-2.0-flash
+    MAX_TIME_IN_HOURS: 12
+    GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+
+# DeepSeek
+
+aisi-basic-agent-r1:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openrouter/deepseek-ai/DeepSeek-R1
+    MAX_TIME_IN_HOURS: 12
+    OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+# Note: Official configurations for aisi-iterative-agent, running for 12h
+# IterativeAgent
+
+aisi-basic-agent-iterative-o1:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o1
+    MAX_TIME_IN_HOURS: 12
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    ITERATIVE_AGENT: true
+
+aisi-basic-agent-iterative-o3-mini:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 12
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    ITERATIVE_AGENT: true
+
+aisi-basic-agent-iterative-claude-3-5-sonnet:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openrouter/anthropic/claude-3.5-sonnet
+    MAX_TIME_IN_HOURS: 12
+    OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    ITERATIVE_AGENT: true
+
+aisi-basic-agent-iterative-claude-3-7-sonnet:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openrouter/anthropic/claude-3.7-sonnet:thinking
+    MAX_TIME_IN_HOURS: 12
+    OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    ITERATIVE_AGENT: true
+
+aisi-basic-agent-iterative-o1-pb-code-only:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o1
+    MAX_TIME_IN_HOURS: 12
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    ITERATIVE_AGENT: true
+    PB_CODE_ONLY: "true"
+
+aisi-basic-agent-iterative-my-o3-dev:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 8
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    ITERATIVE_AGENT: true
+
+aisi-basic-agent-iterative-my-v3-dev:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/DMXAPI-HuoShan-DeepSeek-V3
+    MAX_TIME_IN_HOURS: 3
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    ITERATIVE_AGENT: true
+
+aisi-basic-agent-iterative-my-o3-dev-test:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 3
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    ITERATIVE_AGENT: true
+
+
+# 这里是base agent
+aisi-basic-agent-my-o3:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 1
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+
+aisi-basic-agent-my-r1:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/deepseek-r1-0528
+    MAX_TIME_IN_HOURS: 1
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    
+# 这里是iterative agent
+aisi-basic-agent-iterative-my-o3:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 1
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    ITERATIVE_AGENT: true
+
+aisi-basic-agent-iterative-my-r1:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/deepseek-r1-0528
+    MAX_TIME_IN_HOURS: 1
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    ITERATIVE_AGENT: true

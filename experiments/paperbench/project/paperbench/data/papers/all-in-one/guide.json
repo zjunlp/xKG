@@ -1,0 +1,78 @@
+{
+  "paper_title": "All-in-one simulation-based inference",
+  "paper_abstract": "Amortized Bayesian inference trains neural networks to solve stochastic\ninference problems using model simulations, thereby making it possible to\nrapidly perform Bayesian inference for any newly observed data. However,\ncurrent simulation-based amortized inference methods are simulation-hungry and\ninflexible: They require the specification of a fixed parametric prior,\nsimulator, and inference tasks ahead of time. Here, we present a new amortized\ninference method -- the Simformer -- which overcomes these limitations. By\ntraining a probabilistic diffusion model with transformer architectures, the\nSimformer outperforms current state-of-the-art amortized inference approaches\non benchmark tasks and is substantially more flexible: It can be applied to\nmodels with function-valued parameters, it can handle inference scenarios with\nmissing or unstructured data, and it can sample arbitrary conditionals of the\njoint distribution of parameters and data, including both posterior and\nlikelihood. We showcase the performance and flexibility of the Simformer on\nsimulators from ecology, epidemiology, and neuroscience, and demonstrate that\nit opens up new possibilities and application domains for amortized Bayesian\ninference on simulation-based models.",
+  "techniques": [
+    {
+      "name": "Simformer",
+      "description": "Simformer is an end-to-end amortized simulation-based inference framework that combines transformer architectures with score-based diffusion models by learning the joint distribution p(θ,x) of simulator parameters θ and observations x and thereafter enables sampling from any conditional distribution—posterior, likelihood or parameter-only conditionals—without retraining. Each scalar parameter or data dimension is represented as a token comprising an identifier embedding, a value embedding and a binary conditional-state embedding; known conditional independencies of the simulator are encoded via an attention mask M_E, while arbitrary conditioning on observed versus unobserved tokens is controlled by a mask M_C. Training employs conditional denoising score matching: at each iteration a random conditioning mask M_C is sampled, the unobserved tokens are diffused to a noise level t, and the transformer-based score network s_φ^M_E(x_t^M_C, t) is trained to match the true marginal score ∇_{x_t} log p_t(x_t | x_0) on the unobserved dimensions (equations 1–2). During inference, observed tokens are clamped to their values and the reverse-time stochastic (or ordinary) differential equation is solved using s_φ and the attention masks to draw samples for the unobserved tokens. Simformer further supports guided diffusion to impose interval constraints on arbitrary functions of x—for example, an energy cost—by augmenting the score with the gradient ∇_x log σ(−s(t)·c(˜x_0)), thus providing a highly flexible “all-in-one” inference method that can generate any conditional of the joint distribution without additional training.",
+      "code": null,
+      "weight": 0.625,
+      "components": [
+        {
+          "name": "Tokenizer for SBI",
+          "description": "The Tokenizer for SBI encodes each scalar parameter or observation into a fixed‐length token vector comprising three distinct embeddings: first, an identifier embedding that unambiguously denotes the variable’s identity—when the variable is function‐valued, this embedding is augmented with a positional or Fourier embedding reflecting its index; second, a value embedding that represents the scalar magnitude of the variable; and third, a binary conditional‐state embedding that signals whether the variable is considered observed (and thus conditioned upon) or treated as latent (and to be sampled). To ensure the model can flexibly represent a wide range of conditional distributions, the binary conditional‐state mask M_C is resampled independently for each training example, thereby exposing the network to arbitrary patterns of observed and unobserved variables during training.",
+          "code": null,
+          "weight": 0.125,
+          "components": []
+        },
+        {
+          "name": "Dependency-aware Attention Mask",
+          "description": "Dependency-aware Attention Mask constructs a structured attention mask M_E for transformer architectures that encodes known conditional independencies derived from the simulator’s graphical model over latent parameters θ and observations x. The mask can be defined as either undirected (symmetric) or directed (acyclic) and is updated dynamically during conditioning so that, for any subset of observed or unobserved variables, only attention paths consistent with the simulator’s dependency relations are allowed. By constraining the transformer’s receptive field to follow valid dependency paths, the Dependency-aware Attention Mask ensures that message passing respects the simulator’s structure, thereby enhancing sample efficiency in simulation-based inference.",
+          "code": null,
+          "weight": 0.125,
+          "components": []
+        },
+        {
+          "name": "Conditional Denoising Score-Matching Training",
+          "description": "Conditional Denoising Score-Matching Training trains a transformer-based score network sφM_E(x_t^{M_C}, t) on the joint distribution p(θ, x) and over a distribution of binary conditioning masks M_C by minimizing the expected squared error between the network’s denoising prediction and the true score under partial observation. Specifically, in each minibatch one samples a random mask M_C, draws a clean data sample x₀ ∼ p(x), and constructs a partially noised input x_t^{M_C} = (1 – M_C) · x_t + M_C · x₀ by diffusing unobserved components (where M_C = 0) to noise level t while preserving observed components (where M_C = 1) at their original values. The training loss is then given by the mean squared error of the masked network output against the analytical score, namely ‖(1 – M_C) · [sφM_E(x_t^{M_C}, t) – ∇_{x_t} log p_t(x_t|x₀)]‖², averaged over noise levels t, clean samples x₀, noisy samples x_t and conditioning masks M_C. This unified loss integrates both conditional and unconditional score matching within a single framework (see Equations 1–2).",
+          "code": null,
+          "weight": 0.125,
+          "components": []
+        },
+        {
+          "name": "All-Conditional Sampling via Reverse Diffusion",
+          "description": "All-Conditional Sampling via Reverse Diffusion refers to a procedure that, given a pre-trained score network sₚhi(x, t) together with a conditioning mask M_C and corresponding observed values x_obs, infers the remaining unobserved dimensions by first initializing those dimensions at the maximum noise level T with independent Gaussian samples and then integrating the reverse-time stochastic differential equation dx_t = [f(x_t, t) − g(t)² sₚhi(x_t, t)] dt + g(t) dȳ_t over t ∈ [T, 0], while at every integration step clamping the dimensions indicated by M_C to their observed values x_obs. This continuous integration yields exact samples from the conditional distribution p(x_unobserved | x_observed) for any user-specified conditioning mask, thereby enabling posterior, likelihood or arbitrary parameter-data conditional sampling without any retraining of the score network.",
+          "code": null,
+          "weight": 0.125,
+          "components": []
+        },
+        {
+          "name": "Diffusion Guidance for Interval Constraints",
+          "description": "Diffusion Guidance for Interval Constraints imposes arbitrary inequality constraints c(x)≤0 (for example, bounding a simulator‐derived statistic) during the sampling process by augmenting the learned score sφ(x_t,t) with a constraint‐driven correction term. Specifically, the conditioned score at noise level t is approximated as  \ns(x_t,t | c) ≈ sφ(x_t,t) + ∇_{x_t} ∑_{i} log σ(− s(t)·c_i(ẋ₀)),  \nwhere ẋ₀ is the denoised estimate of the latent state at time t, σ denotes the sigmoid function, and s(t) is a time‐dependent scaling function that diverges as t→0 to enforce increasingly strict adherence to the constraint. Optionally, a self‐recurrence mechanism—implemented as an r‐step predictor–corrector loop—can be applied to iteratively refine the satisfaction of the interval constraints. This formulation enables on‐the‐fly conditioning on observation intervals or post‐hoc modifications of the prior or likelihood without any need for retraining the underlying diffusion model.",
+          "code": null,
+          "weight": 0.125,
+          "components": []
+        }
+      ]
+    },
+    {
+      "name": "Structured Joint Score Estimation",
+      "description": "Structured Joint Score Estimation models the joint distribution p(θ,x) via a score‐based diffusion model applied to the concatenated variable vector x̂ = (θ,x). By training the model directly on the joint density, a single neural network learns to approximate the gradient of the log joint density and can then produce conditional score estimates for any choice of observed and latent variables by applying appropriate masks to x̂. This unified approach contrasts with traditional simulation‐based inference methods, which train separate networks either to approximate the likelihood (neural likelihood estimation) or to approximate the posterior (neural posterior estimation), thereby enabling flexible inference under a single trained model.",
+      "code": null,
+      "weight": 0.125,
+      "components": []
+    },
+    {
+      "name": "Score Decomposition for Post-hoc Prior/Likelihood Modification",
+      "description": "Score Decomposition for Post-hoc Prior/Likelihood Modification expresses the posterior score ∇_θ log p_t(θ|x) as the sum of a prior score and a likelihood score, namely ∇_θ log p_t(θ|x)=∇_θ log p_t(θ)+∇_θ log p_t(x|θ). In this approach, the learned score functions s_φ(θ,t|x) and s_φ(θ,t) are combined and reparameterized by scalar coefficients α₁, β₁, α₂ and β₂ to approximate the score of a modified posterior p_tᵅ,ᵝ(θ|x) via  \n  ∇_θ log p_tᵅ,ᵝ(θ|x) ≈ α₁·(s_φ(θ,t)+β₁) + α₂·(s_φ(θ,t|x)−s_φ(θ,t)+β₂),  \nthus enabling rapid, post-training exploration of alternative prior or likelihood configurations (see equation 6).",
+      "code": null,
+      "weight": 0.125,
+      "components": []
+    },
+    {
+      "name": "Tokenized Functional Parameter Embedding",
+      "description": "Tokenized Functional Parameter Embedding handles infinite-dimensional, function-valued parameters—such as time-varying contact rates—by discretizing the function at a collection of sampled indices and representing each sampled function value as a distinct token. For each token, its identifier embedding incorporates random Fourier features computed from the token’s index, thereby providing continuous positional encodings that equip the transformer with the ability to interpolate the underlying function arbitrarily across its entire domain.",
+      "code": null,
+      "weight": 0.125,
+      "components": []
+    }
+  ],
+  "resources": [],
+  "findings": [
+    "Finding: Simulation Efficiency and Accuracy: Simformer achieves higher posterior inference accuracy than Neural Posterior Estimation (NPE) across four standard benchmark tasks (Gaussian linear, Gaussian mixture, Two Moons, SLCP) while requiring ≈10× fewer simulator calls. Incorporating structured attention masks further improves accuracy on tasks with sparse dependency graphs.",
+    "Finding: All-Conditional Capability: A single trained Simformer network can sample arbitrary conditionals of the joint p(θ,x) (posterior, likelihood, partial observations, parameter-only conditionals, etc.) without retraining, demonstrated on toy and benchmark tasks with complex multimodal shapes and high cardinality of possible conditionals.",
+    "Finding: Unstructured Data Inference: Simformer can perform amortized Bayesian inference on unstructured and irregularly sampled time-series data with missing entries (e.g., Lotka–Volterra predator–prey observations at random times), recovering accurate posteriors and posterior predictives without preprocessing or summary statistics.",
+    "Finding: Infinite-Dimensional Parameter Inference: By treating functional parameters as token sequences with positional embeddings, Simformer infers time-varying parameters (e.g., contact rate in a SIRD epidemiological model) and recovers realistic posterior distributions over both global and local (time-dependent) parameters from sparse observations.",
+    "Finding: Interval-Constrained Inference via Guidance: Using guided diffusion, Simformer can condition on inequality constraints (e.g., restricting metabolic energy below a threshold in the Hodgkin–Huxley neuron model) to obtain posteriors that satisfy additional interval observations, enabling post-hoc parameter conditioning without simulator retraining."
+  ]
+}

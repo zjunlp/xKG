@@ -1,0 +1,51 @@
+{
+  "paper_title": "Stay on topic with Classifier-Free Guidance",
+  "paper_abstract": "Classifier-Free Guidance (CFG) has recently emerged in text-to-image\ngeneration as a lightweight technique to encourage prompt-adherence in\ngenerations. In this work, we demonstrate that CFG can be used broadly as an\ninference-time technique in pure language modeling. We show that CFG (1)\nimproves the performance of Pythia, GPT-2 and LLaMA-family models across an\narray of tasks: Q\\&A, reasoning, code generation, and machine translation,\nachieving SOTA on LAMBADA with LLaMA-7B over PaLM-540B; (2) brings improvements\nequivalent to a model with twice the parameter-count; (3) can stack alongside\nother inference-time methods like Chain-of-Thought and Self-Consistency,\nyielding further improvements in difficult tasks; (4) can be used to increase\nthe faithfulness and coherence of assistants in challenging form-driven and\ncontent-driven prompts: in a human evaluation we show a 75\\% preference for\nGPT4All using CFG over baseline.",
+  "techniques": [
+    {
+      "name": "Classifier-Free Guidance for Autoregressive Language Models",
+      "description": "p̂(w | c) ∝ p(w)·p(c | w)ᵞ \nwhich is approximated with classifier‐free guidance as \np̂(w | c) ∝ p(w | c)ᵞ / p(w)^(ᵞ––1). \nIn the autoregressive setting, this factorizes across tokens to yield \np̂ₜₕₑₜₐ(wᵢ | w_<i, c) ∝ pₜₕₑₜₐ(wᵢ | w_<i, c)ᵞ / pₜₕₑₜₐ(wᵢ | w_<i)^(ᵞ––1), \nwhose equivalent log‐probability form is \nlog p̂ₜₕₑₜₐ(wᵢ | w_<i, c) = log pₜₕₑₜₐ(wᵢ | w_<i) + γ·[log pₜₕₑₜₐ(wᵢ | w_<i, c) – log pₜₕₑₜₐ(wᵢ | w_<i)], \nwith γ ≥ 1 controlling the strength of guidance. Sampling from this guided distribution at each step yields continuations that remain more on‐topic with respect to the prompt c, leveraging the language model’s native ability to compute both conditional and unconditional distributions without requiring any auxiliary classifier or fine‐tuning.",
+      "code": null,
+      "weight": 1.0,
+      "components": [
+        {
+          "name": "Next-Token Classifier-Free Guidance Sampling",
+          "description": "Next-Token Classifier-Free Guidance Sampling operates by performing two parallel forward passes through an autoregressive language model at each generation step i: one unconditional pass that computes l_un = log P_θ(w_i | w_<i) by omitting the conditioning prompt c, and one conditional pass that computes l_cond = log P_θ(w_i | w_<i, c) by including c as additional context. These two sets of logits are then linearly combined according to the guidance strength γ via the equation l_guided = l_un + γ (l_cond − l_un), which equivalently yields l_guided = (1 − γ) l_un + γ l_cond; setting γ = 0 recovers fully unconditional sampling, γ = 1 recovers standard conditional sampling, and γ > 1 places greater emphasis on the prompt. The elements of l_guided are exponentiated and normalized to form a probability distribution softmax(l_guided), from which w_i is sampled. By exploiting the model’s intrinsic ability to generate both P_θ(w|c) and P_θ(w) over finite context windows, this method avoids external classifiers or gradient-based guidance and remains architecture-agnostic, performing semantic vector arithmetic directly in logit space to steer text generation toward the desired conditioning.",
+          "code": null,
+          "weight": 0.25,
+          "components": []
+        },
+        {
+          "name": "Negative Prompting Extension",
+          "description": "The Negative Prompting Extension generalizes classifier-free guidance by introducing a negative conditioning \\overline{c}, which encodes content that the user wishes the model to avoid, alongside the desired conditioning c. At each autoregressive sampling step i, the guided logit for generating token w is computed as\n\n log \\hat p(w | w_{<i}, c, \\overline{c}) = log p_θ(w | w_{<i}, \\overline{c}) + γ [ log p_θ(w | w_{<i}, c) – log p_θ(w | w_{<i}, \\overline{c}) ],\n\nwhere γ is the guidance strength. In practice, one first computes the model’s logits under the negative prompt \\overline{c}, then adds γ times the difference between the logits under the positive prompt c and those under \\overline{c}. This operation effectively steers the generation away from undesired content and toward the target prompt, enabling fine-grained emphasis control without any modification to the underlying model or its training procedure.",
+          "code": null,
+          "weight": 0.25,
+          "components": []
+        },
+        {
+          "name": "Logit-Space Guidance Arithmetic",
+          "description": "\\[\n\\log\\hat{p} \\;=\\;(1-\\gamma)\\,l_{\\mathrm{un}} \\;+\\;\\gamma\\,l_{\\mathrm{cond}}\\,.\n\\]\nIn the case of diffusion models predicting noise \\(\\epsilon_t\\), this corresponds to  \n\\[\n\\log\\widehat{\\Pr}_\\theta(\\epsilon_t\\mid x_{t+1},c)\n  =\\log\\Pr_\\theta(\\epsilon_t\\mid x_{t+1})\n   +\\gamma\\bigl(\\log\\Pr_\\theta(\\epsilon_t\\mid x_{t+1},c)\n   -\\log\\Pr_\\theta(\\epsilon_t\\mid x_{t+1})\\bigr),\n\\]\nwhich is algebraically equivalent to \\((1-\\gamma)\\log\\Pr_\\theta(\\epsilon_t\\mid x_{t+1})+\\gamma\\log\\Pr_\\theta(\\epsilon_t\\mid x_{t+1},c)\\).  Likewise, for autoregressive language models one computes at each token \\(i\\)  \n\\[\n\\log\\widehat{\\Pr}_\\theta(w_i\\mid w_{<i},c)\n  =\\log\\Pr_\\theta(w_i\\mid w_{<i})\n   +\\gamma\\bigl(\\log\\Pr_\\theta(w_i\\mid w_{<i},c)\n   -\\log\\Pr_\\theta(w_i\\mid w_{<i})\\bigr),\n\\]\ntreating the token‐prediction logits as the latent representation.  Moreover, the “unconditional” anchor may be replaced by any alternative representation—such as a negative prompt \\(\\overline{c}\\)—leading to the generalized form  \n\\[\n\\log\\widehat{\\Pr}_\\theta(\\,\\cdot\\mid c,\\overline{c})\n  =\\log\\Pr_\\theta(\\,\\cdot\\mid \\overline{c})\n   +\\gamma\\bigl(\\log\\Pr_\\theta(\\,\\cdot\\mid c)\n   -\\log\\Pr_\\theta(\\,\\cdot\\mid \\overline{c})\\bigr).\n\\]\nThis arithmetic view highlights the efficacy of semantic vector linear interpolation that has been demonstrated across GANs, diffusion models, and autoregressive language models.",
+          "code": null,
+          "weight": 0.25,
+          "components": []
+        },
+        {
+          "name": "CFG Distribution Visualization",
+          "description": "The CFG Distribution Visualization technique computes, at each decoding step i, the difference δ(v) = log pₓ(v | w<sub><i</sub>, c) – log pₓ(v | w<sub><i</sub>, overline c) (where overline c is typically chosen as the empty or baseline prompt), ranks the entire vocabulary by these log‐probability differences, and then displays the top‐k tokens with the largest positive δ(v) alongside the bottom‐k tokens with the most negative δ(v). By plotting these upweighted and downweighted tokens at each time step, the method reveals which tokens Classifier‐Free Guidance is encouraging or discouraging relative to vanilla, unconditioned sampling. In practical application, one supplies the model with a target prompt c (for example, “The dragon flew over Paris, France”) and sets the baseline prompt overline c to the empty string; at each token position, the vocabulary is sorted by δ(v) to extract, for instance, the five highest‐scoring and five lowest‐scoring tokens, which are then visually annotated (e.g., tokens related to “dragon” or “Paris” are highlighted in red for upweighting, while those related to other regions or topics such as “Queensland” or “1913” are highlighted in blue for downweighting). This visualization provides an interpretable, step‐by‐step view of how CFG reorders the vocabulary distribution during autoregressive text generation.",
+          "code": null,
+          "weight": 0.25,
+          "components": []
+        }
+      ]
+    }
+  ],
+  "resources": [],
+  "findings": [
+    "Entropy Reduction and Top-p Concentration: Classifier-Free Guidance lowers the entropy of the model’s next-token sampling distribution relative to vanilla prompt conditioning (for gamma>1). Empirically, CFG with gamma=1.5 reduces average token entropy from ~5.4 bits to ~4.7 bits, and shrinks the size of the top-p=0.9 vocabulary by roughly 50%, indicating stronger focus on fewer high-probability tokens.",
+    "Comparable Performance to Doubling Model Size at Equal Inference FLOPs: Across nine zero-shot NLP benchmarks, a model using CFG (which roughly doubles inference FLOPs) matches or exceeds the performance of a model twice its parameter count without CFG. Statistical analysis (ANCOVA, p>0.01 for 5/9 tasks) shows no significant accuracy difference, implying CFG can halve required model size for a target performance at fixed compute.",
+    "Zero-Shot Benchmark Improvements: Applying CFG (gamma=1.5) to GPT-2, Pythia, and LLaMA families on eight EleutherAI Harness benchmarks yields nontrivial accuracy gains on all but two tasks (ARC-challenge, Winogrande). Notably, LLaMA-7B+CFG achieves 81.3% on LAMBADA zero-shot—surpassing PaLM-540B and GPT-3-175B zero-shot state-of-the-art.",
+    "Chain-of-Thought Reasoning Stabilization: When applied to few-shot Chain-of-Thought prompts on GSM8K and AQuA with open-source LLMs (WizardLM-30B, Guanaco-65B), CFG (gamma≈1.1) increases the fraction of generated reasoning chains that end in parsable answers and improves overall arithmetic accuracy, reducing drift in multi-step reasoning.",
+    "Long-Form Text and Code Generation Enhancement: In text-to-text generation (e.g. code synthesis, machine translation), low CFG strengths (gamma≈1.1–1.5) boost pass@1 rates on the HumanEval Python benchmark for CodeGen models and improve BLEU scores on WMT14 fr-en translations for multilingual LMs, demonstrating CFG’s effectiveness in enforcing prompt adherence over longer continuations.",
+    "Multi-Stage Prompt Adherence with Negative Prompting: In a human evaluation over 1,740 randomly paired system/user prompts on GPT4All, negative prompting (using the default system prompt as c̄ and an edited system prompt as c) with CFG (gamma≈3) led to 75% preference for adhering to the edited system prompt without degrading user-prompt relevance, showing CFG can reconcile out-of-distribution system directives."
+  ]
+}

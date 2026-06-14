@@ -1,0 +1,85 @@
+nohup: ignoring input
+正在处理: rice
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/rice/paper.pdf
+runtime: 272.151 seconds 
+done.
+正在处理: statemask
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/rice/judge/statemask/paper.pdf
+runtime: 69.754 seconds 
+done.
+正在处理: jsrl
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/rice/judge/jsrl/paper.pdf
+runtime: 22.416 seconds 
+done.
+正在处理: sequential-neural-score-estimation
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/sequential-neural-score-estimation/paper.pdf
+runtime: 50.033 seconds 
+done.
+正在处理: sapg
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/sapg/paper.pdf
+runtime: 30.403 seconds 
+done.
+正在处理: mechanistic-understanding
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/mechanistic-understanding/paper.pdf
+runtime: 24.19 seconds 
+done.
+正在处理: self-expansion
+//disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/self-expansion/paper.pdf
+runtime: 32.415 seconds 
+done.
+正在处理: stochastic-interpolants//disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/stochastic-interpolants/paper.pdf
+runtime: 15.263 seconds 
+done.
+正在处理: stay-on-topic-w/disk/disk_20T/luoyujie/prepa/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/stay-on-topic-with-classifier-free-guidance/paper.pdf
+runtime: 43.668 seconds 
+done.
+正在处�/disk/disk_20T/luoyujie/prepa/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/semantic-self-consistency/paper.pdf
+runtime: 36.024 secon/disk/disk_20T/luoyujie/prepa/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/lbcs/paper.pdf
+runtime: 20.869 seconds 
+done./disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/lca-on-the-line/paper.pdf
+runtime: 40.597 seconds 
+done.
+正在处理: what-will-my-model-forget
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/what-will-my-model-forget/paper.pdf
+runtime: 19.319 seconds 
+done.
+正在处理: self-composing-policies
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/self-composing-policies/paper.pdf
+runtime: 50.609 seconds 
+done.
+正在处理: ftrl
+/disk/disk_20T/luoyujie/prepar/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/ftrl/paper.pdf
+runtime: 42.823 seconds 
+done.
+正在/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/sample-specific-masks/paper.pdf
+runtime: 41.185 seconds 
+done.
+正在处理: test-time-model-adaptation
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/test-time-model-adaptation/paper.pdf
+runtime: 41.74 seconds 
+done.
+正在处理: robust-clip
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/robust-clip/paper.pdf
+runtime: 18.486 seconds 
+done.
+正在处理: bridging-data-gaps
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/bri/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/bbox/pap/disk/disk_20T/luoyujie/preparedness/project/paperbench//disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/fre/paper.pdf
+runtime: 25.583 seconds 
+done.
+正在处理: all-/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/all-in-one/paper.pdf
+runtime: 55.109 seconds 
+done.
+正在处理: adaptive-pruning
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/adaptive-pruning/paper.pdf
+runtime: 39.893 seconds 
+done.
+正在处理: bam
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/bam/paper.pdf
+runtime: 37.071 seconds 
+done.
+正在处理: pinn
+/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers/pinn/paper.pdf
+runtime: 40.944 seconds 
+done.
+
+done.

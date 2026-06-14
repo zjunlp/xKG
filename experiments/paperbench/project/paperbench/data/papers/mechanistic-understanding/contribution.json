@@ -1,0 +1,197 @@
+{
+    "id": "0d99d4ba-1b8e-4975-a285-6bea71c68933",
+    "requirements": "The paper has been fully reproduced.",
+    "weight": 1,
+    "sub_tasks": [
+        {
+            "id": "0a491f9b-ee24-489d-942c-c9b29bf552ce",
+            "requirements": "Toxic vectors have been extracted from the GPT2-medium model.",
+            "weight": 4,
+            "sub_tasks": [
+                {
+                    "id": "43025025-a63d-459d-aca6-f8995151fa36",
+                    "requirements": "A linear probe model for classifying toxicity has been trained and validated.",
+                    "weight": 1,
+                    "sub_tasks": [
+                        {
+                            "id": "14994612-f5c9-4578-91ca-d9670a4b42c2",
+                            "requirements": "The code for a binary classifier of the form softmax(Wx) has been implemented to classify tokens as toxic or non toxic.",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        },
+                        {
+                            "id": "627f8d87-0aed-4cb5-a29e-8208c3bc9871",
+                            "requirements": "The classifier takes as input, x, the residual stream in the last layer, averaged across all timesteps.",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        },
+                        {
+                            "id": "5614c277-43cb-4f54-afef-2af137f8e4a2",
+                            "requirements": "The dimensionality of W is Kx2, where if W[:,0] refers to the non-toxic toxic vectors, then W[:,1] refers to the toxic vectors, and vice-versa.",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        },
+                        {
+                            "id": "b54834e0-a42b-4a51-84cf-8fb9d185dd07",
+                            "requirements": "The code for training the linear probe model has been implemented.",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        }
+                    ],
+                    "task_category": null
+                },
+                {
+                    "id": "b82ab785-071b-4822-a9ce-3c1e3c27e3f1",
+                    "requirements": "The matrices with 128 toxic value vectors, denoted MLP.vToxic, and corresponding key vectors, MLP.kToxic, have been created for GPT2. ",
+                    "weight": 1,
+                    "sub_tasks": [
+                        {
+                            "id": "bbdb4b01-fdf3-4879-bc5c-c59bcc6c12c2",
+                            "requirements": "The code for calculating the 128 value vectors with largest cosine similarity to the toxic vector of the matrix W have been implemented.",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        },
+                        {
+                            "id": "224d730e-1525-4749-bdea-0b802618a861",
+                            "requirements": "The 128 value vectors with largest cosine similarity to W have been identified. We refer to this set of vectors as MLP.vToxic. The corresponding 128 key vectors have been identified. We refer to this set of vectors as MLP.kToxic.",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Execution"
+                        }
+                    ],
+                    "task_category": null
+                },
+                {
+                    "id": "52405a4e-16cf-40f5-bff5-8ebe9bb01c66",
+                    "requirements": "The matrix MLP.vToxic has been decomposed using SVD to obtain the vectors SVD.Utoxic for GPT2. ",
+                    "weight": 1,
+                    "sub_tasks": [
+                        {
+                            "id": "1a8266f6-fe17-4638-8b69-d338648a3286",
+                            "requirements": "The code for doing SVD decomposition on MLP.vToxic has been implemented. ",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Development"
+                        },
+                        {
+                            "id": "d8b9792d-eb88-4d68-baea-bc2d46e69710",
+                            "requirements": "The matrix MLP.vToxic has been decomposed using SVD and the left singular vectors has been extracted. We denote these vectors as SVD.Utoxic. ",
+                            "weight": 1,
+                            "sub_tasks": [],
+                            "task_category": "Code Execution"
+                        }
+                    ],
+                    "task_category": null
+                }
+            ],
+            "task_category": null
+        },
+        {
+            "id": "efe7a68a-0835-4bbd-a165-081f1187fbb5",
+            "requirements": "Results in Table 2 have been reproduced.",
+            "weight": 1,
+            "sub_tasks": [
+                {
+                    "id": "52cf0416-3bcb-4e08-a5ee-e6b8e7cdf6d5",
+                    "requirements": "The code for substracting a toxic vector from GPT2 has been implemented as described in Section 3.3.",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Development"
+                },
+                {
+                    "id": "857de788-24d2-4ef1-8c63-7a7e57e19f05",
+                    "requirements": "Toxicity vector W has been substracted from the last hidden state of GPT2 using an alpha value so that perplexity is on par with post DPO model. The toxicity score, perplexity and F1 have been measured.",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution"
+                },
+                {
+                    "id": "f96df334-5abc-419c-8cd4-0a7fe4e5d3bb",
+                    "requirements": "The MLP.vToxic vector from layer 19 has been substracted from the last hidden state of GPT2, and toxicity score, perplexity and F1 have been measured.",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution"
+                },
+                {
+                    "id": "2d5a1c2d-1fca-4f99-ad28-f98d43362365",
+                    "requirements": "The first vector from SVD.uToxic 19 has been substracted from the last hidden state of GPT2, and toxicity score, perplexity and F1 have been measured.",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution"
+                },
+                {
+                    "id": "8e05158f-91c6-4c55-89e1-3d072f5d0b13",
+                    "requirements": "Substracting any of the toxic vectors also reduce toxicity, but not as much as DPO.",
+                    "weight": 2,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis"
+                }
+            ],
+            "task_category": null
+        },
+        {
+            "id": "75e1fb67-c879-47c9-b1e6-96d84e6470fc",
+            "requirements": "Examples in Table 3 have been replicated.",
+            "weight": 1,
+            "sub_tasks": [
+                {
+                    "id": "a9267407-e676-4644-928b-16756a6586bb",
+                    "requirements": "The code for substracting a vector in MLP.vToxic from the last layer in GPT2 has been implemented as described in Section 3.3.",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Development"
+                },
+                {
+                    "id": "0e548c9c-d25d-4aac-80f1-036c937d96db",
+                    "requirements": "MLP.vToxic from layer 19 has been subtracted from the last layer of GPT2.",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution"
+                },
+                {
+                    "id": "63b23796-e968-44cd-8988-7d79e6c0fd84",
+                    "requirements": "After subtracting MLP.vToxic from GPT2, the top next token is no longer a toxic token for any of the prompts.",
+                    "weight": 2,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis"
+                }
+            ],
+            "task_category": null
+        },
+        {
+            "id": "832fea31-2bfe-4b32-acc9-f4187e3527cc",
+            "requirements": "The results in table 4 have been replicated.",
+            "weight": 1,
+            "sub_tasks": [
+                {
+                    "id": "2846e181-2992-4d1f-8565-594b90bfc816",
+                    "requirements": "The code for un-aligning the GPT2 by scaling by 10 the 7 MLP vector with highest cosine similarity to the toxic matrix W has been implemented",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Development"
+                },
+                {
+                    "id": "f8abf2cd-b887-4d61-a1c4-73fd94fab436",
+                    "requirements": "GPT2 fine-tuned with DPO has been unaligned using the toxic key vector from W.",
+                    "weight": 1,
+                    "sub_tasks": [],
+                    "task_category": "Code Execution"
+                },
+                {
+                    "id": "b4c1e9c4-dc27-4548-84b3-5cdf7f6aad22",
+                    "requirements": "GPT2 fine-tuned with DPO shows a decrease in the toxic score. sHowever, when un-aligning with the key vectors of the MLP block corresponding to toxic vector W, it shows a similar toxic score as the original GPT2, while maintaining a similar perplexity, and F1 score.",
+                    "weight": 2,
+                    "sub_tasks": [],
+                    "task_category": "Result Analysis"
+                }
+            ],
+            "task_category": null
+        }
+    ],
+    "task_category": null
+}

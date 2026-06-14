@@ -1,0 +1,88 @@
+{
+    "paper_title": "Sample-specific Masks for Visual Reprogramming-based Prompting",
+    "paper_abstract": "Visual reprogramming (VR) is a prompting technique that aims to re-purpose a pre-trained model (e.g., a classifier on ImageNet) to target tasks (e.g., medical data prediction) by learning a small-scale pattern added into input images instead of tuning considerable parameters within the model. The location of the pattern within input samples is usually determined by a pre-defined mask shared across all samples. In this paper, we show that the shared mask potentially limits VR's generalization and increases its approximation error due to the lack of sample-level adaptation. Motivated by this finding, we design a new framework for VR called sample-specific multi-channel masks (SMM). Specifically, SMM employs a lightweight ConvNet and patch-wise interpolation to generate sample-specific three-channel masks instead of a shared and pre-defined mask. Since we generate different masks for individual samples, SMM is theoretically shown to reduce approximation error for the target tasks compared with existing state-of-the-art VR methods. We also empirically demonstrate its performance gain on both ResNet and ViT. The success of SMM further highlights the broader applicability of VR in leveraging the latent knowledge of pre-trained models for various target tasks. Our code is available at https://github.com/tmlr-group/SMM.",
+    "paper_references": [
+      "Model reprogramming Resource efficient cross domain machine learning",
+      "Exploring visual prompts for adapting large scale models",
+      "Understanding and improving visual prompting A label mapping perspective",
+      "Adversarial Reprogramming of Neural Networks",
+      "Transfer learning without knowing Reprogramming black box machine learning models with scarce data and limited resources",
+      "Adversarial reprogramming of text classification neural networks",
+      "WARP Word level adversarial reprogramming",
+      "Voice2series Reprogramming acoustic models for time series classification",
+      "From English to More Languages Parameter Efficient Model Reprogramming for Cross Lingual Speech Recognition",
+      "Low Resource Music Genre Classification with Cross Modal Neural Model Reprogramming",
+      "Neural Model Reprogramming with Similarity Based Mapping for Low Resource Spoken Command Recognition",
+      "Cross modal adversarial reprogramming",
+      "Fairness reprogramming",
+      "Watermarking for Out of distribution Detection",
+      "An image is worth 16x16 words Transformers for image recognition at scale",
+      "Visual prompt tuning",
+      "E 2VPT An Effective and Efficient Approach for Visual Prompt Tuning",
+      "Learning transferable visual models from natural language supervision",
+      "Learning to prompt for vision language models",
+      "Conditional prompt learning for vision language models",
+      "Maple Multi modal prompt learning",
+      "TransHP Image Classification with Hierarchical Prompting",
+      "Deep residual learning for image recognition",
+      "Imagenet A large scale hierarchical image database",
+      "Automated flower classification over a large number of classes",
+      "Describing textures in the wild",
+      "UCF101 A dataset of 101 human actions classes from videos in the wild",
+      "Food 101 mining discriminative components with random forests",
+      "Detection of traffic signs in real world images The German Traffic Sign Detection Benchmark",
+      "Reading digits in natural images with unsupervised feature learning",
+      "EuroSAT A novel dataset and deep learning benchmark for land use and land cover classification",
+      "Cats and dogs",
+      "Sun database Large scale scene recognition from abbey to zoo",
+      "3d object representations for fine grained categorization",
+      "Learning Multiple Layers of Features from Tiny Images",
+      "Visualizing data using t SNE",
+      "AutoVP an automated visual prompting framework and benchmark",
+      "Do better imagenet models transfer better",
+      "Transfer learning using vgg 16 with deep convolutional neural network for classifying images",
+      "Efficient Equivariant Transfer Learning from Pretrained Models",
+      "Three Towers Flexible Contrastive Learning with Pretrained Image Models",
+      "Equivariant adaptation of large pre trained models",
+      "Estimating the Bayes Risk from Sample Data",
+      "An introduction to computational learning theory",
+      "An Interactive Journey into Machine Learning",
+      "Bilinear interpolation Wikipedia The Free Encyclopedia",
+      "LoRA Low Rank Adaptation of Large Language Models",
+      "Melo Low rank adaptation is better than fine tuning for medical image diagnosis"
+    ],
+    "techniques": [
+      {
+        "name": "Sample-specific Multi-channel Masks (SMM)",
+        "description": "Sample-specific Multi-channel Masks (SMM) is an end-to-end visual reprogramming framework that replaces the single shared binary mask used in prior input-space prompting with a per-sample generative three-channel mask. It begins by resizing each target-domain image x_i to the classifier’s input size via r(x_i), yielding spatial dimensions H×W. A lightweight convolutional neural network mask generator f_mask(·|φ), equipped with l pooling layers and a bespoke architecture, processes r(x_i) to output a three-channel mask of size ⌊H/2^l⌋×⌊W/2^l⌋, with the last layer explicitly configured to accommodate both rich-color (e.g., CIFAR10/100) and monotonous-color (e.g., SVHN) images. When the mask’s spatial dimensions differ from H×W, a patch-wise interpolation module upsamples the mask by replicating each value across non-overlapping patches of size 2^l×2^l on a ⌊H/2^l⌋×⌊W/2^l⌋ grid, preserving local consistency and avoiding gradient interpolation overhead. A shared learnable pattern δ of size H×W is initialized to zero and applied element-wise to the resized image through f_in(x_i;φ,δ)=r(x_i)+δ⊙f_mask(r(x_i)|φ). The resulting reprogrammed image is passed through the fixed pre-trained classifier f_P and a label-mapping function f_out, yielding the loss ℓ(f_out(f_P(f_in(x_i;φ,δ))),y_i). The mask generator parameters φ (randomly initialized) and the pattern δ are jointly optimized by gradient descent over E iterations—with learning rate α_1 for δ and α_2 for φ—to minimize the average target-task loss L(δ,φ)=1/n∑_{i=1}^nℓ(f_out(f_P(f_in(x_i;φ,δ))),y_i). By combining a global pattern δ for shared reprogramming capacity and sample-specific masks generated by f_mask, SMM achieves adaptive, per-sample modifications while retaining the generality of a single learnable perturbation.",
+        "code": null,
+        "weight": 1.0,
+        "components": [
+          {
+            "name": "Mask Generator Module",
+            "description": "The mask generator module is a lightweight convolutional neural network fₘₐₛₖ(·|φ) that accepts as input the resized target image r(x) of resolution H×W and yields a three‐channel mask of size ⌊H/2ˡ⌋×⌊W/2ˡ⌋×3, where l denotes the number of 2×2 max‐pooling layers. Its architecture comprises five (for ResNet‐based models) or six (for ViT‐based models) successive 3×3 convolutional layers (stride = 1, padding = 1) that preserve spatial dimensions, interleaved with up to three max‐pooling layers (kernel size = 2, stride = 2, padding = 0) each halving the height and width of feature maps. The final convolution produces the three output channels of the mask. In concrete implementations for ResNet-18 and ResNet-50, fₘₐₛₖ contains 26 499 trainable parameters, corresponding to approximately 17.6 % of the additional parameters required for watermarking‐style reprogramming and only 0.23 % of the total parameters of the pre‐trained model, confirming that the mask generator’s parameter count remains on the order of 10⁴–10⁵ and represents less than 0.3 % of a typical pre‐trained classifier’s parameters.",
+            "code": null,
+            "weight": 0.5,
+            "components": []
+          },
+          {
+            "name": "Patch-wise Interpolation Module",
+            "description": "The patch-wise interpolation module upscales the CNN-generated mask of size ⌊H/2^l⌋×⌊W/2^l⌋ per channel to the original image resolution H×W by treating the low-resolution output as a grid of ⌊H/2^l⌋×⌊W/2^l⌋ non‐overlapping patches, each covering a 2^l×2^l region in the high-resolution mask. For each pixel in the low-resolution mask, the module replicates its scalar value into the corresponding 2^l×2^l block, thereby reconstructing the full-resolution mask without resorting to any floating‐point operations or interpolation kernels. This block‐wise replication is omitted when l = 0 and yields identical values within each patch, leveraging the spatial consistency of adjacent image areas. By eschewing bilinear or bicubic filters, the patch-wise interpolation requires no gradient computation during back propagation, significantly reducing memory accesses to 0.151×10^6 pixel retrievals per image and achieving a per-batch (batch size 256) execution time of 0.026 ± 0.004 seconds, which compares favorably against conventional interpolation methods.",
+            "code": null,
+            "weight": 0.5,
+            "components": []
+          }
+        ]
+      }
+    ],
+    "resources": [],
+    "findings": [
+      "Shared-mask VR Suboptimality: Empirical observation that applying a single, fixed binary mask across all target samples in visual reprogramming can increase the training loss of many individual images. Experiments on repurposing ImageNet-pretrained classifiers to datasets such as OxfordPets show that different images prefer different mask sizes (e.g., medium for Sphynx, full for Abyssinian, narrow for Bengal), and statistical analysis of loss changes reveals that a shared mask causes positive loss changes for a non-negligible fraction of samples, demonstrating poor per-sample generalization.",
+      "Theoretical Guarantee of SMM Approximation Error: A formal result in the PAC learning framework proving that the hypothesis space induced by SMM strictly contains the hypothesis space of shared-mask methods. Denoting the pre-trained model with output mapping as f_P′, shared-mask VR hypotheses have the form f(x)=f_P′(r(x)+M⊙δ) while SMM hypotheses allow f(x)=f_P′(r(x)+f_mask(r(x))⊙δ). By Theorem 1, any superset hypothesis class has no larger approximation error. Hence SMM achieves lower approximation error on the target distribution than fixed binary-mask VR.",
+      "Empirical Performance Improvement of SMM: Extensive experiments on 11 standard vision benchmarks (CIFAR10/100, SVHN, GTSRB, Flowers102, DTD, UCF101, Food101, SUN397, EuroSAT, OxfordPets) using ImageNet-pretrained ResNet-18, ResNet-50, and ViT-B32 backbones show that SMM outperforms all prior input-space reprogramming baselines (padding-based and resizing-based with shared masks). On average, SMM yields +5.68% absolute improvement over Iterative Label Mapping VR on ResNet-18 and +6.25% on ResNet-50; on ViT it yields +7.2% over the best shared-mask configuration.",
+      "Ablation of Masking and Pattern Components: Ablation studies on ResNet-18 show that (1) using only the shared noise δ without any mask degrades performance on feature-rich datasets; (2) using only the mask generator output f_mask(r(x)) (i.e., per-sample patterns without δ) underperforms on well-sampled tasks; (3) reducing the mask to a single channel yields lower accuracy than three-channel masks. The combination of a shared δ with sample-specific multi-channel masks (SMM) achieves the best average accuracy, confirming the necessity of both shared pattern and sample-specific multi-channel masking.",
+      "Overfitting and Efficiency Analysis of SMM: Despite enlarging the hypothesis space, SMM adds fewer than 0.3% extra trainable parameters relative to common pre-trained models, and patch-wise interpolation incurs negligible compute overhead. Empirical training curves on ResNet and ViT show that SMM does not increase over-fitting risk: it either reduces training loss more effectively (for smaller backbones) or improves test accuracy by mitigating over-fitting (for larger backbones on simple tasks). Parameter-scaling experiments on EuroSAT further indicate that when the mask generator’s parameter count approaches that of the backbone, estimation error begins to rise, guiding practical design choices."
+    ],
+    "code_file": null,
+    "code_overview": null
+  }

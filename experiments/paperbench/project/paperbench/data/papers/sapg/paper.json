@@ -1,0 +1,3040 @@
+{
+    "paper_id": "paper",
+    "header": {
+        "generated_with": "S2ORC 1.0.0",
+        "date_generated": "2025-09-23T03:45:15.102899Z"
+    },
+    "title": "SAPG: Split and Aggregate Policy Gradients",
+    "authors": [
+        {
+            "first": "Jayesh",
+            "middle": [],
+            "last": "Singla",
+            "suffix": "",
+            "affiliation": {
+                "laboratory": "",
+                "institution": "Carnegie Mellon University",
+                "location": {}
+            },
+            "email": "jayeshsingla<jsingla@andrew.cmu.edu>."
+        },
+        {
+            "first": "Ananye",
+            "middle": [],
+            "last": "Agarwal",
+            "suffix": "",
+            "affiliation": {
+                "laboratory": "",
+                "institution": "Carnegie Mellon University",
+                "location": {}
+            },
+            "email": "<ananyea@andrew.cmu.edu>"
+        },
+        {
+            "first": "Deepak",
+            "middle": [],
+            "last": "Pathak",
+            "suffix": "",
+            "affiliation": {
+                "laboratory": "",
+                "institution": "Carnegie Mellon University",
+                "location": {}
+            },
+            "email": ""
+        }
+    ],
+    "year": "",
+    "venue": null,
+    "identifiers": {},
+    "abstract": "Despite extreme sample inefficiency, on-policy reinforcement learning, aka policy gradients, has become a fundamental tool in decision-making problems. With the recent advances in GPU-driven simulation, the ability to collect large amounts of data for RL training has scaled exponentially. However, we show that current RL methods, e.g. PPO, fail to ingest the benefit of parallelized environments beyond a certain point and their performance saturates. To address this, we propose a new on-policy RL algorithm that can effectively leverage large-scale environments by splitting them into chunks and fusing them back together via importance sampling. Our algorithm, termed SAPG, shows significantly higher performance across a variety of challenging environments where vanilla PPO and other strong baselines fail to achieve high performance. Webpage at https://sapg-rl.github.io.",
+    "pdf_parse": {
+        "paper_id": "paper",
+        "_pdf_hash": "",
+        "abstract": [
+            {
+                "text": "Despite extreme sample inefficiency, on-policy reinforcement learning, aka policy gradients, has become a fundamental tool in decision-making problems. With the recent advances in GPU-driven simulation, the ability to collect large amounts of data for RL training has scaled exponentially. However, we show that current RL methods, e.g. PPO, fail to ingest the benefit of parallelized environments beyond a certain point and their performance saturates. To address this, we propose a new on-policy RL algorithm that can effectively leverage large-scale environments by splitting them into chunks and fusing them back together via importance sampling. Our algorithm, termed SAPG, shows significantly higher performance across a variety of challenging environments where vanilla PPO and other strong baselines fail to achieve high performance. Webpage at https://sapg-rl.github.io.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Abstract",
+                "sec_num": null
+            }
+        ],
+        "body_text": [
+            {
+                "text": "Broadly, there are two main categories in reinforcement learning (RL): off-policy RL, e.g., Q-learning (Watkins & Dayan, 1992) , and on-policy RL, e.g., policy gradients (Sutton et al., 1999) . On-policy methods are relatively more sample inefficient than off-policy but often tend to converge to higher asymptotic performance. Due to this reason, on-policy RL methods, especially PPO (Schulman et al., 2017) , are usually the preferred RL paradigm for almost all sim2real robotic applications (Miki et al., 2022; Agarwal et al., 2022; Chen et al., 2021) to games such as StarCraft (Vinyals et al., 2019) , where one could simulate years of real-world experience in minutes to hours.",
+                "cite_spans": [
+                    {
+                        "start": 103,
+                        "end": 126,
+                        "text": "(Watkins & Dayan, 1992)",
+                        "ref_id": null
+                    },
+                    {
+                        "start": 170,
+                        "end": 191,
+                        "text": "(Sutton et al., 1999)",
+                        "ref_id": "BIBREF27"
+                    },
+                    {
+                        "start": 385,
+                        "end": 408,
+                        "text": "(Schulman et al., 2017)",
+                        "ref_id": "BIBREF25"
+                    },
+                    {
+                        "start": 494,
+                        "end": 513,
+                        "text": "(Miki et al., 2022;",
+                        "ref_id": "BIBREF17"
+                    },
+                    {
+                        "start": 514,
+                        "end": 535,
+                        "text": "Agarwal et al., 2022;",
+                        "ref_id": "BIBREF0"
+                    },
+                    {
+                        "start": 536,
+                        "end": 554,
+                        "text": "Chen et al., 2021)",
+                        "ref_id": "BIBREF1"
+                    },
+                    {
+                        "start": 582,
+                        "end": 604,
+                        "text": "(Vinyals et al., 2019)",
+                        "ref_id": "BIBREF27"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Introduction",
+                "sec_num": "1."
+            },
+            {
+                "text": "RL is fundamentally a trial-n-error-based framework and hence is sample inefficient in nature. Due to this, one needs to have large batch sizes for each policy update, especially in",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Introduction",
+                "sec_num": "1."
+            },
+            {
+                "text": "Single learner",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Parallel Envs",
+                "sec_num": null
+            },
+            {
+                "text": "Regular On-policy RL Split and Aggregate Policy Gradients (SAPG)",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Parallel Envs",
+                "sec_num": null
+            },
+            {
+                "text": "Leader Followers Figure 1",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Parallel Envs",
+                "sec_num": null
+            },
+            {
+                "text": ". We introduce a new class of on-policy RL algorithms that can scale to tens of thousands of parallel environments. In contrast to regular on-policy RL, such as PPO, which learns a single policy across environments leading to wasted environment capacity, our method learns diverse followers and combines data from them to learn a more optimal leader in a continuous online manner.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Parallel Envs",
+                "sec_num": null
+            },
+            {
+                "text": "the case of on-policy methods because they can only use data from current experience. Fortunately, in recent years, the ability to simulate a large number of environments in parallel has become exponentially larger due to GPU-driven physics engines, such as IsaacGym (Makoviychuk et al., 2021) , PhysX, Mujoco-3.0, etc. This means that each RL update can easily scale to batches of size hundreds of thousands to millions, which are over two orders of magnitude higher than what most RL benchmarks typically have.",
+                "cite_spans": [
+                    {
+                        "start": 267,
+                        "end": 293,
+                        "text": "(Makoviychuk et al., 2021)",
+                        "ref_id": "BIBREF15"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Parallel Envs",
+                "sec_num": null
+            },
+            {
+                "text": "In this paper, we highlight an issue with typical on-policy RL methods, e.g. PPO, that they are not able to ingest the benefits with increasingly larger sample sizes for each up- can not take benefit of large batch size resulting from massively parallelized environments and their asymptotic performance saturates after a certain point. The dashed red line is the performance of our method, SAPG, with more details in the results section. It serves as evidence that higher performance is achievable with larger batch sizes.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Parallel Envs",
+                "sec_num": null
+            },
+            {
+                "text": "date. In Figure 2 , we show that PPO performance saturates after a certain batch size despite the ceiling being higher. This is due to the issue in data sampling mechanisms. In particular, at each timestep actions are sampled from a Gaussian with some mean and variance. This implies that most sampled actions are near the mean and with large number of environments, many environments are executing the same actions leading to duplicated data. This implies that the performance of PPO saturates at some point as we increase the number of environments.",
+                "cite_spans": [],
+                "ref_spans": [
+                    {
+                        "start": 16,
+                        "end": 17,
+                        "text": "2",
+                        "ref_id": "FIGREF1"
+                    }
+                ],
+                "eq_spans": [],
+                "section": "Parallel Envs",
+                "sec_num": null
+            },
+            {
+                "text": "We propose a simple fix to this problem. Instead of running a single PPO policy for all environments, we divide environments into blocks. Each block optimizes a separate policy, allowing for more data diversity than just i.i.d. sampling from the same Gaussian. Next, we do an off-policy update to combine data from all these policies to keep the update consistent with the objective of on-policy RL. This allows us to use the PPO's clipped surrogate objective, maintaining the stability benefits of PPO while latching onto high reward trajectories even though they are off-policy. A schematic of our approach, termed SAPG, is shown in Figure 1 . We evaluate SAPG across a variety of environments and show significantly high asymptotic performance in environments where vanilla PPO even fails to get any positive success.",
+                "cite_spans": [],
+                "ref_spans": [
+                    {
+                        "start": 642,
+                        "end": 643,
+                        "text": "1",
+                        "ref_id": null
+                    }
+                ],
+                "eq_spans": [],
+                "section": "Parallel Envs",
+                "sec_num": null
+            },
+            {
+                "text": "Policy gradients REINFORCE (Williams, 2004) , one of the earliest policy gradient algorithms uses an estimator of the objective using simple Monte Carlo return values. Works such as (Konda & Tsitsiklis, 1999) and (Schulman et al., 2018) improve the stability of policy gradient algorithms by employing a baseline to decrease the variance of the estimator while not compromising on the bias. (Schulman et al., 2015; 2017) incorporate conservative policy updates into policy gradients to increase the robustness.",
+                "cite_spans": [
+                    {
+                        "start": 27,
+                        "end": 43,
+                        "text": "(Williams, 2004)",
+                        "ref_id": "BIBREF31"
+                    },
+                    {
+                        "start": 182,
+                        "end": 208,
+                        "text": "(Konda & Tsitsiklis, 1999)",
+                        "ref_id": "BIBREF13"
+                    },
+                    {
+                        "start": 213,
+                        "end": 236,
+                        "text": "(Schulman et al., 2018)",
+                        "ref_id": "BIBREF26"
+                    },
+                    {
+                        "start": 391,
+                        "end": 414,
+                        "text": "(Schulman et al., 2015;",
+                        "ref_id": "BIBREF24"
+                    },
+                    {
+                        "start": 415,
+                        "end": 420,
+                        "text": "2017)",
+                        "ref_id": "BIBREF25"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Related Work",
+                "sec_num": "2."
+            },
+            {
+                "text": "Distributed reinforcement learning Reinforcement learning algorithms are highly sample inefficient, which calls for some form of parallelization to increase the training speed. When training in simulation, this speed-up can be achieved by distributing experience collection or different parts of training across multiple processes. (Nair et al., 2015; Mnih et al., 2016; Espeholt et al., 2018; Horgan et al., 2018) However, through the introduction of GPU-based simulators such as IsaacGym (Makoviychuk et al., 2021) , the capacity of simulation has increased by two to three orders of magnitude. Due to this, instead of focusing on how to parallelize parts of the algorithm, the focus has shifted to finding ways to efficiently utilize the large amount of simulation data. Previous works such as (Chen et al., 2021; Fu et al., 2022; Rudin et al., 2022; Handa et al., 2022; Agarwal et al., 2022) use data from GPU-based simulation to learn policies in complex manipulation and locomotion settings. However, most of these works still use reinforcement learning algorithms to learn a single policy, while augmenting training with techniques like teacher-student-based training and game-based curriculum. We find that using the increased simulation capacity to naively increase the batch size is not the best way to utilize massively parallel simulation. (Petrenko et al., 2023 ) develop a population-based training framework that divides the large number of environments between multiple policies and using hyperparameter mutation to find a set of hyperparameters that performs well. However, even this does not utilize all the data completely as each policy learns independently. We propose a way to ensure most of the data from the environments contributes to learning by using all collected transitions for each update.",
+                "cite_spans": [
+                    {
+                        "start": 332,
+                        "end": 351,
+                        "text": "(Nair et al., 2015;",
+                        "ref_id": "BIBREF20"
+                    },
+                    {
+                        "start": 352,
+                        "end": 370,
+                        "text": "Mnih et al., 2016;",
+                        "ref_id": "BIBREF19"
+                    },
+                    {
+                        "start": 371,
+                        "end": 393,
+                        "text": "Espeholt et al., 2018;",
+                        "ref_id": "BIBREF5"
+                    },
+                    {
+                        "start": 394,
+                        "end": 414,
+                        "text": "Horgan et al., 2018)",
+                        "ref_id": "BIBREF11"
+                    },
+                    {
+                        "start": 490,
+                        "end": 516,
+                        "text": "(Makoviychuk et al., 2021)",
+                        "ref_id": "BIBREF15"
+                    },
+                    {
+                        "start": 797,
+                        "end": 816,
+                        "text": "(Chen et al., 2021;",
+                        "ref_id": "BIBREF1"
+                    },
+                    {
+                        "start": 817,
+                        "end": 833,
+                        "text": "Fu et al., 2022;",
+                        "ref_id": "BIBREF7"
+                    },
+                    {
+                        "start": 834,
+                        "end": 853,
+                        "text": "Rudin et al., 2022;",
+                        "ref_id": "BIBREF23"
+                    },
+                    {
+                        "start": 854,
+                        "end": 873,
+                        "text": "Handa et al., 2022;",
+                        "ref_id": "BIBREF9"
+                    },
+                    {
+                        "start": 874,
+                        "end": 895,
+                        "text": "Agarwal et al., 2022)",
+                        "ref_id": "BIBREF0"
+                    },
+                    {
+                        "start": 1352,
+                        "end": 1374,
+                        "text": "(Petrenko et al., 2023",
+                        "ref_id": "BIBREF22"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Related Work",
+                "sec_num": "2."
+            },
+            {
+                "text": "Off-policy Policy Gradients Unlike on-policy algorithms, off-policy algorithms can reuse all collected data or data collected by any policy for their update. Most off-policy algorithms (Mnih et al., 2013; Lillicrap et al., 2019; Haarnoja et al., 2018) try to learn a value function which is then implicitly/explicitly used to learn a policy. (Li et al., 2023) developed a variant of Deep Deterministic Policy Gradient (DDPG) called PQL which splits data collection and learning into multiple processes and shows impressive performance on many benchmark tasks. We use PQL as one of our baselines to compare our method to off-policy RL in complex tasks. Although off-policy algorithms are much more data-efficient, they usually get lower asymptotic performance than on-policy policy gradients. This has inspired works to develop techniques to use off-policy data in onpolicy methods. (Hastings, 1970) has been one of the major techniques used to realize this. Previous works (Degris et al., 2012; Wang et al., 2016; Espeholt et al., 2018; Fakoor et al., 2020) develop techniques to use off-policy data in on-policy algorithms using importance sampling-based updates along with features such as bias correction.",
+                "cite_spans": [
+                    {
+                        "start": 185,
+                        "end": 204,
+                        "text": "(Mnih et al., 2013;",
+                        "ref_id": "BIBREF18"
+                    },
+                    {
+                        "start": 205,
+                        "end": 228,
+                        "text": "Lillicrap et al., 2019;",
+                        "ref_id": "BIBREF14"
+                    },
+                    {
+                        "start": 229,
+                        "end": 251,
+                        "text": "Haarnoja et al., 2018)",
+                        "ref_id": "BIBREF8"
+                    },
+                    {
+                        "start": 342,
+                        "end": 359,
+                        "text": "(Li et al., 2023)",
+                        "ref_id": "BIBREF13"
+                    },
+                    {
+                        "start": 882,
+                        "end": 898,
+                        "text": "(Hastings, 1970)",
+                        "ref_id": "BIBREF10"
+                    },
+                    {
+                        "start": 973,
+                        "end": 994,
+                        "text": "(Degris et al., 2012;",
+                        "ref_id": "BIBREF4"
+                    },
+                    {
+                        "start": 995,
+                        "end": 1013,
+                        "text": "Wang et al., 2016;",
+                        "ref_id": "BIBREF28"
+                    },
+                    {
+                        "start": 1014,
+                        "end": 1036,
+                        "text": "Espeholt et al., 2018;",
+                        "ref_id": "BIBREF5"
+                    },
+                    {
+                        "start": 1037,
+                        "end": 1057,
+                        "text": "Fakoor et al., 2020)",
+                        "ref_id": "BIBREF6"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Related Work",
+                "sec_num": "2."
+            },
+            {
+                "text": "In this paper, we propose a modification to on-policy RL to achieve higher performance in the presence of large batch sizes. We build upon PPO, although our proposed ideas are generally applicable to any on-policy RL method.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Preliminaries",
+                "sec_num": "3."
+            },
+            {
+                "text": "On-policy RL Let (S, A, P, r, \u03c1, \u03b3) be an MDP where S is the set of states, A the set of actions, P are transition probabilities, r the reward function, \u03c1 the initial distribution of states and \u03b3 the discount factor. The objective in reinforcement learning is to find a policy \u03c0(a|s) which maximises the long term discounted reward J (\u03c0) =",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Preliminaries",
+                "sec_num": "3."
+            },
+            {
+                "text": "Es 0 \u223c\u03c1,at\u223c\u03c0(\u2022|st) T -1 t=0 \u03b3 t r(s t , a t ) .",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Preliminaries",
+                "sec_num": "3."
+            },
+            {
+                "text": "Policy-gradient algorithms (Williams, 2004; Konda & Tsitsiklis, 1999; Schulman et al., 2015; Mnih et al., 2016) optimize the policy using gradient descent with Monte Carlo estimates of the gradient",
+                "cite_spans": [
+                    {
+                        "start": 27,
+                        "end": 43,
+                        "text": "(Williams, 2004;",
+                        "ref_id": "BIBREF31"
+                    },
+                    {
+                        "start": 44,
+                        "end": 69,
+                        "text": "Konda & Tsitsiklis, 1999;",
+                        "ref_id": "BIBREF13"
+                    },
+                    {
+                        "start": 70,
+                        "end": 92,
+                        "text": "Schulman et al., 2015;",
+                        "ref_id": "BIBREF24"
+                    },
+                    {
+                        "start": 93,
+                        "end": 111,
+                        "text": "Mnih et al., 2016)",
+                        "ref_id": "BIBREF19"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Preliminaries",
+                "sec_num": "3."
+            },
+            {
+                "text": "EQUATION",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [
+                    {
+                        "start": 0,
+                        "end": 8,
+                        "text": "EQUATION",
+                        "ref_id": "EQREF",
+                        "raw_str": "\u2207 \u03b8 J(\u03c0 \u03b8 ) = E s\u223c\u03c1 d ,a\u223c\u03c0(\u2022|s) \u2207 \u03b8 log(\u03c0 \u03b8 (a)) \u00c2\u03c0 \u03b8 (s, a)",
+                        "eq_num": "(1)"
+                    }
+                ],
+                "section": "Preliminaries",
+                "sec_num": "3."
+            },
+            {
+                "text": "where \u00c2\u03c0 \u03b8 (s, a) is an advantage function that estimates the contribution of the transition to the gradient. A common choice is \u00c2\u03c0 \u03b8 (s, a) = Q\u03c0 \u03b8 (s, a) -V \u03c0 \u03b8 (s), where Q\u03c0 \u03b8 (s, a), V \u03c0 \u03b8 (s) are estimated Q and value functions. This form of update is termed as an actor-critic update (Konda & Tsitsiklis, 1999) . Since we want the gradient of the error with respect to the current policy, only data from the current policy (on-policy) data can be utilized.",
+                "cite_spans": [
+                    {
+                        "start": 289,
+                        "end": 315,
+                        "text": "(Konda & Tsitsiklis, 1999)",
+                        "ref_id": "BIBREF13"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Preliminaries",
+                "sec_num": "3."
+            },
+            {
+                "text": "PPO Actor critic updates can be quite unstable because gradient estimates are high variance and the loss landscape is complex. An update step that is too large can destroy policy performance. Proximal Policy Optimization (PPO) modifies Eq. 1 to restrict updates to remain within an approximate \"trust region\" where there is guaranteed improvement (Schulman et al., 2015; Kakade & Langford, 2002) .",
+                "cite_spans": [
+                    {
+                        "start": 347,
+                        "end": 370,
+                        "text": "(Schulman et al., 2015;",
+                        "ref_id": "BIBREF24"
+                    },
+                    {
+                        "start": 371,
+                        "end": 395,
+                        "text": "Kakade & Langford, 2002)",
+                        "ref_id": "BIBREF12"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Preliminaries",
+                "sec_num": "3."
+            },
+            {
+                "text": "EQUATION",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [
+                    {
+                        "start": 0,
+                        "end": 8,
+                        "text": "EQUATION",
+                        "ref_id": "EQREF",
+                        "raw_str": "L on (\u03c0 \u03b8 ) = E \u03c0 old [min(r t (\u03c0 \u03b8 ), clip (r t (\u03c0 \u03b8 ), 1 -\u03f5, 1 + \u03f5))A \u03c0 old t ]",
+                        "eq_num": "(2)"
+                    }
+                ],
+                "section": "Preliminaries",
+                "sec_num": "3."
+            },
+            {
+                "text": "Here, r t (\u03c0 \u03b8 ) = \u03c0 \u03b8 (at|st) \u03c0 old (at|st) , \u03f5 is a clipping hyperparameter and \u03c0 old is the policy collecting the on-policy data. The clipping operation ensures that the updated \u03c0 stays close to \u03c0 old . Empirically, given large numbers of samples, PPO achieves high performance, is stable and robust to hyperparameters. However, it was developed for relatively small batch sizes (\u2248 100 parallel envs). We find that in the largescale setting (>10k envs), it is suboptimal because many parallel envs are sampling nearly identical on-policy data.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Preliminaries",
+                "sec_num": "3."
+            },
+            {
+                "text": "Policy gradient methods are highly sensitive to the variance in the estimate of gradient. Since CPU-based simulators typically run only 100s of environments in parallel, conventional wisdom is to simply sample on-policy data from a Gaussian policy in all the environments since as the number of datapoints increases, the Monte Carlo estimate becomes more accurate. However, this intuition no longer holds in the extremely large-scale data setting where we have hundreds of thousands of environments on GPU-accelerated simulators like IsaacGym. IID sampling from a Gaussian policy will lead to most actions lying near the mean, and most environments will execute similar actions, leading to wasted data (fig. 2 ).",
+                "cite_spans": [],
+                "ref_spans": [
+                    {
+                        "start": 708,
+                        "end": 709,
+                        "text": "2",
+                        "ref_id": "FIGREF1"
+                    }
+                ],
+                "eq_spans": [],
+                "section": "Split and Aggregate Policy Gradients",
+                "sec_num": "4."
+            },
+            {
+                "text": "We propose to efficiently use large numbers of N environments using a divide-and-conquer setup. Our algorithm trains a variety of M policies \u03c0 1 , . . . , \u03c0 M instead of having just one policy. However, simply training multiple policies by dividing environments between them is also inefficient. This is equivalent to training an algorithm with different seeds and choosing the best seed. One approach is to add hyperparameter mutation (Petrenko et al., 2023) to the policies and choosing the hyperparameters that perform the best among all of them. However, even in this case, all of the data from the \"worse\" policies goes to waste, and the only information gained is that some combinations of hyperparameters are bad, even though the policies themselves may have discovered high reward trajectories. We need to somehow aggregate data from multiple policies into a single update. We propose to do this via off-policy updates.",
+                "cite_spans": [
+                    {
+                        "start": 436,
+                        "end": 459,
+                        "text": "(Petrenko et al., 2023)",
+                        "ref_id": "BIBREF22"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Split and Aggregate Policy Gradients",
+                "sec_num": "4."
+            },
+            {
+                "text": "One of the major drawbacks of on-policy RL is its inability to use data from past versions of the policy. One solution is to use importance sampling (Degris et al., 2012; Meng et al., 2023) to weight updates using data from different policies. In practice, this is not used since given limited compute it is beneficial to sample on-policy experience that is more directly relevant. However, this is no longer true in the large batch setting where enough on-policy data is available. In this case, it becomes advantageous to have multiple policies \u03c0 1 , . . . , \u03c0 M and use them to sample diverse data, even if it is off-policy. In particular, to update policy \u03c0 i using data from policy \u03c0 j , j \u2208 X we use (Meng et al., 2023 ) Each policy has the same backbone with shared parameters B \u03b8 but is conditioned on local learned parameters \u03d5i. Each policy gets a block of N M environments to run. The leader is updated with its on-policy data as well as importance-sampled off-policy data from the followers. Each of the followers only uses their own data for on-policy updates.",
+                "cite_spans": [
+                    {
+                        "start": 149,
+                        "end": 170,
+                        "text": "(Degris et al., 2012;",
+                        "ref_id": "BIBREF4"
+                    },
+                    {
+                        "start": 171,
+                        "end": 189,
+                        "text": "Meng et al., 2023)",
+                        "ref_id": "BIBREF16"
+                    },
+                    {
+                        "start": 706,
+                        "end": 724,
+                        "text": "(Meng et al., 2023",
+                        "ref_id": "BIBREF16"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "EQUATION",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [
+                    {
+                        "start": 0,
+                        "end": 8,
+                        "text": "EQUATION",
+                        "ref_id": "EQREF",
+                        "raw_str": "L of f (\u03c0 i ; X ) = 1 |X | j\u2208X E (s,a)\u223c\u03c0j [min (r \u03c0i (s, a), clip (r \u03c0i (s, a), \u00b5(1 -\u03f5), \u00b5(1 + \u03f5))) A \u03c0 i,old (s, a)]",
+                        "eq_num": "(3"
+                    }
+                ],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "where r \u03c0i (s, a) = \u03c0i(s,a) \u03c0j (s,a) and \u00b5 is an off-policy correction term \u00b5 = \u03c0 i,old (s,a) \u03c0j (s,a) . Note that when i = j, then \u03c0 j = \u03c0 i,old and this reduces to the on-policy update as expected. This is then scaled and combined with the on-policy term (eq. 2)",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "EQUATION",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [
+                    {
+                        "start": 0,
+                        "end": 8,
+                        "text": "EQUATION",
+                        "ref_id": "EQREF",
+                        "raw_str": "L(\u03c0 i ) = L on (\u03c0 i ) + \u03bb \u2022 L of f (\u03c0 i ; X )",
+                        "eq_num": "(4)"
+                    }
+                ],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "The update target for the critic is calculated using n-step returns (here n = 3).",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "V target on,\u03c0j (s t ) = t+2 k=t \u03b3 k-t r k + \u03b3 3 V \u03c0j ,old (s t+3 ) (5)",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "However, this is not possible for off-policy data. Instead, we assume that an off-policy transition can be used to approximate a 1-step return. The target equations are as follows -",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "EQUATION",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [
+                    {
+                        "start": 0,
+                        "end": 8,
+                        "text": "EQUATION",
+                        "ref_id": "EQREF",
+                        "raw_str": "V target of f,\u03c0j (s \u2032 t ) = r t + \u03b3V \u03c0j ,old (s \u2032 t+1 )",
+                        "eq_num": "(6)"
+                    }
+                ],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "The critic loss is then",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "EQUATION",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [
+                    {
+                        "start": 0,
+                        "end": 8,
+                        "text": "EQUATION",
+                        "ref_id": "EQREF",
+                        "raw_str": "L critic on (\u03c0 i ) = E (s,a)\u223c\u03c0i (V \u03c0i (s) -V target on,\u03c0i (s)) 2 (7) L critic of f (\u03c0 i ; X ) = 1 |X | j\u2208X E (s,a)\u223c\u03c0j (V \u03c0i (s) -V target of f,\u03c0i (s)) 2 (8) L critic (\u03c0 i ) = L critic on (\u03c0 i ) + \u03bb \u2022 L critic of f (\u03c0 i )",
+                        "eq_num": "(9)"
+                    }
+                ],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "Given this update scheme, we must now choose a suitable X \u2286 {1, . . . , M } and the set of is to update, along with the correct ratio \u03bb. We explore several variants below.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Aggregating data using off-policy updates",
+                "sec_num": "4.1."
+            },
+            {
+                "text": "A simple choice is to update all i \u2032 s with the data from all policies. In this case, we choose to update each policy i \u2208 {1, 2, . . . , M } and for each i use off-policy data from all other policies X = {1, 2, i -1, i + 1, . . . , M }. Since gradients from off-policy data are typically noisier than gradients from on-policy data, we choose \u03bb = 1, but subsample the off-policy data such that we use equal amounts of on-policy and off-policy data.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Symmetric aggregation",
+                "sec_num": "4.2."
+            },
+            {
+                "text": "While the above choice prevents data wastage, since all the policies are updated with the same data, it can lead to policies converging in behavior, reducing data diversity and defeating the purpose of having separate policies. To resolve this, we break symmetry by designating a \"leader\" policy i = 1 which gets data from all other policies X = {2, 3, . . . , M } while the rest are \"followers\" and only use their own on-policy data for updates X = \u03d5. As before, we choose \u03bb = 1, but subsample the off-policy data for the leader such that we use equal amounts of on-policy and off-policy data in a mini-batch update.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Leader-follower aggregation",
+                "sec_num": "4.3."
+            },
+            {
+                "text": "What is the right parameterization for this set of policies? One simple choice is to have a disjoint set of parameters for each with no sharing at all. However, this implies that each follower policy has no knowledge of any other policy whatsoever and may get stuck in a bad local optimum. We mitigate this by having a shared backbone B \u03b8 for each policy conditioned on hanging parameters \u03d5 j local to each (Left) one policy is a leader and uses data from each of the followers (Right) a symmetric scheme where each policy uses data from all others. In each case, the policy also uses its own on-policy data.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Encouraging diversity via latent conditioning",
+                "sec_num": "4.4."
+            },
+            {
+                "text": "policy. Similarly, the critic consists of a shared backbone C \u03c8 conditioned on parameters \u03d5 j . The parameters \u03c8, \u03b8 are shared across the leader and all followers and updated with gradients from each objective, while the parameters \u03d5 j are only updated with the objective for that particular policy. We choose \u03d5 j \u2208 R 32 for complex environments while \u03d5 j \u2208 R 16 for the relatively simpler ones.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Encouraging diversity via latent conditioning",
+                "sec_num": "4.4."
+            },
+            {
+                "text": "To further encourage diversity between different policies, in addition to the PPO update loss L on we add an entropy loss to each of the followers with different coefficients. In particular, the entropy loss is H(\u03c0(a | s)). The overall loss for the policy i (or the (i -1)th) follower is",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Enforcing diversity through entropy regularization",
+                "sec_num": "4.5."
+            },
+            {
+                "text": "L(\u03c0 i ) = L on (\u03c0 i ) + \u03c3(i -1) \u2022 H(\u03c0(a | s)).",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Enforcing diversity through entropy regularization",
+                "sec_num": "4.5."
+            },
+            {
+                "text": "The leader doesn't have any entropy loss. Different scales of coefficients produce policies with different explore-exploit tradeoffs. Followers with large entropy losses tend to explore more actions even if they are suboptimal, while those with small coefficients stay close to optimal trajectories and refine them. This leads to a large data coverage with a good mix of optimal as well as diverse trajectories. We treat \u03c3 as a hyperparameter.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Enforcing diversity through entropy regularization",
+                "sec_num": "4.5."
+            },
+            {
+                "text": "We roll out M different policies and collect data D 1 , . . . , D M for each. Follower policies 2, . . . , M are updated using the usual PPO objective with minibatch gradient descent on their respective datasets. However, we augment the dataset of the leader D 1 with data from D 2 , . . . , D M , weighed by the importance weight \u00b5. The leader is then updated by minibatch gradient descent as well.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Algorithm: SAPG",
+                "sec_num": "4.6."
+            },
+            {
+                "text": "We conduct experiments on 5 manipulation tasks (3 hard and 2 easy) and compare them against SOTA methods for the large-scale parallelized setting. We use a GPU-accelerated simulator, IsaacGym (Makoviychuk et al., 2021) which allows simulating tens of thousands of environments in par-Algorithm 1 SAPG Initialize shared parameters \u03b8, \u03c8 For i \u2208 {1, . . . , M } initialize parameters \u03d5 i Initialize N environments E 1 , . . . , E N . Initialize data buffers for each policy D 1 , . . . , D M . for i = 1, 2, . . . , do for j = 1, 2, . . . , M do",
+                "cite_spans": [
+                    {
+                        "start": 192,
+                        "end": 218,
+                        "text": "(Makoviychuk et al., 2021)",
+                        "ref_id": "BIBREF15"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Experimental Setup",
+                "sec_num": "5."
+            },
+            {
+                "text": "D j \u2190 COLLECTDATA(E j N M :(j+1) N M , \u03b8, \u03c8 j ) end for L \u2190 0 Sample |D 1 | transitions from \u222a M j=2 D i to get D \u2032 1 . L \u2190 L + OFFPOLICYLOSS(D \u2032 1 ) L \u2190 L + ONPOLICYLOSS(D 1 ) for j = 2, . . . , M do L \u2190 L + ONPOLICYLOSS(D j ) end for Update \u03b8 \u2190 \u03b8 -\u03b7\u2207 \u03b8 L Update \u03c8 \u2190 \u03c8 -\u03b7\u2207 \u03c8 L end for=0",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Experimental Setup",
+                "sec_num": "5."
+            },
+            {
+                "text": "allel on a single GPU. In our experiments, we focus on the large-scale setting and simulate 24576 parallel environments unless otherwise specified. Note that this is two orders of magnitude larger than the number of environments PPO was developed on (Schulman et al., 2017) , and we indeed find that vanilla PPO does not scale to this setting.",
+                "cite_spans": [
+                    {
+                        "start": 250,
+                        "end": 273,
+                        "text": "(Schulman et al., 2017)",
+                        "ref_id": "BIBREF25"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Experimental Setup",
+                "sec_num": "5."
+            },
+            {
+                "text": "For testing, we choose a suite of manipulation environments that are challenging and require large-scale data to learn effective policies (Petrenko et al., 2023) . In particular, these consist of dexterous hands mounted on arms leading to high numbers of degrees of freedom (up to 23). This is challenging because sample complexity scales exponentially with degrees of freedom. They are under-actuated and involve manipulating free objects in certain ways while under the influence of gravity. This leads to complex, non-linear interactions between the agent and the environment such as contacts between robot and object, object and table, and robot and table. Overall, this implies that to learn effective policies an agent must collect a large amount of relevant experience and also use it efficiently for learning.",
+                "cite_spans": [
+                    {
+                        "start": 138,
+                        "end": 161,
+                        "text": "(Petrenko et al., 2023)",
+                        "ref_id": "BIBREF22"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Experimental Setup",
+                "sec_num": "5."
+            },
+            {
+                "text": "We consider a total of 5 tasks grouped into two parts: Three hard tasks and two easy tasks. Hard and easy is defined by the success reward achieved by off-policy (in particular, PQL) methods in these environments. In easy environments, even Q-learning-based off-policy methods can obtain nonzero performance but not in hard tasks. See appendix sec. A.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Tasks",
+                "sec_num": "5.1."
+            },
+            {
+                "text": "Hard Difficulty Tasks All three hard tasks are based on the Allegro-Kuka environments (Petrenko et al., 2023) . These consist of an Allegro Hand (16 DoF) mounted on a Kuka arm (7 dof). The performance of the agent in the above three tasks is measured by the successes metric which is defined as the number of successes in a single episode. Three tasks include:",
+                "cite_spans": [
+                    {
+                        "start": 86,
+                        "end": 109,
+                        "text": "(Petrenko et al., 2023)",
+                        "ref_id": "BIBREF22"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Tasks",
+                "sec_num": "5.1."
+            },
+            {
+                "text": "\u2022 Regrasping: The object must be lifted from the table and held near a goal position g t \u2208 R 3 for K = 30 steps. This is called a \"success\". The target position and object position are reset to a random location after every success. \u2022 Throw: The object must be lifted from the table and thrown into a bucket at g t \u2208 R 3 placed out of reach of the arm. The bucket and the object position are reset randomly after every successful attempt. \u2022 Reorientation: Pick up the object and reorient it to a particular target pose g t \u2208 R 7 (position + orientation). The target pose is reset once the agent succeeds. This means that the agents needs to reorient the object in different poses in succession, which may sometimes entail placing the objects on the table and lifting it up in a different way.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Tasks",
+                "sec_num": "5.1."
+            },
+            {
+                "text": "Easy Difficulty Tasks: In addition, we test on the following dexterous hand tasks. As before, the observation space consists of the joint angles and velocities q t , qt , object pose x t and velocities v t , \u03c9 t .",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Tasks",
+                "sec_num": "5.1."
+            },
+            {
+                "text": "\u2022 Shadow Hand: We test in-hand reorientation task of a cube using the 24-DoF Shadow Hand. \u2022 Allegro Hand: This is the same as the previous in-hand reorientation task but with the 16-DoF Allegro Hand.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Tasks",
+                "sec_num": "5.1."
+            },
+            {
+                "text": "We test against state-of-the-art RL methods designed for the GPU-accelerated large-scale setting we consider in this paper. We compare against both on-policy (Petrenko et al., 2023) and off-policy (Li et al., 2023) variants as well as vanilla PPO (Schulman et al., 2017) .",
+                "cite_spans": [
+                    {
+                        "start": 158,
+                        "end": 181,
+                        "text": "(Petrenko et al., 2023)",
+                        "ref_id": "BIBREF22"
+                    },
+                    {
+                        "start": 197,
+                        "end": 214,
+                        "text": "(Li et al., 2023)",
+                        "ref_id": "BIBREF13"
+                    },
+                    {
+                        "start": 247,
+                        "end": 270,
+                        "text": "(Schulman et al., 2017)",
+                        "ref_id": "BIBREF25"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Baselines",
+                "sec_num": "5.2."
+            },
+            {
+                "text": "\u2022 PPO (Proximal Policy Optimization) (Schulman et al., 2017) : In our setting, we just increase the data throughput for PPO by increasing the batch size proportionately to the number of environments. In particular, we see over two orders of magnitude increase in the number of environments (from 128 to 24576). Due to the complexity of these tasks, experiments take about 48-60 hours on a single GPU, collecting \u2248 2e10 transitions.",
+                "cite_spans": [
+                    {
+                        "start": 37,
+                        "end": 60,
+                        "text": "(Schulman et al., 2017)",
+                        "ref_id": "BIBREF25"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Baselines",
+                "sec_num": "5.2."
+            },
+            {
+                "text": "Since we run experiments on different machines, the wall clock time is not directly comparable and we compare runs against the number of samples collected. We run 5 seeds for each experiment and report the mean and standard error in the plots. In each plot, the solid line is y(t) = 1 n i y i (t) while the width of the shaded region is determined by standard error 2 \u221a n i (y(t) -y i (t)) 2 . For each task, we use M = 6 policies for our method and DexPBT in a total of N = 24576 environments for each method. We use the dimension of learned parameter \u03d5 j \u2208 R 32 for the AllegroKuka tasks while we use \u03d5 j \u2208 R 16 for the ShadowHand and AllegroHand tasks since they are relatively simpler. We use a recurrent policy for the Alle-groKuka tasks and an MLP policy for the Shadow Hand and Allegro Hand tasks and use PPO to train them. We collect 16 steps of experience per instance of the environment before every PPO update step. For SAPG, we tune the entropy coefficient \u03c3 by choosing the best from a small set {0, 0.003, 0.005} for each environment. We find that \u03c3 = 0 works best for all ShadowHand, AllegroHand, Regrasping, and Throw while \u03c3 = 0.005 works better for Reorientation.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Baselines",
+                "sec_num": "5.2."
+            },
+            {
+                "text": "In the large-scale data setting, we are primarily concerned with optimality while sample-efficiency and wall-clock time are secondary concerns. This is because data is readily available-one only needs to spin up more GPUs, what is really important is how well our agent performs in the downstream tasks. Indeed, this aligns with how practitioners use RL algorithms in practice (Agarwal et al., 2022; Cheng et al., 2023; OpenAI et al., 2018) , where agents are trained with lots of domain randomization in large simulations and the primary concern is how well the agent can adapt and learn in these environments since this directly translates to real-world performance.",
+                "cite_spans": [
+                    {
+                        "start": 377,
+                        "end": 399,
+                        "text": "(Agarwal et al., 2022;",
+                        "ref_id": "BIBREF0"
+                    },
+                    {
+                        "start": 400,
+                        "end": 419,
+                        "text": "Cheng et al., 2023;",
+                        "ref_id": "BIBREF2"
+                    },
+                    {
+                        "start": 420,
+                        "end": 440,
+                        "text": "OpenAI et al., 2018)",
+                        "ref_id": "BIBREF21"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Results and Analysis",
+                "sec_num": "6."
+            },
+            {
+                "text": "The AllegroKuka tasks (Throw, Regrasping, and Reorientation) are hard due to large degrees of freedom. The environment also offers the possibility of many emergent strategies such as using the table to reorient the cube, or using gravity to reorient the cube. Therefore, a large amount of data is required to attain good performance on these tasks. Following Petrenko et al. (2023) we use the number of successes as a performance metric on these tasks. Note that the DexPBT baseline directly optimizes for success by mutating the re- . Performance curves of SAPG with respect to PPO, PBT and PQL baselines. On AllegroKuka tasks, PPO and PQL barely make progress and SAPG beats PBT. On Shadow Hand and Allegro Kuka Reorientation, SAPG performs best with an entropy coefficient of 0.005 while the coefficient is 0 for other environments. On ShadowHand and AllegroHand, while PQL is initially more sample efficient, SAPG is more performant in the longer run. AllegroKuka environments use successes as a performance metric while AllegroHand and ShadowHand use episode rewards. 1 . Performance after 2e10 samples for different methods with standard error. This is measured by successes for the AllegroKuka tasks and by episode rewards for in-hand reorientation tasks. Across environments, we find that our method performs better than baselines.",
+                "cite_spans": [
+                    {
+                        "start": 359,
+                        "end": 381,
+                        "text": "Petrenko et al. (2023)",
+                        "ref_id": "BIBREF22"
+                    }
+                ],
+                "ref_spans": [
+                    {
+                        "start": 1073,
+                        "end": 1074,
+                        "text": "1",
+                        "ref_id": null
+                    }
+                ],
+                "eq_spans": [],
+                "section": "AllegroKuka tasks",
+                "sec_num": "6.1."
+            },
+            {
+                "text": "ward scales to achieve higher success rate, whereas our method can only optimize a fixed reward function. Despite this, we see that SAPG achieves a 12 -66% higher success rate than DexPBT on regrasping, throw and reorientation. SAPG performs 66% better than PBT on the challenging reorientation task. Note that vanilla PPO and PQL are unable to learn any useful behaviors on these hard tasks.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "ALGORITHM",
+                "sec_num": null
+            },
+            {
+                "text": "The AllegroHand and ShadowHand reorientation tasks from Li et al. ( 2023) are comparatively easier since they have lower degrees of freedom and the object doesn't move around much and remains inside the hand. On these tasks, we observe that PQL and PPO are able to make significant progress. In particular, we find that PQL is very sampleefficient because it is off-policy and utilizes past data for updates. However, we find that SAPG achieves higher asymp-totic performance. This is because on-policy methods are better at latching onto high reward trajectories and do not have to wait several iterations for the Bellman backup to propagate back to initial states. As discussed previously, in large-scale settings in simulation, we are primarily concerned with asymptotic performance since we want to maximize the downstream performance of our agents (within a reasonable training time budget). We see that on Allegro-Hand, SAPG beats PQL by a 21% margin, while on the ShadowHand task it achieves comparable performance. On these tasks, both PBT and PPO generally perform worse. This is because PPO is not able to efficiently leverage the large batch size. PBT loses the benefit of its hyperparameter mutation because the environment is simpler and the default hyperparameters work well, so it roughly reduces to simple PPO in N M environments. . Performance curves for ablations of our method. The variants of our method with a symmetric aggregation scheme or without an off-policy combination perform significantly worse. Entropy regularization affects performance across environments, giving a benefit in reorientation. Using a high off-policy ratio without subsampling data leads to worse performance on ShadowHand and AllegroHand.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "In-hand reorientation",
+                "sec_num": "6.2."
+            },
+            {
+                "text": "The core idea behind SAPG is to combine data from different policies instead of optimizing a single policy with an extremely large batch. In this section, we will analyze our specific design choices for how we combine data (choice of i and X and \u03bb) and for how we enforce diversity among the data collected by the policies. In particular, we have the following variants",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Ablations",
+                "sec_num": "6.3."
+            },
+            {
+                "text": "\u2022 SAPG (with entropy coef) As discussed in sec. 5.2 , here we add an entropy loss to the followers to encourage data diversity. We explore different choices for the scaling coefficient of this loss \u03c3 \u2208 {0, 0.005, 0.003}. \u2022 SAPG (high off-policy ratio) In SAPG, when updating the leader, we subsample the off-policy data from the followers such that the off-policy dataset size matches the on-policy data. This is done because off-policy data is typically noisier and we do not want to drown out the gradient from on-policy data. In SAPG with a high offpolicy ratio, we remove the subsampling step and instead see the impact of computing the gradient on the entire combined off-policy + on-policy dataset. \u2022 Ours (symmetric) In SAPG, we choose i = 1 to be the \"leader\" and the rest are \"followers\". Only the leader receives off-policy data while the followers use the standard on-policy loss. A natural alternative is where there are no privileged policies and each policy is updated with off-policy data from all others as discussed in sec. 4.2.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Ablations",
+                "sec_num": "6.3."
+            },
+            {
+                "text": "We observe that SAPG outperforms or achieves comparable performance to the entropy-regularized variant except in the Reorientation environment where the variant with coefficient 5e -3 performs up to 16.5% better. Reorientation is the hardest task out of the three AllegroKuka tasks and has a lot of scope for learning emergent strategies such as using the table to move the object around, etc. Explicit exploration might be useful in discovering these behaviors.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Ablations",
+                "sec_num": "6.3."
+            },
+            {
+                "text": "The variant of ours which uses all the off-policy data is significantly worse on the AllegroHand and ShadowHand tasks and marginally worse on Regrasping and Throw environments. It is more sample efficient than SAPG on Reorientation but achieves lower asymptotic performance. This could be because in the simple environments, additional data has marginal utility. In the harder AllegroKuka environments, it is beneficial to use all the data initially since it may contain optimal trajectories that would otherwise be missed. However, once an appreciable level of performance is achieved, it becomes better to subsample to prevent the noise in the off-policy update from drowning out the on-policy gradient.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Ablations",
+                "sec_num": "6.3."
+            },
+            {
+                "text": "Finally, the symmetric variant of our method performs significantly worse across the board. This is possibly because using all the data to update each policy leads to them converging in behavior. If all the policies start executing the same actions, the benefit of data diversity is lost and SAPG reduces to vanilla PPO. Of course, there is a rich space of possible algorithms depending on particular choices of how data is aggregated and diversity is encouraged of which we have explored a small fraction. ",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Ablations",
+                "sec_num": "6.3."
+            },
+            {
+                "text": "To analyze why our method outperforms the baseline method, we conduct experiments comparing the diversity of states visited by each algorithm during training. We devise two metrics to measure the diversity of the state space and find that our method beats PPO in both metrics.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Diversity in exploration",
+                "sec_num": "6.4."
+            },
+            {
+                "text": "\u2022 PCA -We compute the reconstruction error of a batch of states using k most significant components of PCA and plot this error as a function of k. In general, a set that has variation along fewer dimensions of space can be compressed with fewer principal vectors and will have lower reconstruction error. This metric therefore measures the extent to which the policy explores different dimensions of state space. Figure-7 contains the plots for this metric. We find that the rate of decrease in reconstruction error with an increase in components is the slowest for our method.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Diversity in exploration",
+                "sec_num": "6.4."
+            },
+            {
+                "text": "\u2022 MLP -We train feedforward networks with small hidden layers on the task of input reconstruction on batches of environment states visited by our algorithm and PPO during training. The idea behind this is that if a batch of states has a more diverse data distribution then it should be harder to reconstruct the distribution using small hidden layers because high diversity implies that the distribution is less compressible. Thus, high training error on a batch of states is a strong indicator of diversity in the batch. As can be observed from the plots in Figure-8, we find that training error is consistently higher for our method compared to PPO across different hidden layer sizes.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Diversity in exploration",
+                "sec_num": "6.4."
+            },
+            {
+                "text": "In this work, we present a method to scale reinforcement learning to utilize large simulation capacity. We show how current algorithms obtain diminishing returns if we perform naive scaling by batch size and do not use the increased volume of data efficiently. Our method achieves state-ofthe-art performance on hard simulation benchmarks.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Conclusion",
+                "sec_num": "7."
+            },
+            {
+                "text": "This paper presents work whose goal is to advance the field of Machine Learning. There are many potential societal consequences of our work, none of which we feel must be specifically highlighted here.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Impact Statement",
+                "sec_num": null
+            },
+            {
+                "text": "Gmelin for proofreading an earlier draft. This project was supported in part by ONR N00014-22-1-2096 and NSF NRI IIS-2024594.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Impact Statement",
+                "sec_num": null
+            }
+        ],
+        "back_matter": [
+            {
+                "text": "We thank Alex Li and Russell Mendonca for fruitful discussions regarding the method and insightful feedback. We would also like to thank Mihir Prabhudesai and Kevin",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "Acknowledgements",
+                "sec_num": null
+            },
+            {
+                "text": "Hard Difficulty Tasks All three hard tasks are based on the Allegro-Kuka environments (Petrenko et al., 2023) . These consist of an Allegro Hand (16 dof) mounted on a Kuka arm (7 dof). In each case, the robot must manipulate a cuboidal kept on a fixed table. The observation space is o t = [q, q, x t , v t , \u03c9 t , g t , z t ], where q, q \u2208 R 23 are the joint angles and velocities respectively of each joint of the robot, x t \u2208 R 7 is the pose of the object, v t is its linear velocity and \u03c9 t is its angular velocity, g t is a task-dependent goal observation and z t is auxiliary information pertinent to solving the task such as if the object has been lifted. These tasks consist of a complex environment but a simple reward function allowing opportunities for emergent strategies to be learnt such as in-hand reorientation under the influence of gravity, reorientation against the table, different types of throws and grasps and so on. The performance of the agent in the above three tasks is measured by the successes metric which is defined as the number of successes in a single episode. Three tasks include:\u2022 Regrasping -The object must be lifted from the table and held near a goal position g t \u2208 R 3 for K = 30 steps. This is called a \"success\". The target position and object position are reset to a random location after every success. The success tolerance \u03b4 defines the maximum error between object pose and goal pose for a success \u2225g t -This tolerance is decreased in a curriculum from 7.5cm to 1cm, decremented by 10% each time the the average number of successes in an episode crosses 3. The reward function is a weighted combination of rewards encouraging the hand to reach the object r reach , a bonus r lif t , rewards encouraging the hand to move to goal location after lifting r target and a success bonus r success .\u2022 Throw -The object must be lifted from the table and thrown into a bucket at g t \u2208 R 3 placed out of reach of the arm.The bucket and the object position are reset randomly after every successful attempt. The reward function is similar to regrasping with the difference being that the target is now a bucket instead of a point.\u2022 Reorientation -This task involves picking up the object and reorienting it to a particular target pose g t \u2208 R 7 (position + orientation). Similar to the regrasping task, there is a success tolerance \u03b4 which is varied in a curriculum. The target pose is reset once the agent succeeds. This means the agents needs to the object in different poses in succession, which may sometimes entail placing the obxfject on the table and lifting it up in a different way. Here too, the reward function is similar to regrasping, with the goal now being a pose in R 7 instead of R 3Easy Difficulty Tasks: In addition, we test on the following dexterous hand tasks. As before, the observation space consists of the joint angles and velocities q t , qt , object pose x t and velocities v t , \u03c9 t . Following previous works (Li et al., 2023) , we use the net episode reward as a performance metric for the ShadowHand and AllegroHand tasks.\u2022 Shadow Hand: We test on in-hand reorientation task of a cube using the 24-DoF Shadow Hand ((OpenAI et al., 2018) ).The task is to attain a specified goal orientation (specified as a quaternion) for the cube g t \u2208 R 4 . The reward is a combination of the orientation error and a success bonus.\u2022 Allegro Hand: This is the same as the previous in-hand reorientation task but with the 16-DoF Allegro Hand instead.",
+                "cite_spans": [
+                    {
+                        "start": 86,
+                        "end": 109,
+                        "text": "(Petrenko et al., 2023)",
+                        "ref_id": "BIBREF22"
+                    },
+                    {
+                        "start": 2975,
+                        "end": 2992,
+                        "text": "(Li et al., 2023)",
+                        "ref_id": "BIBREF13"
+                    },
+                    {
+                        "start": 3182,
+                        "end": 3204,
+                        "text": "((OpenAI et al., 2018)",
+                        "ref_id": "BIBREF21"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "A. Task and Environment Details",
+                "sec_num": null
+            },
+            {
+                "text": "We use two different sets of default hyperparaeters for PPO in AllegroKuka and Shadow Hand tasks which are descibed below.",
+                "cite_spans": [],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "B. Training hyperparameters",
+                "sec_num": null
+            },
+            {
+                "text": "We use a Gaussian policy where the mean network is an LSTM with 1 layer containing 768 hidden units. The observation is also passed through an MLP of with hidden layer dimensions 768 \u00d7 512 \u00d7 256 and an ELU activation (Clevert et al., 2016) before being input to the LSTM. The sigma for the Gaussian is a fixed learnable vector independent of input observation. ",
+                "cite_spans": [
+                    {
+                        "start": 217,
+                        "end": 239,
+                        "text": "(Clevert et al., 2016)",
+                        "ref_id": "BIBREF3"
+                    }
+                ],
+                "ref_spans": [],
+                "eq_spans": [],
+                "section": "B.1. AllegroKuka tasks",
+                "sec_num": null
+            }
+        ],
+        "bib_entries": {
+            "BIBREF0": {
+                "ref_id": "b0",
+                "title": "Legged locomotion in challenging terrains using egocentric vision",
+                "authors": [
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Agarwal",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Kumar",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Malik",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Pathak",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2022,
+                "venue": "Conference on Robot Learning",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Agarwal, A., Kumar, A., Malik, J., and Pathak, D. Legged locomotion in challenging terrains using ego- centric vision. In Conference on Robot Learning, 2022. URL https://api.semanticscholar. org/CorpusID:252733339.",
+                "links": null
+            },
+            "BIBREF1": {
+                "ref_id": "b1",
+                "title": "A system for general in-hand object re-orientation",
+                "authors": [
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Chen",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Xu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Agrawal",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2021,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Chen, T., Xu, J., and Agrawal, P. A system for general in-hand object re-orientation, 2021.",
+                "links": null
+            },
+            "BIBREF2": {
+                "ref_id": "b2",
+                "title": "Extreme parkour with legged robots",
+                "authors": [
+                    {
+                        "first": "X",
+                        "middle": [],
+                        "last": "Cheng",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Shi",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Agarwal",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Pathak",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2023,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Cheng, X., Shi, K., Agarwal, A., and Pathak, D. Extreme parkour with legged robots. ArXiv, abs/2309.14341, 2023. URL https://api.semanticscholar. org/CorpusID:262826068.",
+                "links": null
+            },
+            "BIBREF3": {
+                "ref_id": "b3",
+                "title": "Fast and accurate deep network learning by exponential linear units",
+                "authors": [
+                    {
+                        "first": "D.-A",
+                        "middle": [],
+                        "last": "Clevert",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Unterthiner",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Hochreiter",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2016,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Clevert, D.-A., Unterthiner, T., and Hochreiter, S. Fast and accurate deep network learning by exponential linear units (elus), 2016.",
+                "links": null
+            },
+            "BIBREF4": {
+                "ref_id": "b4",
+                "title": "Off-policy actorcritic",
+                "authors": [
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Degris",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "White",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "R",
+                        "middle": [
+                            "S"
+                        ],
+                        "last": "Sutton",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2012,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Degris, T., White, M., and Sutton, R. S. Off-policy actor- critic. CoRR, abs/1205.4839, 2012. URL http:// arxiv.org/abs/1205.4839.",
+                "links": null
+            },
+            "BIBREF5": {
+                "ref_id": "b5",
+                "title": "IMPALA: scalable distributed deep-rl with importance weighted actorlearner architectures",
+                "authors": [
+                    {
+                        "first": "L",
+                        "middle": [],
+                        "last": "Espeholt",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "H",
+                        "middle": [],
+                        "last": "Soyer",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "R",
+                        "middle": [],
+                        "last": "Munos",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Simonyan",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Mnih",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Ward",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Y",
+                        "middle": [],
+                        "last": "Doron",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Firoiu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Harley",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "I",
+                        "middle": [],
+                        "last": "Dunning",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Legg",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Kavukcuoglu",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2018,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Espeholt, L., Soyer, H., Munos, R., Simonyan, K., Mnih, V., Ward, T., Doron, Y., Firoiu, V., Harley, T., Dun- ning, I., Legg, S., and Kavukcuoglu, K. IMPALA: scal- able distributed deep-rl with importance weighted actor- learner architectures. CoRR, abs/1802.01561, 2018. URL http://arxiv.org/abs/1802.01561.",
+                "links": null
+            },
+            "BIBREF6": {
+                "ref_id": "b6",
+                "title": "P3o: Policy-on policy-off policy optimization",
+                "authors": [
+                    {
+                        "first": "R",
+                        "middle": [],
+                        "last": "Fakoor",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Chaudhari",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [
+                            "J"
+                        ],
+                        "last": "Smola",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2020,
+                "venue": "Proceedings of The 35th Uncertainty in Artificial Intelligence Conference",
+                "volume": "115",
+                "issue": "",
+                "pages": "22--25",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Fakoor, R., Chaudhari, P., and Smola, A. J. P3o: Policy-on policy-off policy optimization. In Adams, R. P. and Gogate, V. (eds.), Proceedings of The 35th Uncertainty in Artificial Intelligence Confer- ence, volume 115 of Proceedings of Machine Learn- ing Research, pp. 1017-1027. PMLR, 22-25 Jul 2020. URL https://proceedings.mlr.press/ v115/fakoor20a.html.",
+                "links": null
+            },
+            "BIBREF7": {
+                "ref_id": "b7",
+                "title": "Deep wholebody control: Learning a unified policy for manipulation and locomotion",
+                "authors": [
+                    {
+                        "first": "Z",
+                        "middle": [],
+                        "last": "Fu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "X",
+                        "middle": [],
+                        "last": "Cheng",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Pathak",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2022,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Fu, Z., Cheng, X., and Pathak, D. Deep whole- body control: Learning a unified policy for ma- nipulation and locomotion. ArXiv, abs/2210.10044, 2022. URL https://api.semanticscholar. org/CorpusID:252968218.",
+                "links": null
+            },
+            "BIBREF8": {
+                "ref_id": "b8",
+                "title": "Soft actorcritic: Off-policy maximum entropy deep reinforcement learning with a stochastic actor",
+                "authors": [
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Haarnoja",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Zhou",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Abbeel",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Levine",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2018,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Haarnoja, T., Zhou, A., Abbeel, P., and Levine, S. Soft actor- critic: Off-policy maximum entropy deep reinforcement learning with a stochastic actor. ArXiv, abs/1801.01290, 2018. URL https://api.semanticscholar. org/CorpusID:28202810.",
+                "links": null
+            },
+            "BIBREF9": {
+                "ref_id": "b9",
+                "title": "Dextreme: Transfer of agile in-hand manipulation from simulation to reality",
+                "authors": [
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Handa",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Allshire",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Makoviychuk",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Petrenko",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "R",
+                        "middle": [],
+                        "last": "Singh",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Liu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Makoviichuk",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [
+                            "V"
+                        ],
+                        "last": "Wyk",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Zhurkevich",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "B",
+                        "middle": [],
+                        "last": "Sundaralingam",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Y",
+                        "middle": [
+                            "S"
+                        ],
+                        "last": "Narang",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J.-F",
+                        "middle": [],
+                        "last": "Lafleche",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Fox",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "G",
+                        "middle": [],
+                        "last": "State",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2022,
+                "venue": "2023 IEEE International Conference on Robotics and Automation (ICRA)",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Handa, A., Allshire, A., Makoviychuk, V., Petrenko, A., Singh, R., Liu, J., Makoviichuk, D., Wyk, K. V., Zhurkevich, A., Sundaralingam, B., Narang, Y. S., Lafleche, J.-F., Fox, D., and State, G. Dextreme: Transfer of agile in-hand manipulation from simula- tion to reality. 2023 IEEE International Conference on Robotics and Automation (ICRA), pp. 5977-5984, 2022. URL https://api.semanticscholar. org/CorpusID:253107794.",
+                "links": null
+            },
+            "BIBREF10": {
+                "ref_id": "b10",
+                "title": "Monte Carlo sampling methods using Markov chains and their applications",
+                "authors": [
+                    {
+                        "first": "W",
+                        "middle": [
+                            "K"
+                        ],
+                        "last": "Hastings",
+                        "suffix": ""
+                    }
+                ],
+                "year": 1970,
+                "venue": "Biometrika",
+                "volume": "57",
+                "issue": "1",
+                "pages": "97--109",
+                "other_ids": {
+                    "ISSN": [
+                        "0006-3444"
+                    ]
+                },
+                "num": null,
+                "urls": [],
+                "raw_text": "Hastings, W. K. Monte Carlo sampling methods using Markov chains and their applications. Biometrika, 57(1): 97-109, 04 1970. ISSN 0006-3444.",
+                "links": null
+            },
+            "BIBREF11": {
+                "ref_id": "b11",
+                "title": "Distributed prioritized experience replay",
+                "authors": [
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Horgan",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Quan",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Budden",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "G",
+                        "middle": [],
+                        "last": "Barth-Maron",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Hessel",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "H",
+                        "middle": [],
+                        "last": "Van Hasselt",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Silver",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2018,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Horgan, D., Quan, J., Budden, D., Barth-Maron, G., Hessel, M., van Hasselt, H., and Silver, D. Distributed prioritized experience replay. CoRR, abs/1803.00933, 2018. URL http://arxiv.org/abs/1803.00933.",
+                "links": null
+            },
+            "BIBREF12": {
+                "ref_id": "b12",
+                "title": "Approximately optimal approximate reinforcement learning",
+                "authors": [
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Kakade",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Langford",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2002,
+                "venue": "Proceedings of the Nineteenth International Conference on Machine Learning",
+                "volume": "",
+                "issue": "",
+                "pages": "267--274",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Kakade, S. and Langford, J. Approximately optimal ap- proximate reinforcement learning. In Proceedings of the Nineteenth International Conference on Machine Learn- ing, pp. 267-274, 2002.",
+                "links": null
+            },
+            "BIBREF13": {
+                "ref_id": "b13",
+                "title": "Parallel q-learning: Scaling off-policy reinforcement learning under massively parallel simulation",
+                "authors": [
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Konda",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Tsitsiklis",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "",
+                        "middle": [],
+                        "last": "Pdf",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Z",
+                        "middle": [],
+                        "last": "Li",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Chen",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Z.-W",
+                        "middle": [],
+                        "last": "Hong",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Ajay",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Agrawal",
+                        "suffix": ""
+                    }
+                ],
+                "year": 1999,
+                "venue": "Advances in Neural Information Processing Systems",
+                "volume": "12",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Konda, V. and Tsitsiklis, J. Actor-critic algorithms. In Solla, S., Leen, T., and M\u00fcller, K. (eds.), Advances in Neural Information Processing Systems, volume 12. MIT Press, 1999. URL https://proceedings.neurips. cc/paper_files/paper/1999/file/ 6449f44a102fde848669bdd9eb6b76fa-Paper. pdf. Li, Z., Chen, T., Hong, Z.-W., Ajay, A., and Agrawal, P. Par- allel q-learning: Scaling off-policy reinforcement learn- ing under massively parallel simulation, 2023.",
+                "links": null
+            },
+            "BIBREF14": {
+                "ref_id": "b14",
+                "title": "Continuous control with deep reinforcement learning",
+                "authors": [
+                    {
+                        "first": "T",
+                        "middle": [
+                            "P"
+                        ],
+                        "last": "Lillicrap",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [
+                            "J"
+                        ],
+                        "last": "Hunt",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Pritzel",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "N",
+                        "middle": [],
+                        "last": "Heess",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Erez",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Y",
+                        "middle": [],
+                        "last": "Tassa",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Silver",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Wierstra",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2019,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Lillicrap, T. P., Hunt, J. J., Pritzel, A., Heess, N., Erez, T., Tassa, Y., Silver, D., and Wierstra, D. Continuous control with deep reinforcement learning, 2019.",
+                "links": null
+            },
+            "BIBREF15": {
+                "ref_id": "b15",
+                "title": "Isaac gym: High performance gpu-based physics simulation for robot learning",
+                "authors": [
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Makoviychuk",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "L",
+                        "middle": [],
+                        "last": "Wawrzyniak",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Y",
+                        "middle": [],
+                        "last": "Guo",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Lu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Storey",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Macklin",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Hoeller",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "N",
+                        "middle": [],
+                        "last": "Rudin",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Allshire",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Handa",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2021,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {
+                    "arXiv": [
+                        "arXiv:2108.10470"
+                    ]
+                },
+                "num": null,
+                "urls": [],
+                "raw_text": "Makoviychuk, V., Wawrzyniak, L., Guo, Y., Lu, M., Storey, K., Macklin, M., Hoeller, D., Rudin, N., Allshire, A., Handa, A., et al. Isaac gym: High performance gpu-based physics simulation for robot learning. arXiv preprint arXiv:2108.10470, 2021.",
+                "links": null
+            },
+            "BIBREF16": {
+                "ref_id": "b16",
+                "title": "Offpolicy proximal policy optimization",
+                "authors": [
+                    {
+                        "first": "W",
+                        "middle": [],
+                        "last": "Meng",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Q",
+                        "middle": [],
+                        "last": "Zheng",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "G",
+                        "middle": [],
+                        "last": "Pan",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Y",
+                        "middle": [],
+                        "last": "Yin",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2023,
+                "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+                "volume": "37",
+                "issue": "",
+                "pages": "9162--9170",
+                "other_ids": {
+                    "DOI": [
+                        "10.1609/aaai.v37i8.26099"
+                    ]
+                },
+                "num": null,
+                "urls": [],
+                "raw_text": "Meng, W., Zheng, Q., Pan, G., and Yin, Y. Off- policy proximal policy optimization. Proceedings of the AAAI Conference on Artificial Intelligence, 37(8): 9162-9170, June 2023. ISSN 2159-5399. doi: 10.1609/ aaai.v37i8.26099. URL http://dx.doi.org/10. 1609/aaai.v37i8.26099.",
+                "links": null
+            },
+            "BIBREF17": {
+                "ref_id": "b17",
+                "title": "Learning robust perceptive locomotion for quadrupedal robots in the wild",
+                "authors": [
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Miki",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Lee",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Hwangbo",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "L",
+                        "middle": [],
+                        "last": "Wellhausen",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Koltun",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Hutter",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2022,
+                "venue": "Science Robotics",
+                "volume": "7",
+                "issue": "62",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Miki, T., Lee, J., Hwangbo, J., Wellhausen, L., Koltun, V., and Hutter, M. Learning robust perceptive locomotion for quadrupedal robots in the wild. Science Robotics, 7 (62):eabk2822, 2022.",
+                "links": null
+            },
+            "BIBREF18": {
+                "ref_id": "b18",
+                "title": "Playing atari with deep reinforcement learning",
+                "authors": [
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Mnih",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Kavukcuoglu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Silver",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Graves",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "I",
+                        "middle": [],
+                        "last": "Antonoglou",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Wierstra",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [
+                            "A"
+                        ],
+                        "last": "Riedmiller",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2013,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Mnih, V., Kavukcuoglu, K., Silver, D., Graves, A., Antonoglou, I., Wierstra, D., and Riedmiller, M. A. Playing atari with deep reinforcement learn- ing. ArXiv, abs/1312.5602, 2013. URL https://api. semanticscholar.org/CorpusID:15238391.",
+                "links": null
+            },
+            "BIBREF19": {
+                "ref_id": "b19",
+                "title": "Asynchronous methods for deep reinforcement learning",
+                "authors": [
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Mnih",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [
+                            "P"
+                        ],
+                        "last": "Badia",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Mirza",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Graves",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [
+                            "P"
+                        ],
+                        "last": "Lillicrap",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Harley",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Silver",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Kavukcuoglu",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2016,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Mnih, V., Badia, A. P., Mirza, M., Graves, A., Lilli- crap, T. P., Harley, T., Silver, D., and Kavukcuoglu, K. Asynchronous methods for deep reinforcement learning. CoRR, abs/1602.01783, 2016. URL http://arxiv. org/abs/1602.01783.",
+                "links": null
+            },
+            "BIBREF20": {
+                "ref_id": "b20",
+                "title": "Massively parallel methods for deep reinforcement learning",
+                "authors": [
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Nair",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Srinivasan",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Blackwell",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "C",
+                        "middle": [],
+                        "last": "Alcicek",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "R",
+                        "middle": [],
+                        "last": "Fearon",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [
+                            "D"
+                        ],
+                        "last": "Maria",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Panneershelvam",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Suleyman",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "C",
+                        "middle": [],
+                        "last": "Beattie",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Petersen",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Legg",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Mnih",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Kavukcuoglu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Silver",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2015,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Nair, A., Srinivasan, P., Blackwell, S., Alcicek, C., Fearon, R., Maria, A. D., Panneershelvam, V., Suleyman, M., Beattie, C., Petersen, S., Legg, S., Mnih, V., Kavukcuoglu, K., and Silver, D. Massively parallel methods for deep reinforcement learning. CoRR, abs/1507.04296, 2015. URL http://arxiv.org/abs/1507.04296.",
+                "links": null
+            },
+            "BIBREF21": {
+                "ref_id": "b21",
+                "title": "Learning dexterous in-hand manipulation",
+                "authors": [
+                    {
+                        "first": "Andrychowicz",
+                        "middle": [],
+                        "last": "Openai",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Baker",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "B",
+                        "middle": [],
+                        "last": "Chociej",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "J\u00f3zefowicz",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "R",
+                        "middle": [],
+                        "last": "Mcgrew",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "B",
+                        "middle": [],
+                        "last": "Pachocki",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Petron",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Plappert",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Powell",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "G",
+                        "middle": [],
+                        "last": "Ray",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Schneider",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Sidor",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Tobin",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Welinder",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Weng",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "L",
+                        "middle": [],
+                        "last": "Zaremba",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "W",
+                        "middle": [],
+                        "last": "",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2018,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "OpenAI, Andrychowicz, M., Baker, B., Chociej, M., J\u00f3zefowicz, R., McGrew, B., Pachocki, J., Petron, A., Plappert, M., Powell, G., Ray, A., Schneider, J., Sidor, S., Tobin, J., Welinder, P., Weng, L., and Zaremba, W. Learning dexterous in-hand manipulation. CoRR, abs/1808.00177, 2018. URL http://arxiv.org/ abs/1808.00177.",
+                "links": null
+            },
+            "BIBREF22": {
+                "ref_id": "b22",
+                "title": "Dexpbt: Scaling up dexterous manipulation for hand-arm systems with population based training",
+                "authors": [
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Petrenko",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Allshire",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "G",
+                        "middle": [],
+                        "last": "State",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Handa",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Makoviychuk",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2023,
+                "venue": "Robotics: Science and Systems XIX",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {
+                    "DOI": [
+                        "10.15607/RSS.2023.XIX.037"
+                    ]
+                },
+                "num": null,
+                "urls": [],
+                "raw_text": "Petrenko, A., Allshire, A., State, G., Handa, A., and Makoviychuk, V. Dexpbt: Scaling up dexterous ma- nipulation for hand-arm systems with population based training. In Bekris, K. E., Hauser, K., Herbert, S. L., and Yu, J. (eds.), Robotics: Science and Systems XIX, Daegu, Republic of Korea, July 10-14, 2023, 2023. doi: 10.15607/RSS.2023.XIX.037. URL https://doi. org/10.15607/RSS.2023.XIX.037.",
+                "links": null
+            },
+            "BIBREF23": {
+                "ref_id": "b23",
+                "title": "Learning to walk in minutes using massively parallel deep reinforcement learning",
+                "authors": [
+                    {
+                        "first": "N",
+                        "middle": [],
+                        "last": "Rudin",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Hoeller",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Reist",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Hutter",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2022,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Rudin, N., Hoeller, D., Reist, P., and Hutter, M. Learning to walk in minutes using massively parallel deep reinforce- ment learning, 2022.",
+                "links": null
+            },
+            "BIBREF24": {
+                "ref_id": "b24",
+                "title": "Trust region policy optimization",
+                "authors": [
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Schulman",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Levine",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Abbeel",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Jordan",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Moritz",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2015,
+                "venue": "Proceedings of the 32nd International Conference on Machine Learning",
+                "volume": "",
+                "issue": "",
+                "pages": "7--09",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Schulman, J., Levine, S., Abbeel, P., Jordan, M., and Moritz, P. Trust region policy optimization. In Bach, F. and Blei, D. (eds.), Proceedings of the 32nd International Conference on Machine Learning, vol- ume 37 of Proceedings of Machine Learning Research, pp. 1889-1897, Lille, France, 07-09 Jul 2015. PMLR. URL https://proceedings.mlr.press/v37/ schulman15.html.",
+                "links": null
+            },
+            "BIBREF25": {
+                "ref_id": "b25",
+                "title": "Proximal policy optimization algorithms",
+                "authors": [
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Schulman",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "F",
+                        "middle": [],
+                        "last": "Wolski",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Dhariwal",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Radford",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "O",
+                        "middle": [],
+                        "last": "Klimov",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2017,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Schulman, J., Wolski, F., Dhariwal, P., Radford, A., and Klimov, O. Proximal policy optimization algorithms. ArXiv, abs/1707.06347, 2017. URL https://api. semanticscholar.org/CorpusID:28695052.",
+                "links": null
+            },
+            "BIBREF26": {
+                "ref_id": "b26",
+                "title": "High-dimensional continuous control using generalized advantage estimation",
+                "authors": [
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Schulman",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Moritz",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Levine",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Jordan",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Abbeel",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2018,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Schulman, J., Moritz, P., Levine, S., Jordan, M., and Abbeel, P. High-dimensional continuous control using generalized advantage estimation, 2018.",
+                "links": null
+            },
+            "BIBREF27": {
+                "ref_id": "b27",
+                "title": "Policy gradient methods for reinforcement learning with function approximation",
+                "authors": [
+                    {
+                        "first": "R",
+                        "middle": [
+                            "S"
+                        ],
+                        "last": "Sutton",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Mcallester",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "S",
+                        "middle": [],
+                        "last": "Singh",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Y",
+                        "middle": [],
+                        "last": "Mansour",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "O",
+                        "middle": [],
+                        "last": "Vinyals",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "I",
+                        "middle": [],
+                        "last": "Babuschkin",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "W",
+                        "middle": [
+                            "M"
+                        ],
+                        "last": "Czarnecki",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Mathieu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Dudzik",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Chung",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [
+                            "H"
+                        ],
+                        "last": "Choi",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "R",
+                        "middle": [],
+                        "last": "Powell",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Ewalds",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "P",
+                        "middle": [],
+                        "last": "Georgiev",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Oh",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Horgan",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Kroiss",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "I",
+                        "middle": [],
+                        "last": "Danihelka",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [],
+                        "last": "Huang",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "L",
+                        "middle": [],
+                        "last": "Sifre",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Cai",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [
+                            "P"
+                        ],
+                        "last": "Agapiou",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "M",
+                        "middle": [],
+                        "last": "Jaderberg",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "A",
+                        "middle": [
+                            "S"
+                        ],
+                        "last": "Vezhnevets",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "R",
+                        "middle": [],
+                        "last": "Leblond",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Pohlen",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Dalibard",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Budden",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Y",
+                        "middle": [],
+                        "last": "Sulsky",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "J",
+                        "middle": [],
+                        "last": "Molloy",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [
+                            "L"
+                        ],
+                        "last": "Paine",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "C",
+                        "middle": [],
+                        "last": "Gulcehre",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Z",
+                        "middle": [],
+                        "last": "Wang",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Pfaff",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "Y",
+                        "middle": [],
+                        "last": "Wu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "R",
+                        "middle": [],
+                        "last": "Ring",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Yogatama",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "W\u00fcnsch",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Mckinney",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "O",
+                        "middle": [],
+                        "last": "Smith",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [],
+                        "last": "Schaul",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "T",
+                        "middle": [
+                            "P"
+                        ],
+                        "last": "Lillicrap",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Kavukcuoglu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Hassabis",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "C",
+                        "middle": [],
+                        "last": "Apps",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "D",
+                        "middle": [],
+                        "last": "Silver",
+                        "suffix": ""
+                    }
+                ],
+                "year": 1999,
+                "venue": "Advances in Neural Information Processing Systems",
+                "volume": "12",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Sutton, R. S., McAllester, D., Singh, S., and Mansour, Y. Policy gradient methods for reinforcement learning with function approximation. In Solla, S., Leen, T., and M\u00fcller, K. (eds.), Advances in Neural Infor- mation Processing Systems, volume 12. MIT Press, 1999. URL https://proceedings.neurips. cc/paper_files/paper/1999/file/ 464d828b85b0bed98e80ade0a5c43b0f-Paper. pdf. Vinyals, O., Babuschkin, I., Czarnecki, W. M., Mathieu, M., Dudzik, A., Chung, J., Choi, D. H., Powell, R., Ewalds, T., Georgiev, P., Oh, J., Horgan, D., Kroiss, M., Danihelka, I., Huang, A., Sifre, L., Cai, T., Agapiou, J. P., Jaderberg, M., Vezhnevets, A. S., Leblond, R., Pohlen, T., Dalibard, V., Budden, D., Sulsky, Y., Molloy, J., Paine, T. L., Gulcehre, C., Wang, Z., Pfaff, T., Wu, Y., Ring, R., Yogatama, D., W\u00fcnsch, D., McKinney, K., Smith, O., Schaul, T., Lilli- crap, T. P., Kavukcuoglu, K., Hassabis, D., Apps, C., and Silver, D. Grandmaster level in starcraft ii using multi- agent reinforcement learning. Nature, 575:350 -354, 2019. URL https://api.semanticscholar. org/CorpusID:204972004.",
+                "links": null
+            },
+            "BIBREF28": {
+                "ref_id": "b28",
+                "title": "Sample efficient actor-critic with experience replay",
+                "authors": [
+                    {
+                        "first": "Z",
+                        "middle": [],
+                        "last": "Wang",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Bapst",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "N",
+                        "middle": [],
+                        "last": "Heess",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "V",
+                        "middle": [],
+                        "last": "Mnih",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "R",
+                        "middle": [],
+                        "last": "Munos",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "K",
+                        "middle": [],
+                        "last": "Kavukcuoglu",
+                        "suffix": ""
+                    },
+                    {
+                        "first": "N",
+                        "middle": [],
+                        "last": "Freitas",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2016,
+                "venue": "",
+                "volume": "",
+                "issue": "",
+                "pages": "",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Wang, Z., Bapst, V., Heess, N., Mnih, V., Munos, R., Kavukcuoglu, K., and de Freitas, N. Sample efficient actor-critic with experience replay. CoRR, abs/1611.01224, 2016. URL http://arxiv.org/ abs/1611.01224.",
+                "links": null
+            },
+            "BIBREF31": {
+                "ref_id": "b31",
+                "title": "Simple statistical gradient-following algorithms for connectionist reinforcement learning",
+                "authors": [
+                    {
+                        "first": "R",
+                        "middle": [
+                            "J"
+                        ],
+                        "last": "Williams",
+                        "suffix": ""
+                    }
+                ],
+                "year": 2004,
+                "venue": "Machine Learning",
+                "volume": "8",
+                "issue": "",
+                "pages": "229--256",
+                "other_ids": {},
+                "num": null,
+                "urls": [],
+                "raw_text": "Williams, R. J. Simple statistical gradient-following al- gorithms for connectionist reinforcement learning. Ma- chine Learning, 8:229-256, 2004. URL https://api. semanticscholar.org/CorpusID:19115634.",
+                "links": null
+            }
+        },
+        "ref_entries": {
+            "FIGREF1": {
+                "text": "Figure2. Performance vs batch size plot for PPO runs (blue curve) across two environments. The curve shows how PPO training runs can not take benefit of large batch size resulting from massively parallelized environments and their asymptotic performance saturates after a certain point. The dashed red line is the performance of our method, SAPG, with more details in the results section. It serves as evidence that higher performance is achievable with larger batch sizes.",
+                "fig_num": "2",
+                "type_str": "figure",
+                "uris": null,
+                "num": null
+            },
+            "FIGREF2": {
+                "text": "Figure 3. We illustrate one particular variant of SAPG which performs well. There is one leader and M -1 followers (M = 3 in figure).Each policy has the same backbone with shared parameters B \u03b8 but is conditioned on local learned parameters \u03d5i. Each policy gets a block of N M environments to run. The leader is updated with its on-policy data as well as importance-sampled off-policy data from the followers. Each of the followers only uses their own data for on-policy updates.",
+                "fig_num": "3",
+                "type_str": "figure",
+                "uris": null,
+                "num": null
+            },
+            "FIGREF4": {
+                "text": "Figure 4. Two data aggregation schemes we consider in this paper.(Left) one policy is a leader and uses data from each of the followers (Right) a symmetric scheme where each policy uses data from all others. In each case, the policy also uses its own on-policy data.",
+                "fig_num": "4",
+                "type_str": "figure",
+                "uris": null,
+                "num": null
+            },
+            "FIGREF5": {
+                "text": "Figure5. Performance curves of SAPG with respect to PPO, PBT and PQL baselines. On AllegroKuka tasks, PPO and PQL barely make progress and SAPG beats PBT. On Shadow Hand and Allegro Kuka Reorientation, SAPG performs best with an entropy coefficient of 0.005 while the coefficient is 0 for other environments. On ShadowHand and AllegroHand, while PQL is initially more sample efficient, SAPG is more performant in the longer run. AllegroKuka environments use successes as a performance metric while AllegroHand and ShadowHand use episode rewards.",
+                "fig_num": null,
+                "type_str": "figure",
+                "uris": null,
+                "num": null
+            },
+            "FIGREF6": {
+                "text": "Figure6. Performance curves for ablations of our method. The variants of our method with a symmetric aggregation scheme or without an off-policy combination perform significantly worse. Entropy regularization affects performance across environments, giving a benefit in reorientation. Using a high off-policy ratio without subsampling data leads to worse performance on ShadowHand and AllegroHand.",
+                "fig_num": null,
+                "type_str": "figure",
+                "uris": null,
+                "num": null
+            },
+            "FIGREF7": {
+                "text": "Figure 7. Curves comparing reconstruction error for states visited during training using top-k PCA components for SAPG (Ours), PPO and a randomly initialized policy",
+                "fig_num": "78",
+                "type_str": "figure",
+                "uris": null,
+                "num": null
+            }
+        }
+    }
+}

@@ -1,0 +1,64 @@
+{
+  "paper_title": "Unsupervised Zero-Shot Reinforcement Learning via Functional Reward  Encodings",
+  "paper_abstract": "Can we pre-train a generalist agent from a large amount of unlabeled offline\ntrajectories such that it can be immediately adapted to any new downstream\ntasks in a zero-shot manner? In this work, we present a functional reward\nencoding (FRE) as a general, scalable solution to this zero-shot RL problem.\nOur main idea is to learn functional representations of any arbitrary tasks by\nencoding their state-reward samples using a transformer-based variational\nauto-encoder. This functional encoding not only enables the pre-training of an\nagent from a wide diversity of general unsupervised reward functions, but also\nprovides a way to solve any new downstream tasks in a zero-shot manner, given a\nsmall number of reward-annotated samples. We empirically show that FRE agents\ntrained on diverse random unsupervised reward functions can generalize to solve\nnovel tasks in a range of simulated robotic benchmarks, often outperforming\nprevious zero-shot RL and offline RL methods. Code for this project is provided\nat: https://github.com/kvfrans/fre",
+  "techniques": [
+    {
+      "name": "Unsupervised Zero-Shot Reinforcement Learning via Functional Reward Encoding (FRE)",
+      "description": "Unsupervised Zero‐Shot Reinforcement Learning via Functional Reward Encodings (FRE) is a complete pipeline for training a multi‐task RL agent from unlabeled offline data that can immediately solve novel reward functions without additional learning. FRE begins by learning a latent representation of arbitrary reward functions using a variational transformer encoder paired with a decoder that reconstructs sampled state–reward pairs; this encoder is trained with a mutual‐information bottleneck objective over a broad, domain‐agnostic prior of random unsupervised reward functions (e.g., goal‐reaching and random MLP rewards). Once the Functional Reward Encoder is trained, FRE employs implicit Q‐learning on the same offline dataset to train a policy π(a|s,z), a Q‐function Q(s,a,z), and a value function V(s,z), all conditioned on the latent code z. At each training iteration, a batch of reward functions η is sampled from the prior, each η is evaluated on K context states drawn from the dataset to form (sᵉ, η(sᵉ)) pairs that are encoded into z, and the RL components are updated via the Bellman backup Q(s,a,z) ← η(s) + E_{s′∼p(s′|s,a)}[maxₐ′ Q(s′,a′,z)], an expectile loss for V, and advantage‐weighted regression for π, with all network outputs clipped to [–1,1]. At test time, given K observed (state, reward) samples from a novel reward function, FRE encodes them into z and executes the frozen policy π(a|s,z) zero‐shot, thus immediately approximating optimal behavior on the new task.",
+      "code": null,
+      "weight": 0.9999999999999999,
+      "components": [
+        {
+          "name": "Functional Reward Encoder",
+          "description": "A transformer-based variational encoder pₜₐₙₕ(z | {(sₖ, η(sₖ))}_{k=1…K}) maps a fixed-size context set of K sampled state–reward pairs to a Gaussian latent distribution. States are sampled uniformly from the offline dataset and labeled by a candidate reward function η, and each state–reward pair is embedded and concatenated into tokens that are processed by a permutation-invariant Transformer (omitting positional encodings and masking). The Transformer outputs for the K tokens are averaged and passed through two separate linear layers to yield μ_z and σ_z, thereby defining a latent variable z∼𝒩(μ_z, σ_z²).",
+          "code": null,
+          "weight": 0.16666666666666666,
+          "components": []
+        },
+        {
+          "name": "Reward Decoder",
+          "description": "The Reward Decoder is instantiated as a feedforward neural network qₜₐₙₕ(η(s′) | s′, z) that, given a novel state s′ and the associated latent vector z, produces a scalar estimate of the reward η(s′) via a tanh activation. During training, the decoder receives K′ independently sampled next‐state observations from the dataset, and its parameters are optimized by minimizing the mean squared error between the network’s predicted rewards and the true reward values for those sampled states.",
+          "code": null,
+          "weight": 0.16666666666666666,
+          "components": []
+        },
+        {
+          "name": "Variational Information Bottleneck Objective",
+          "description": "The Variational Information Bottleneck Objective maximizes a tractable lower bound on the information difference I(Lᵈ_η;Z)−βI(Lᵉ_η;Z), where Lᵉ_η and Lᵈ_η are respectively the context and query sets of state–reward pairs and Z is a latent variable encoding the underlying reward function. Concretely, the objective is written as E_{η,Lᵉ,Lᵈ,z∼pₜₐₙₕ(z|Lᵉ)}[ ∑ₖ log qₜₐₙₕ(η(sᵈₖ) | sᵈₖ, z) − β KL[pₜₐₙₕ(z | Lᵉ) ∥ u(z)] ] + const, where pₜₐₙₕ(z|Lᵉ) denotes the encoder distribution over z given the context set Lᵉ, qₜₐₙₕ(η(sᵈₖ) | sᵈₖ, z) is the decoder likelihood of the held‐out reward η(sᵈₖ) conditioned on state sᵈₖ and latent code z, β controls the trade‐off between informativeness and compression, and u(z)=𝒩(0,I) is an isotropic Gaussian prior. By maximizing this bound, the method ensures that z captures maximal predictive information about unseen rewards in the query set while compressing redundant information in the context through the KL penalty.",
+          "code": null,
+          "weight": 0.16666666666666666,
+          "components": []
+        },
+        {
+          "name": "Random Unsupervised Reward Function Prior",
+          "description": "The Random Unsupervised Reward Function Prior is a domain-agnostic mixture distribution p(η) over reward functions that is employed during both encoder training and policy optimization. In practice, p(η) samples uniformly from three distinct families of random reward functions: the first family issues a constant negative reward of –1 at every time step until an unlabeled goal state is reached; the second family computes a linear reward of the form ⟨w, s⟩, where each weight vector w is drawn from a uniform distribution over [–1,1]d and then sparsified via masking to encourage simple directional biases; and the third family consists of two‐layer multilayer perceptrons with tanh activation functions whose weight matrices are randomly initialized from a normal distribution, with each network’s scalar outputs clipped to the [–1,1] interval. This mixture prior thus provides a simple yet flexible set of surrogate objectives for unsupervised, zero‐shot reinforcement learning.",
+          "code": null,
+          "weight": 0.16666666666666666,
+          "components": []
+        },
+        {
+          "name": "FRE-conditioned Policy Training with Implicit Q-Learning",
+          "description": "FRE-conditioned policy training with implicit Q-learning operates as an offline reinforcement learning loop in which all components—the Q-function Q(s,a,z), the value function V(s,z), and the stochastic policy π(a|s,z)—are explicitly conditioned on a latent vector z. At each iteration, a reward function η is sampled from a prior distribution p(η), and a mini‐batch of K states is encoded into the corresponding latent z. Transitions (s,a,s′) are then drawn from a fixed offline dataset, the instantaneous reward is computed as r=η(s), and the value network V(s,z) is updated via expectile regression to align V with the current Q estimates. Subsequently, the Q-network is updated by applying the Bellman backup Q(s,a,z)←r+γ V(s′,z), where γ denotes the discount factor, and the policy π is adjusted through advantage‐weighted actor regression, i.e., π(a|s,z)∝exp((Q(s,a,z)−V(s,z))/τ) with temperature τ controlling exploration. In this framework, the latent z is concatenated to the state and action features in all network inputs, ensuring that the policy, value, and Q‐functions share the same task representation during training.",
+          "code": null,
+          "weight": 0.16666666666666666,
+          "components": []
+        },
+        {
+          "name": "Strided Training Scheme",
+          "description": "The Strided Training Scheme is a two‐phase training schedule designed to improve stability in unsupervised zero‐shot reinforcement learning via functional reward encodings. In the first (warm‐up) phase, only the variational encoder and decoder are trained to optimize the variational objective until convergence. In the second phase, the learned reward encoder pₜₐₙₕ(z|·) is frozen, and the offline reinforcement learning components—namely the action‐value function Q, the state‐value function V, and the policy π—are trained conditioned on this fixed encoder. By enforcing the stationarity of the mapping η→z during policy learning, this scheme prevents the non‐stationarity issues that commonly arise in multi‐task Q‐learning.",
+          "code": null,
+          "weight": 0.16666666666666666,
+          "components": []
+        }
+      ]
+    }
+  ],
+  "resources": [],
+  "findings": [
+    "Zero-Shot Generalization via Functional Reward Embeddings: A single FRE agent trained only on randomly sampled unsupervised reward functions is able to solve previously unseen downstream tasks (e.g., goal-reaching in AntMaze, directional velocity rewards, procedural simplex functions) zero-shot, i.e., by encoding 32 (state,reward) pairs with no further fine-tuning. The learned latent space captures task structure sufficiently for a conditioned policy to maximize new objectives directly.",
+    "Competitive Performance Against Prior Zero-Shot RL Baselines: FRE matches or outperforms state-of-the-art methods—Forward-Backward representations, Successor Features, Goal-Conditioned IQL/BC, and offline skill discovery (OPAL)—on AntMaze, ExORL, and Kitchen benchmarks, despite using only 32 test-time reward samples compared to 5120 required by FB and SF methods.",
+    "Scaling of Generalization with Reward Prior Diversity: An FRE agent trained on the full mixture of random goal, linear, and MLP reward functions (FRE-all) attains higher aggregate zero-shot performance across various AntMaze tasks than agents trained on any single subset. Generalization scales smoothly with the diversity of the prior reward distribution.",
+    "Integrating Domain Knowledge via Prior Augmentation: Providing FRE with additional reward families drawn from known downstream subspaces (e.g., functions only of XY positions or velocity) improves zero-shot performance on those specific tasks without altering the underlying FRE architecture or algorithms. This demonstrates FRE’s flexibility in incorporating prior domain structure.",
+    "Sample Efficiency of Latent Embedding: Accurate latent representations for downstream reward functions can be obtained with as few as 32 (state,reward) samples, showing a diminishing returns curve in performance versus sample count. This contrasts with successor-feature methods that require thousands of samples for test-time linear regression."
+  ]
+}
