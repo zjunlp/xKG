@@ -3,17 +3,13 @@
 set -e
 
 NEW_IMAGE="aisi-basic-agent-custom:latest"
-# JUDGE_MODEL="DMXAPI-HuoShan-DeepSeek-V3"
-JUDGE_MODEL="o3-mini-2025-01-31"
+JUDGE_MODEL="o3-mini"
 
 
 docker build -t "${NEW_IMAGE}" -f - . <<'EOF'
 FROM aisi-basic-agent:latest
 
-ENV HTTP_PROXY="http://127.0.0.1:7890" \
-    HTTPS_PROXY="http://127.0.0.1:7890" \
-    NO_PROXY="localhost,127.0.0.1,hf-mirror.com,vip.dmxapi.com,pypi.tuna.tsinghua.edu.cn" \
-    HF_ENDPOINT="https://hf-mirror.com" 
+ENV HF_ENDPOINT="https://hf-mirror.com" 
 
 COPY ./paperbench/agents/aisi-basic-agent/ /home/agent/
 EOF

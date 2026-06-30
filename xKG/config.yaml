@@ -1,0 +1,98 @@
+# 默认选定哪个配置 也可以通过命令行参数配置来覆盖
+active_profile: basic-deepseek-v3
+
+# Code-RAG的处理参数
+code: &code-repo-settings
+  code_extensions: [".py", ".js", ".ts", ".java", ".cpp", ".c", ".h", ".hpp", ".go", ".rs", ".php", ".cs"]
+  doc_extensions: [".md", ".txt", ".rst", ".json", ".yaml", ".yml"]
+  embedder: 
+    model_client: OpenAIClient
+    batch_size: 500
+    model_kwargs: 
+      model: text-embedding-3-small
+      dimensions: 256
+      encoding_format: float
+    text_splitter:
+      chunk_size: 350
+      chunk_overlap: 100
+      split_by: word
+  retriever:
+    faiss:
+      top_k: 10
+    llm:
+      top_files: 5
+      top_complete_file: 1
+  llm_check_code: false
+  exec_check_code: false
+  exec_debug_num: 8
+
+# Paper-RAG的处理参数
+paper: &paper-settings
+  rag: true
+  embedder: 
+    model_client: OpenAIClient
+    batch_size: 500
+    model_kwargs: 
+      model: text-embedding-3-small
+      dimensions: 256
+      encoding_format: float
+    text_splitter:
+      chunk_size: 350
+      chunk_overlap: 100
+      split_by: word
+  retriever:
+    faiss:
+      top_k: 5
+
+# KG召回的参数配置
+retrieve: &kg-retrieve-settings
+  embedding_model: all-MiniLM-L6-v2 # 召回时使用的模型
+  technique_similarity: 0.6 # 只有当技术点相似度大于这个值才会被召回
+  paper_similarity: 0.6 # 只有当论文相似度大于这个值才会被召回
+
+common: &common-settings
+  <<: *kg-retrieve-settings
+  code: *code-repo-settings
+  paper: *paper-settings
+  log_level: DEBUG
+  raw_index_path: storage/raw/index
+  raw_papers_path: storage/raw/paper
+  raw_code_path: storage/raw/code
+  kg_path: storage/kg
+  process_path: storage/process
+  save_process: true
+  max_prompt_code_bytes: 52100
+  
+basic-deepseek-v3:
+  <<: *common-settings
+  api_type: openai
+  model: DeepSeek-V3.2 # 通用模型
+  paper_model: o4-mini-2025-04-16 # 特指在进行technique抽取+重构的时候会用到的模型
+  code_model: o4-mini-2025-04-16 # 特指在进行重写code+debug code的时候会用到的模型
+
+
+# 新增模型配置 可自定义
+gpt-5-2025-08-07:
+  <<: *common-settings
+  api_type: openai
+  model: gpt-5-2025-08-07
+
+claude-sonnet-4-20250514:
+  <<: *common-settings
+  api_type: openai
+  model: claude-sonnet-4-20250514
+
+deepseek-r1:
+  <<: *common-settings
+  api_type: openai
+  model: DMXAPI-DeepSeek-R1
+
+gemini-2-5-pro:
+  <<: *common-settings
+  api_type: openai
+  model: gemini-2.5-pro
+
+o1:
+  <<: *common-settings
+  api_type: openai
+  model: o1

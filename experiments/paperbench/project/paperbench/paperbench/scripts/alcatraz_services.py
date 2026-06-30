@@ -89,7 +89,7 @@ async def grade_on_cluster(
         else ""
     )
     cmd_str = (
-        f"{python_path} paperbench/scripts/run_judge.py --submission-path /submission"
+        f"PYTHONPATH=/paperbench {python_path} paperbench/scripts/run_judge.py --submission-path /submission"
         + f" --paper-id {paper_id} --judge {judge_type} --model {model_name} --out-dir /output"
         + reasoning_effort_str
         + code_only_string

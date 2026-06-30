@@ -21,11 +21,13 @@ from sentence_transformers import SentenceTransformer
 import copy
 
 from ..schema import Code, Paper, Node, Technique, Contribution, FileSnippet, CodeBlock
+from ..schema.garph import VerifiableCodeBlock
 from .base_tool import BaseTool
 from .code_verifier import CodeVerifier
 from .code_rag import CodeRAG
 from .paper_rag import PaperRAG
 from ..utils import *
+from ..utils import should_save_process, get_process_path
 from ..llm import extract_backtick_text, extract_backtick_texts, extract_object, REPOSITORY_ANALYZER_PROMPT, CODE_REWRITER_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -150,12 +152,13 @@ class GraphHandler(BaseTool):
             
         self.paper_rag = PaperRAG()
         self.code_rag = CodeRAG()
-        self.code_verifier = CodeVerifier(model=self.model) # 这里定义了CodeVerifier 如果有啥别的参数传入就同时给传入
+        docker_image = get_code_rag_config().get('docker_image', 'xkg-coderunner:latest')
+        self.code_verifier = CodeVerifier(model=self.model, docker_image=docker_image)
         self.knowledge_base = None
         self.knowledge_index = KnowledgeIndex(model_name=embedding_model)
     
     @property
-    def _prompt_rewrite_paper(self):
+    def _prompt_rag_paper(self):
         prompt = """
 # Task
 Your task is to refine and enhance the description of a technical concept extracted from a research paper {paper}. The goal is to produce a clear, concise, and comprehensive description that accurately captures the essence of the technique.
@@ -611,7 +614,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
         
         return code
         
-    def _rewrite_paper(self, paper: Paper, techniques: List[Technique]) -> None:
+    def _rag_paper(self, paper: Paper, techniques: List[Technique]) -> None:
         """
         根据论文内容，重写给定 Technique 列表的描述。
         此函数会直接修改传入的 `techniques` 列表中的对象。
@@ -636,7 +639,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
 
         # 2. 准备 RAG 系统
         logger.info(f"Preparing paper RAG for '{paper.title}'...")
-        paper_db_path = os.path.join(get_config().get('raw_data_path'), "paper", f"{sanitize_filename(paper.title)}.pkl")
+        paper_db_path = os.path.join(get_config().get('raw_index_path'), "paper", f"{sanitize_filename(paper.title)}.pkl")
         self.paper_rag.prepare_retriever(paper, paper_db_path)
 
         # 3. 遍历并直接修改传入的 technique 对象
@@ -653,7 +656,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
 
             # c. 准备Prompt并调用LLM
             node_info = {"name": c.name, "description": c.description}
-            rewrite_prompt = self._prompt_rewrite_paper.format(
+            rewrite_prompt = self._prompt_rag_paper.format(
                 paper=paper.title,
                 technique=json.dumps(node_info, ensure_ascii=False),
                 excerpt=json.dumps(excerpts)
@@ -712,7 +715,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
                 tech.code = None
             return # 直接返回
 
-        database_path = os.path.join(get_config().get('raw_data_path'), "code", f"{code.name}.pkl") if database_path is None else database_path
+        database_path = os.path.join(get_config().get('raw_index_path'), "code", f"{code.name}.pkl") if database_path is None else database_path
         self.code_rag.prepare_retriever(code, database_path)
         
         logger.info("Performing RAG for all technique nodes...")
@@ -731,58 +734,47 @@ Now please think and reason carefully, and wrap your final answer between two ``
         ### MODIFIED: 不再返回任何值 ###
 
     
-    def exec_verify_node(self, node: Node) -> Node:
-        # 这个函数可以自己单独调用
-        # 外部给定一个node json的路径，譬如storage/kg/xx_graph.json
-        # 然后外部load json, 调用node = Node.from_dict(data)来获取这个node
-        # 然后就可以调用这个函数了
-        
-        # 处理后的paper_id
-        paper_id = sanitize_filename(node.paper_title)
-        
-        # 处理后的techniques
-        top_level_techniques = node.techniques
-        if not top_level_techniques:
-            logger.warning("No methodology/technique contributions found in the paper.")
-            return []
-        all_techniques = []
-        for tech in top_level_techniques:
-            all_techniques.extend(self._get_all_nodes(tech))
-        all_techniques = [tech for tech in all_techniques if tech.code and isinstance(tech.code, CodeBlock)]
-        
-        # 插入code verifier逻辑
-        self.code_verifier.get_verified_code(paper_id, all_techniques)
-        
-        # 返回更新后的techniques 注意返回的应该是顶层节点
-        return node
+    def exec_verify_node(self, node: Node, save_process: bool = None) -> Node:
+        """Verify code blocks in the Node using CodeVerifier and update the Node with verification results."""
+        return self.code_verifier.verify_node(node, save_process=save_process)
     
     def generate_node(
-        self, 
-        paper: Paper = None, 
-        code: Code = None, 
-        llm_rerank: bool = True, 
+        self,
+        paper: Paper = None,
+        code: Code = None,
+        llm_rerank: bool = True,
         database_path: str = None,
-        save_path: str = None,
-        rewrite_paper: bool = None,
-        verify_code: bool = None
+        rag_paper: bool = None,
+        verify_code: bool = None,
+        keep_raw_index: bool = False,
+        save_process: bool = None
     ) -> Node:
         if not paper:
             logger.error("Paper object must be provided to generate a graph node.")
             return None
-        
-        if rewrite_paper is None:
-            rewrite_paper =  get_paper_rag_config().get('rag', False)
+
+        if rag_paper is None:
+            rag_paper = get_paper_rag_config().get('rag', False)
+            
         if verify_code is None:
             verify_code = get_code_rag_config().get('exec_check_code', False)
+
+        # Set up process output path for saving intermediate Node results
+        should_save_process = save_process if save_process is not None else should_save_process()
+        process_output_path = None
+        if should_save_process:
+            process_base = get_process_path()
+            process_output_path = process_base / "graph_handler"
+            process_output_path.mkdir(parents=True, exist_ok=True)
             
         top_level_techniques = [
             self._convert_to_technique(c) for c in paper.contributions
             if c.type in ["Methodology", "Technique"]
         ]
 
-        if rewrite_paper:
+        if rag_paper:
             logger.info("Rewriting paper contributions before node generation...")
-            self._rewrite_paper(paper, top_level_techniques)
+            self._rag_paper(paper, top_level_techniques)
         
         self._map_code_paper(
             paper=paper, 
@@ -802,30 +794,37 @@ Now please think and reason carefully, and wrap your final answer between two ``
             resources=[f"{c.name}: {c.description}" for c in paper.contributions if c.type == "Resource"] if paper else [],
             findings=[f"{c.name}: {c.description}" for c in paper.contributions if c.type == "Finding"] if paper else []
         )
-        
-        if save_path:
-            identifier = node.paper_title or f"node_{hash(node.code_overview or id(node))}"
-            save_file_name = f"{sanitize_filename(identifier)}_graph_unverified.json"
-            if verify_code:
-                temp_dir_path = get_config().get("raw_data_path")
-                os.makedirs(temp_dir_path, exist_ok=True)
-                save_file = os.path.join(temp_dir_path, save_file_name)
-            else:
-                os.makedirs(save_path, exist_ok=True)
-                save_file = os.path.join(save_path, save_file_name)
-            with open(save_file, "w", encoding="utf-8") as f:
+
+        # Save unverified Node to process cache
+        if process_output_path:
+            paper_safe = sanitize_filename(paper.title)
+            unverified_file = process_output_path / f"{paper_safe}_unverified.json"
+            with open(unverified_file, "w", encoding="utf-8") as f:
                 json.dump(asdict(node), f, indent=2, ensure_ascii=False)
-            logger.info(f"Graph Node data saved to {save_file}")   
-        
+            logger.info(f"Unverified Node saved to {unverified_file}")
+
+        # Verify code if requested
         if verify_code:
-            node = self.exec_verify_node(node)
-            if save_path:
-                identifier = node.paper_title or f"node_{hash(node.code_overview or id(node))}"
-                os.makedirs(save_path, exist_ok=True)
-                save_file = os.path.join(save_path, f"{sanitize_filename(identifier)}_graph_verified.json") 
-                with open(save_file, "w", encoding="utf-8") as f:
+            node = self.exec_verify_node(node, save_process=should_save_process)
+            # Save verified Node to process cache
+            if process_output_path:
+                paper_safe = sanitize_filename(paper.title)
+                verified_file = process_output_path / f"{paper_safe}_verified.json"
+                with open(verified_file, "w", encoding="utf-8") as f:
                     json.dump(asdict(node), f, indent=2, ensure_ascii=False)
-                logger.info(f"Verified graph Node data saved to {save_file}")   
+                logger.info(f"Verified Node saved to {verified_file}")
+
+        # Clean up raw index files if not keeping them
+        if not keep_raw_index:
+            raw_index_path = get_config().get("raw_index_path")
+            if raw_index_path and os.path.exists(raw_index_path):
+                try:
+                    import shutil
+                    shutil.rmtree(raw_index_path)
+                    logger.info(f"Cleaned up raw index files at {raw_index_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up raw index files at {raw_index_path}: {e}")
+
         return node
 
     def load_kg(self, kg_dir: str) -> List[Node]:

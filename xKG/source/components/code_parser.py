@@ -4,10 +4,7 @@
 import os
 import re
 import json
-from pylatexenc.latexwalker import LatexEnvironmentNode, LatexMacroNode, LatexWalker
-import bibtexparser
-from typing import Optional, Tuple, List, Literal, Dict
-from collections import deque
+from typing import Optional, Tuple, List, Dict
 import logging
 from pathlib import Path
 from dataclasses import asdict
@@ -115,18 +112,20 @@ Please wrap your final answer between two ``` in the end.
         file_tree_str = '\n'.join(sorted(file_paths))
         return file_tree_str, readme_content
 
-    def run(
+    def parse(
         self,
         code_path: str,
         code_extensions: List[str] = None,
         doc_extensions: List[str] = None,
-        save_path: Optional[str] = None,
+        save_process: bool = None,
     ) -> Code:
         if code_extensions is None:
             code_extensions = get_code_rag_config().get("code_extensions")
         if doc_extensions is None:
             doc_extensions = get_code_rag_config().get("doc_extensions")
-        
+
+        should_save = save_process if save_process is not None else should_save_process()
+        save_path = str(self.get_output_path("code_parser")) if should_save else None
         # get meta data
         name = os.path.basename(code_path)
         file_tree, readme = self.get_file_tree(code_path)

@@ -72,10 +72,11 @@ def initialize_app(profile_name: str = None):
     """
     global FINAL_CONFIG
         
-    project_root = Path(__file__).parent.parent.parent
-    load_dotenv(dotenv_path=project_root / ".env")
+    package_root = Path(__file__).parent.parent.parent
+    repo_root = package_root.parent
+    load_dotenv(dotenv_path=repo_root / ".env")
 
-    with open(project_root / "config.yaml", 'r') as f:
+    with open(package_root / "config.yaml", 'r') as f:
         config_data = yaml.safe_load(f)
 
     active_profile_name = profile_name or config_data.get('active_profile', 'default')
@@ -129,3 +130,26 @@ def get_paper_rag_config() -> dict:
     if embedder_config is None:
         raise RuntimeError("'paper' configuration not found in the global config.")
     return embedder_config
+
+def get_raw_papers_path() -> Path:
+    """获取原始论文存储路径。"""
+    config = get_config()
+    raw_papers_path = config.get('raw_papers_path', 'storage/raw/papers')
+    return Path(raw_papers_path)
+
+def get_raw_code_path() -> Path:
+    """获取原始代码存储路径。"""
+    config = get_config()
+    raw_code_path = config.get('raw_code_path', 'storage/raw/code')
+    return Path(raw_code_path)
+
+def get_process_path() -> Path:
+    """获取处理阶段输出路径。"""
+    config = get_config()
+    process_path = config.get('process_path', 'storage/process')
+    return Path(process_path)
+
+def should_save_process() -> bool:
+    """获取是否保存处理过程的配置。"""
+    config = get_config()
+    return config.get('save_process', True)

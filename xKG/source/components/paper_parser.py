@@ -20,7 +20,7 @@ from ..llm.prompt import *
 
 logger = logging.getLogger(__name__)
 
-class MatchExtractor(BaseTool ):
+class MatchExtractor(BaseTool):
     def __init__(
         self,
         model: str = None,
@@ -28,21 +28,21 @@ class MatchExtractor(BaseTool ):
     ):
         super().__init__(model, memory)
     
-    def run(
+    def extract(
         self, 
         paper_path: str,
         save_path: str
     ) -> Paper:
         raise NotImplementedError("Not implemented yet.")
     
-class LatexExtractor(MatchExtractor):
+class LatexExtractor(BaseTool):
     def __init__(
         self,
         model: str,
         memory: Optional[str] = None,
     ):
         super().__init__(model, memory)
-        
+    
     @property
     def _prompt_get_references(self):
         prompt = """
@@ -340,7 +340,7 @@ Please wrap your final answer between two ``` in the end.
             if section.subsection:
                 self._inject_references(section.subsection, figures, tables)
 
-    def run(self, paper_path: str, save_path: str = None) -> Paper:
+    def extract(self, paper_path: str, save_path: str = None) -> Paper:
         """
         主入口函数：解析LaTeX项目，提取结构化信息，并保存为JSON。
         """
@@ -405,7 +405,7 @@ class MdExtractor(MatchExtractor):
 class PdfExtractor(MdExtractor):
     pass
 
-class LLMExtractor(BaseTool ):
+class LLMExtractor(BaseTool):
     def __init__(
         self,
         model: str,
@@ -460,20 +460,17 @@ Now please think and reason carefully, and wrap your final answer between two ``
         """
         return prompt
     
-    def run(
+    def extract(
         self, 
         paper: Paper,
         save_path: str = None
     ) -> Paper:
         # data preparation
-        # TODO: When exceeding the context length, truncate each segment to the first 200 characters.
-        # TODO: 支持传入上一步latex抽取的地址
-        if paper.sections:
-            sections_content = json.dumps([asdict(s) for s in paper.sections], ensure_ascii=False)
-        
+        sections_content = json.dumps([asdict(s) for s in paper.sections], ensure_ascii=False) if paper.sections else ""
+
         github_url_pattern = re.compile(r'(.{0,50})(https?://github\.com/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)?/?)(.{0,50})', re.DOTALL)
-        
-        extracted_links_with_context = github_url_pattern.findall(sections_content)
+
+        extracted_links_with_context = github_url_pattern.findall(sections_content) if sections_content else []
 
         if extracted_links_with_context:
             formatted_snippets = []
@@ -575,12 +572,12 @@ class PaperParser(BaseTool):
         super().__init__(model, memory)
         self.match_extractor = match_extractor
         self.llm_extractor = llm_extractor
-        
-    def run(
+    
+    def parse(
         self, 
         paper_path: str,
-        save_path: str = None,
         paper_format: PaperFormat = "latex",
+        save_process: bool = None,
     ) -> Paper:
         if paper_format not in EXTRACTOR_REGISTRY:
             raise ValueError(f"Unsupported paper format: {paper_format}")
@@ -598,14 +595,16 @@ class PaperParser(BaseTool):
             )
         
         # 1. 使用MatchExtractor进行结构化信息提取
-        paper = self.match_extractor.run(paper_path = paper_path, save_path=save_path)
+        should_save = save_process if save_process is not None else should_save_process()
+        save_path = str(self.get_output_path("paper_parser")) if should_save else None
+        paper = self.match_extractor.extract(paper_path=paper_path, save_path=save_path)
         if not paper:
             raise ValueError("MatchExtractor failed to extract paper content.")
-        
+
         # 2. 使用LLMExtractor进行进一步的信息补全
-        paper = self.llm_extractor.run(paper = paper, save_path=save_path)
+        paper = self.llm_extractor.extract(paper=paper, save_path=save_path)
         if not paper:
             raise ValueError("LLMExtractor failed to extract paper content.")
-        
+
         return paper
 

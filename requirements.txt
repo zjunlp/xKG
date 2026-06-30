@@ -22,4 +22,4 @@ regex==2024.11.6
 funcy==2.0
 tqdm==4.66.5
 docker==7.1.0
-
+mlflow==2.13.0

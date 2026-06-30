@@ -75,7 +75,7 @@ def probe(message, logger=None, level="info"):
         getattr(logger, level)(f"PROBE: {message}", destinations=["console", "run"])
 
 GRADER_OPENAI_API_KEY = os.getenv("GRADER_OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
-GRADER_OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1"
+GRADER_OPENAI_BASE_URL = os.getenv("GRADER_OPENAI_BASE_URL") or os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1"
 
 structlog.configure(
     processors=[
