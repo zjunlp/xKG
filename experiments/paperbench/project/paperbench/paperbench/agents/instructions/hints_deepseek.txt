@@ -1,0 +1,11 @@
+- When using the tools, you MUST provide the raw command or function directly. DO NOT wrap it in a JSON object.
+- Using the bash tool to write to a file, here is an example:
+```
+    bash
+
+    cat << 'EOF' > /path/to/your/file
+    [...file contents...]
+    EOF
+```
+Note: NEVER use {"cmd": ...} to wrap your command, just provide the raw command directly like in the example above.
+- Note: Your task is to provide a functional code implementation that fully reproduces the content of the paper. Crucially, you must NOT waste time on execution, verification or debugging!!!

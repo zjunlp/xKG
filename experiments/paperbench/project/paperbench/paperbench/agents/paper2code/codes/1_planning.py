@@ -13,7 +13,6 @@ parser.add_argument('--gpt_version',type=str)
 parser.add_argument('--paper_format',type=str, default="JSON", choices=["JSON", "LaTeX"])
 parser.add_argument('--pdf_json_path', type=str) # json format
 parser.add_argument('--pdf_latex_path', type=str) # latex format
-parser.add_argument('--guide_json_path', type=str, default=None) # json format
 parser.add_argument('--output_dir',type=str, default="")
 
 args    = parser.parse_args()
@@ -26,7 +25,6 @@ paper_format = args.paper_format
 pdf_json_path = args.pdf_json_path
 pdf_latex_path = args.pdf_latex_path
 output_dir = args.output_dir
-guide_json_path = args.guide_json_path
 
 if paper_format == "JSON":
     with open(f'{pdf_json_path}') as f:
@@ -37,11 +35,7 @@ elif paper_format == "LaTeX":
 else:
     print(f"[ERROR] Invalid paper format. Please select either 'JSON' or 'LaTeX.")
     sys.exit(0)
-    
-if guide_json_path:
-    with open(f'{guide_json_path}') as f:
-        guide_content = json.load(f)
-    paper_guide = guide_content
+
 
 plan_msg = [
         {'role': "system", "content": f"""You are an expert researcher and strategic planner with a deep understanding of experimental design and reproducibility in scientific research. 
@@ -122,9 +116,6 @@ Now, let's break down tasks according to PRD/technical design, generate a task l
 The Logic Analysis should not only consider the dependencies between files but also provide detailed descriptions to assist in writing the code needed to reproduce the paper.
 
 -----
-## Key Components Descriptions
-Fully utilize the detailed descriptions provided below to determine your configuration.
-{paper_guide}
 
 ## Format Example
 [CONTENT]

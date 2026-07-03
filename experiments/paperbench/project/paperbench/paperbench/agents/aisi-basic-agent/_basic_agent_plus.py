@@ -51,11 +51,7 @@ REPRODUCE_SH_MESSAGE = """
 Ensure that running reproduce.sh will reproduce all metrics, figures, tables, and findings from the paper! You should check reproduce.sh YOURSELF to ensure that it actually reproduces all results from the paper to help with your development."""
 
 SYSTEM_MESSAGE_END = """
-Remember, you are tasked with replicating a whole paper, not just a single part of it or a minimal example. The file read tool is PAGINATED, so you will need to CALL IT MULTIPLE TIMES to make sure that you have read all the relevant parts of the paper.
-You are equipped with a knowledge base and tools to access it, and you will need to CALL THEM MULTIPLE TIMES to  make sure that you gather sufficient relevant information before you write any code. 
-
-Note: Your task is to provide a functional code implementation that fully reproduces the content of the paper. Crucially, you must NOT waste time on execution, verification or debugging!!!
-"""
+Remember, you are tasked with replicating a whole paper, not just a single part of it or a minimal example. The file read tool is PAGINATED, so you will need to CALL IT MULTIPLE TIMES to make sure that you have read all the relevant parts of the paper."""
 
 DEFAULT_SYSTEM_MESSAGE = SYSTEM_MESSAGE_BASE + REPRODUCE_SH_MESSAGE + SYSTEM_MESSAGE_END
 
@@ -64,7 +60,7 @@ PB_CODE_ONLY_SYSTEM_MESSAGE = SYSTEM_MESSAGE_BASE + SYSTEM_MESSAGE_END
 DEFAULT_INCORRECT_MESSAGE = """
 Your submission was incorrect. Please proceed and attempt to find the correct answer.
 """
-DEFAULT_CONTINUE_MESSAGE = "Please proceed to the next step using your best judgement. Remember to make full use of knowledge base-related tools to aid your code development. FOCUS ON the completeness of code functionality, DO NOT waste time on execution, verification or debugging. If you believe you are finished, double check your work to continue to refine and improve your submission."
+DEFAULT_CONTINUE_MESSAGE = "Please proceed to the next step using your best judgement. If you believe you are finished, double check your work to continue to refine and improve your submission."
 DEFAULT_SUBMIT_NAME = "end_task"
 DEFAULT_SUBMIT_DESCRIPTION = (
     "Signal that you are completely finished and that you would like to end the task."

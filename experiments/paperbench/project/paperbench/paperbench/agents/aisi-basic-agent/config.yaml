@@ -8,7 +8,6 @@ common: &common_settings
   dockerfile: aisi-basic-agent/Dockerfile
   mount_docker_socket: true
 
-# Note:  Just for short time testing, not for production use
 # Dev configurations
 
 aisi-basic-agent-openai-dev:
@@ -50,27 +49,6 @@ aisi-basic-agent-claude-3-7-sonnet-dev:
     MODEL: openrouter/anthropic/claude-3.7-sonnet:thinking
     MAX_TIME_IN_HOURS: 0.1
     OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-
-aisi-basic-agent-my-v3-dev:
-  <<: *common_settings
-  env_vars:
-    <<: *env-config-vars
-    MODEL: openai/DMXAPI-HuoShan-DeepSeek-V3
-    MAX_TIME_IN_HOURS: 8
-    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
-
-aisi-basic-agent-my-o3-dev:
-  <<: *common_settings
-  env_vars:
-    <<: *env-config-vars
-    MODEL: openai/o3-mini-2025-01-31
-    MAX_TIME_IN_HOURS: 8
-    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
-
-# Note: Official configurations for aisi-basic-agent, running for 12h
-# OpenAI
 
 aisi-basic-agent-4o:
   <<: *common_settings
@@ -213,14 +191,13 @@ aisi-basic-agent-iterative-my-o3-dev-test:
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
     ITERATIVE_AGENT: true
 
-
 # 这里是base agent
 aisi-basic-agent-my-o3:
   <<: *common_settings
   env_vars:
     <<: *env-config-vars
     MODEL: openai/o3-mini-2025-01-31
-    MAX_TIME_IN_HOURS: 1
+    MAX_TIME_IN_HOURS: 3
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
 
@@ -229,7 +206,7 @@ aisi-basic-agent-my-r1:
   env_vars:
     <<: *env-config-vars
     MODEL: openai/deepseek-r1-0528
-    MAX_TIME_IN_HOURS: 1
+    MAX_TIME_IN_HOURS: 3
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
     
@@ -253,3 +230,47 @@ aisi-basic-agent-iterative-my-r1:
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
     ITERATIVE_AGENT: true
+
+# Paper2Code ReAct Agent configurations
+aisi-basic-agent-basic:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 1
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    KNOWLEDGE_ENABLED: false
+
+aisi-basic-agent-basic-knowledge:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 1
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    KNOWLEDGE_ENABLED: true
+
+# Paper2Code Iterative Agent configurations
+aisi-basic-agent-iterative:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 1
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    ITERATIVE_AGENT: true
+    KNOWLEDGE_ENABLED: false
+
+aisi-basic-agent-iterative-knowledge:
+  <<: *common_settings
+  env_vars:
+    <<: *env-config-vars
+    MODEL: openai/o3-mini-2025-01-31
+    MAX_TIME_IN_HOURS: 1
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+    ITERATIVE_AGENT: true
+    KNOWLEDGE_ENABLED: true

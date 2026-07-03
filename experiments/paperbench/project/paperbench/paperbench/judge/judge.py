@@ -480,7 +480,10 @@ class SimpleJudge(Judge):
         )
         self.paper_md_tokens = self.token_encoder.encode(self.paper_md, disallowed_special=())
         self._truncate_input()
-        self.openai_client = AsyncOpenAI()
+        # Use GRADER_OPENAI_API_KEY and GRADER_OPENAI_BASE_URL for grader
+        grader_api_key = os.getenv("GRADER_OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+        grader_base_url = os.getenv("GRADER_OPENAI_BASE_URL") or os.getenv("OPENAI_BASE_URL")
+        self.openai_client = AsyncOpenAI(api_key=grader_api_key, base_url=grader_base_url)
 
         self.avail_context_lens = {
             "Code Development": self._get_available_context("Code Development"),

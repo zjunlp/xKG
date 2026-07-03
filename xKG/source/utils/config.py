@@ -66,33 +66,49 @@ def _setup_logging(log_level: str):
     root_logger.addHandler(console_handler)
     logging.info(f"Logging configured with level: {log_level.upper()}")
         
-def initialize_app(profile_name: str = None):
+def initialize_app(profile_name: str = None, config_path: str = None, kg_path: str = None):
     """
     加载、解析并设置全局配置字典。不再创建LLM实例。
+
+    参数：
+        profile_name: 配置profile名称（默认从config.yaml中读取）
+        config_path: 外部指定的config.yaml路径（也可通过XKG_CONFIG_PATH环境变量）
+        kg_path: 外部指定的KG数据目录（也可通过XKG_KG_PATH环境变量）
     """
     global FINAL_CONFIG
-        
+
     package_root = Path(__file__).parent.parent.parent
     repo_root = package_root.parent
     load_dotenv(dotenv_path=repo_root / ".env")
 
-    with open(package_root / "config.yaml", 'r') as f:
+    # 1. 确定 config.yaml 来源
+    config_file = Path(config_path or os.environ.get("XKG_CONFIG_PATH") or (package_root / "config.yaml"))
+
+    with open(config_file, 'r') as f:
         config_data = yaml.safe_load(f)
 
     active_profile_name = profile_name or config_data.get('active_profile', 'default')
 
     if active_profile_name not in config_data:
         raise ValueError(f"Profile '{active_profile_name}' not found in config.yaml.")
-    
+
     active_config = config_data[active_profile_name]
     final_config = _resolve_env_vars(active_config)
     final_config['profile_name'] = active_profile_name
-    
+
+    # 2. 允许环境变量覆盖 kg_path 和 raw_index_path
+    override_kg_path = kg_path or os.environ.get("XKG_KG_PATH")
+    if override_kg_path:
+        final_config['kg_path'] = override_kg_path
+        final_config['raw_index_path'] = override_kg_path
+
     _setup_logging(final_config.get('log_level', 'INFO'))
-    
+
     FINAL_CONFIG = final_config
-    
+
     logging.info(f"[{os.getpid()}] Application configuration initialized for profile '{active_profile_name}'.")
+    if override_kg_path:
+        logging.info(f"[{os.getpid()}] KG path override: {override_kg_path}")
 
 
 def get_config() -> dict:

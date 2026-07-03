@@ -19,9 +19,17 @@ set -euo pipefail
 # 一个好的起点是你的CPU核心数的一半或全部。
 MAX_PARALLEL_JOBS=5
 
-# API和模型配置
-export OPENAI_API_KEY="sk-CfrUJ26ECE2kMLsPl141hC0PB3RBxCtfX5kVY8gO2WZDAGV3"
-export OPENAI_BASE_URL="https://vip.dmxapi.com/v1/"
+# 从 .env 文件读取 API 配置
+ENV_FILE="$(cd "$(dirname "$0")/../../../.." && pwd)/.env"
+if [ -f "$ENV_FILE" ]; then
+    export OPENAI_API_KEY=$(grep '^OPENAI_API_KEY=' "$ENV_FILE" | cut -d'=' -f2-)
+    export OPENAI_BASE_URL=$(grep '^OPENAI_BASE_URL=' "$ENV_FILE" | cut -d'=' -f2-)
+else
+    echo "错误: .env 文件未找到: $ENV_FILE"
+    exit 1
+fi
+
+# 模型配置
 GPT_VERSION="o3-mini-2025-01-31"
 EVAL_MODEL="o3-mini-2025-01-31"
 
@@ -93,7 +101,7 @@ process_paper() {
         --output_json_path "${PDF_JSON_CLEANED_PATH}"
 
     echo "------- 2. PaperCoder - 规划 (Planning with Guide) -------"
-    python ../codes/1_planning_no_knowledge.py \
+    python ../codes/1_planning.py \
         --paper_name "$REPO_INDEX" \
         --gpt_version "${GPT_VERSION}" \
         --pdf_json_path "${PDF_JSON_CLEANED_PATH}" \
@@ -110,7 +118,7 @@ process_paper() {
     cp -rp "${OUTPUT_DIR}/planning_config.yaml" "${OUTPUT_REPO_DIR}/config.yaml"
 
     echo "------- 4. PaperCoder - 分析 (Analyzing with Guide) -------"
-    python ../codes/2_analyzing_no_knowledge.py \
+    python ../codes/2_analyzing.py \
         --paper_name "$REPO_INDEX" \
         --gpt_version "${GPT_VERSION}" \
         --pdf_json_path "${PDF_JSON_CLEANED_PATH}" \
@@ -119,7 +127,7 @@ process_paper() {
 
 
     echo "------- 5. PaperCoder - 编码 (Coding) -------"
-    python ../codes/3_coding_no_knowledge.py \
+    python ../codes/3_coding.py \
         --paper_name "$REPO_INDEX" \
         --gpt_version "${GPT_VERSION}" \
         --pdf_json_path "${PDF_JSON_CLEANED_PATH}" \
@@ -130,11 +138,11 @@ process_paper() {
     # --- 切换环境进行评估 ---
     echo "------- 切换到 'paperbench' 环境进行评估 -------"
     source activate /disk/disk_20T/luoyujie/anaconda3/envs/paperbench
-    
+
     local SUBMISSION_PATH="$OUTPUT_REPO_DIR"
     local SAVE_PATH="${SUBMISSION_PATH}/evaluation"
-    
-    
+
+
     echo "------- 6. 运行评估 -------"
     python /disk/disk_20T/luoyujie/preparedness/project/paperbench/paperbench/scripts/run_judge.py \
          --submission-path "$SUBMISSION_PATH" \

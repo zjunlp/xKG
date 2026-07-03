@@ -7,14 +7,10 @@ from inspect_ai.tool import Tool, ToolError, tool, ToolResult
 from dataclasses import asdict
 import json
 
-current_dir = os.path.dirname(__file__)
-research_kg_parent_dir = os.path.abspath(current_dir) # aisi-basic-agent 目录
-sys.path.insert(0, research_kg_parent_dir)
-
-from xKG.research_kg.schema import Node, Technique
-from xKG.research_kg.interface.retrieve import (
+# 使用主xKG包（通过pip install -e安装）
+from xKG.source.schema.garph import Node, Technique
+from xKG.source.interface.retrieve import (
     initialize_kg,
-    find_node_by_paper_title,
     find_similar_techniques,
     find_similar_papers
 )
@@ -25,10 +21,6 @@ _kg_instance = None
 _kg_init_lock = asyncio.Lock()
 
 async def get_kg_instance():
-    """
-    一个异步的、线程安全的函数，用于获取知识图谱的单例。
-    如果尚未初始化，它将加载模型和图谱。
-    """
     global _kg_instance
     # 如果实例已存在，直接返回
     if _kg_instance:
@@ -152,71 +144,7 @@ def get_similar_techniques() -> Tool:
     return execute
 
 # ==============================================================================
-#  工具 3: 获取相似的论文
-# ==============================================================================
-@tool
-def get_similar_papers() -> Tool:
-    """
-    定义一个工具，用于查找与给定论文相似的其他学术论文。
-    """
-    async def execute() -> ToolResult:
-        """
-        Finds and lists academic papers that are technically similar to the given paper.
-
-        Returns:
-            ToolResult: A formatted string containing information about similar papers, including their core technologies and code organization structure.
-        """
-        file_path = "/home/guide.json"
-        with open(file_path, 'r') as file:
-            file = json.load(file)        
-        file = Node.from_dict(file)   
-
-        logger.info(f"--- [Tool] 正在为论文 '{file.paper_title}' 查找相似论文...")
-
-        try:
-            graph = await get_kg_instance()
-
-            # 假设 find_similar_papers 返回一个论文列表
-            similar_papers_list = await asyncio.to_thread(find_similar_papers, paper=file, top_k=3, return_code=False)
-
-            if not similar_papers_list:
-                return f"No similar papers found for '{file.paper_title}'."
-
-            # 格式化输出
-            result = []
-            for paper in similar_papers_list:
-                paper_title = paper.paper_title
-                paper_abstract = paper.paper_abstract
-                paper_technique = paper.techniques
-                code_tree = paper.code_file
-                code_overview = paper.code_overview
-                paper_dict = {
-                    "paper_title": paper_title,
-                    "paper_abstract": paper_abstract,
-                    "paper_technique": [asdict(tech) for tech in paper_technique] if paper_technique else [],
-                    "code_tree": code_tree,
-                    "code_overview": code_overview
-                }
-                result.append(paper_dict)
-            res = f"""
-            Here are some technically related papers retrieved from our library to aid your work:
-            Review them to find useful techniques for your replication task. You are encouraged to analyze the mapping from their techniques to code repositories, the organizational structure of those repositories, and the implementation details of specific methods.
-            WARNING: The information above lists potentially relevant papers and is provided for supplementary understanding only. Your specific replication task must be based primarily on the content of the target paper, including its detailed implementation logic, procedural steps, and parameter configurations.
-            
-            {json.dumps(result)}
-            """
-            
-            return res
-
-        except Exception as e:
-            logger.error(f"查找相似论文时发生错误: {e}", exc_info=True)
-            return f"An internal error occurred while searching for similar papers for '{file.paper_title}': {str(e)}"
-
-    return execute
-
-
-# ==============================================================================
-#  工具 4: 获取论文关键技术的相关实现
+#  工具 3: 获取论文关键技术的相关实现
 # ==============================================================================
 @tool
 def get_full_techniques() -> Tool:

@@ -724,6 +724,10 @@ class ExternalPythonCodingSolver(PythonCodingSolver):
             agent=agent,
             is_nvidia_gpu_env=self.is_nvidia_gpu_env,
         )
+        # Force pull_from_registry=False to use locally built images on Mac/Linux
+        # Force wait_for_health=False since our container has no HEALTHCHECK
+        alcatraz_config.pull_from_registry = False
+        alcatraz_config.wait_for_health = False
         probe(f"ExternalPythonCodingSolver._start_computer(): Calling alcatraz_config.build(). This will start the Docker container.")
         async with alcatraz_config.build() as cluster:
             yield AlcatrazComputerInterface(cluster_value=cluster)

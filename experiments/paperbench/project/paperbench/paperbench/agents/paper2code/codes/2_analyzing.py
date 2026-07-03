@@ -5,9 +5,6 @@ from tqdm import tqdm
 import sys
 from utils import extract_planning, content_to_json, print_response, print_log_cost, load_accumulated_cost, save_accumulated_cost
 import copy
-from xKG.research_kg.interface.retrieve import *
-from xKG.research_kg.utils import *
-
 
 import argparse
 
@@ -18,9 +15,7 @@ parser.add_argument('--gpt_version',type=str, default="o3-mini")
 parser.add_argument('--paper_format',type=str, default="JSON", choices=["JSON", "LaTeX"])
 parser.add_argument('--pdf_json_path', type=str) # json format
 parser.add_argument('--pdf_latex_path', type=str) # latex format
-parser.add_argument('--guide_json_path', type=str, default=None) # json format
 parser.add_argument('--output_dir',type=str, default="")
-parser.add_argument('--no_code_retrieval', action='store_true')
 
 args    = parser.parse_args()
 
@@ -32,10 +27,6 @@ paper_format = args.paper_format
 pdf_json_path = args.pdf_json_path
 pdf_latex_path = args.pdf_latex_path
 output_dir = args.output_dir
-guide_json_path = args.guide_json_path
-code_retrieval = not args.no_code_retrieval
-
-initialize_kg()
 
 if paper_format == "JSON":
     with open(f'{pdf_json_path}') as f:
@@ -46,13 +37,7 @@ elif paper_format == "LaTeX":
 else:
     print(f"[ERROR] Invalid paper format. Please select either 'JSON' or 'LaTeX.")
     sys.exit(0)
-    
-if guide_json_path:
-    with open(f'{guide_json_path}') as f:
-        guide_content = json.load(f)
-    paper_guide = guide_content
-else:
-    paper_guide = "Unseen"
+
 
 with open(f'{output_dir}/planning_config.yaml') as f: 
     config_yaml = f.read()
@@ -106,49 +91,6 @@ This analysis must align precisely with the paper’s methodology, experimental 
      
 """}]
 
-def get_relevant_code(todo_file_name, todo_file_desc):
-    description = f"{todo_file_name}: {todo_file_desc}"
-    similar_techs = decompose_and_find_techniques(description, top_k=3, code_only=False, llm_rerank=True)
-    if not similar_techs:
-        return "No relevant code found in the knowledge base."
-    result = []
-    for tech in similar_techs:
-        if isinstance(tech, Technique):
-            tech = {
-            "name": tech.name,
-            "implementation": tech.code.implementation,
-            "test": tech.code.test,
-            "documenation": tech.code.documentation
-        }
-        result.append(tech)
-    msg = f"""
-    The following are relevant implementations concerning the file, as retrieved from the knowledge base.
-    Review the following content, which include code snippets to guide your implementation.
-
-    WARNING: Do not copy this code directly. 
-    Flexibly adapt and reuse the code based on the paper's settings, including the model architecture, input/output formats, loss functions, data preprocessing, evaluation metrics, parameter configurations, etc.
-    
-    In your final official code implementation, all simplifications, placeholders, or dummy implementations are forbidden.
-    {json.dumps(result)}
-    """
-    return msg
-
-def judge_implementation_file(todo_file_name, todo_file_desc):
-    prompt = """
-    Your task is to determine whether this file is meant to contain the actual implementation details of specific core academic techniques.
-    {todo_file_name}: {todo_file_desc}
-    
-    Return true if it does, false otherwise.
-    """
-    llm = get_llm_backend()
-    model = get_config().get('model')
-    response = llm.query(prompt.format(todo_file_name=todo_file_name, todo_file_desc=todo_file_desc), model=model)
-    response = response[0].lower()
-    if "true" in response:
-        return True
-    else:
-        return False
-    
 def get_write_msg(todo_file_name, todo_file_desc):
     
     draft_desc = f"Write the logic analysis in '{todo_file_name}', which is intended for '{todo_file_desc}'."
@@ -179,12 +121,6 @@ def get_write_msg(todo_file_name, todo_file_desc):
 ```yaml
 {config_yaml}
 ```
------
-
-## Key Components Descriptions
-Fully incorporate all the details and configurations relevant to the tatget file into the method and logic design.
-{paper_guide}
-
 -----
 
 ## Instruction
@@ -248,22 +184,10 @@ for todo_file_name in tqdm(todo_file_lst):
     print_response(completion_json)
     temp_total_accumulated_cost = print_log_cost(completion_json, gpt_version, current_stage, output_dir, total_accumulated_cost)
     total_accumulated_cost = temp_total_accumulated_cost
-    
-    # add code retrieval
-    # if judge_implementation_file(todo_file_name, logic_analysis_dict[todo_file_name]):
-    #     code = get_relevant_code(todo_file_name, logic_analysis_dict[todo_file_name])
-    #     response = f"{code}\n\n{completion_json['choices'][0]['message']['content']}"
-    # else:
-    #     response = completion_json['choices'][0]['message']['content']
-    if code_retrieval and judge_implementation_file(todo_file_name, completion_json['choices'][0]['message']['content']):
-        code = get_relevant_code(todo_file_name, completion_json['choices'][0]['message']['content'])
-        response = f"{code}\n\n{completion_json['choices'][0]['message']['content']}"
-    else:
-        response = completion_json['choices'][0]['message']['content']
-        
+
     # save
     with open(f'{artifact_output_dir}/{todo_file_name}_simple_analysis.txt', 'w') as f:
-        f.write(response)
+        f.write(completion_json['choices'][0]['message']['content'])
 
 
     done_file_lst.append(todo_file_name)

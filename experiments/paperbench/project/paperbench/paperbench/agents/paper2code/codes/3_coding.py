@@ -17,7 +17,6 @@ parser.add_argument('--pdf_json_path', type=str) # json format
 parser.add_argument('--pdf_latex_path', type=str) # latex format
 parser.add_argument('--output_dir',type=str, default="")
 parser.add_argument('--output_repo_dir',type=str, default="")
-parser.add_argument('--guide_json_path', type=str, default=None) # json format
 
 args    = parser.parse_args()
 client = OpenAI(api_key = os.environ["OPENAI_API_KEY"])
@@ -29,7 +28,6 @@ pdf_json_path = args.pdf_json_path
 pdf_latex_path = args.pdf_latex_path
 output_dir = args.output_dir
 output_repo_dir = args.output_repo_dir
-guide_json_path = args.guide_json_path
 
 if paper_format == "JSON":
     with open(f'{pdf_json_path}') as f:
@@ -40,12 +38,7 @@ elif paper_format == "LaTeX":
 else:
     print(f"[ERROR] Invalid paper format. Please select either 'JSON' or 'LaTeX.")
     sys.exit(0)
-    
-if guide_json_path:
-    with open(f'{guide_json_path}') as f:
-        guide_content = json.load(f)
-    paper_guide = guide_content
-    
+
 with open(f'{output_dir}/planning_config.yaml') as f: 
     config_yaml = f.read()
 
@@ -77,68 +70,8 @@ def get_write_msg(todo_file_name, detailed_logic_analysis, done_file_lst):
 ```
 
 """
-    if guide_json_path:
-        write_msg=[
-    {'role': 'user', "content": f"""# Context
-    ## Important Paper Components
-    {paper_guide}
 
-    -----
-
-    ## Overview of the plan
-    {context_lst[0]}
-
-    -----
-
-    ## Design
-    {context_lst[1]}
-
-    -----
-
-    ## Task
-    {context_lst[2]}
-
-    -----
-
-    ## Configuration file
-    ```yaml
-    {config_yaml}
-    ```
-    -----
-
-    ## Code Files
-    {code_files}
-
-    -----
-
-    # Format example
-    ## Code: {todo_file_name}
-    ```python
-    ## {todo_file_name}
-    ...
-    ```
-
-    -----
-
-    # Instruction
-    Based on the paper, plan, design, task and configuration file(config.yaml) specified previously, follow "Format example", write the code. 
-
-    We have {done_file_lst}.
-    Next, you must write only the "{todo_file_name}".
-    1. Only One file: do your best to implement THIS ONLY ONE FILE.
-    2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
-    3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
-    4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
-    5. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
-    6. Before using a external variable/module, make sure you import it first.
-    7. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
-    8. REFER TO CONFIGURATION: you must use configuration from "config.yaml". DO NOT FABRICATE any configuration values.
-
-    {detailed_logic_analysis}
-
-    ## Code: {todo_file_name}"""}]
-    else:
-        write_msg=[
+    write_msg=[
 {'role': 'user', "content": f"""# Context
 ## Paper
 {paper_content}

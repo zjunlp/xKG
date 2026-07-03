@@ -54,9 +54,8 @@ CONTINUE_USER_MESSAGE = """Now given the previous progress made by the agent, ta
 
 CONTINUE_USER_MESSAGE_CODE_ONLY = """Now given the previous progress made by the agent, take the next step towards replicating the paper:
 - You have a lot of time available, so don't try and do everything in one go. Just reason about what is the best next step and execute it.
-- Use the available tools to write the necessary code. You are equipped with a knowledge base and tools to access it, and you will need to CALL THEM MULTIPLE TIMES to make sure that you gather sufficient relevant information before you write any code. 
-- Remember, you should try prioritize the most important parts of the paper to replicate first.
-"""
+- Use the available tools to write the necessary code.
+- Remember, you should try prioritize the most important parts of the paper to replicate first."""
 
 
 class BasicAgentDeprecatedArgs(TypedDict, total=False):
@@ -220,7 +219,7 @@ def basic_agent_iterative(
                 if num_steps % 5 == 0:
                     if real_time_limit is not None:
                         elapsed_time = time.time() - start_time - model.total_retry_time
-                        periodic_msg = f"Info: {format_progress_time(elapsed_time)} time elapsed out of {format_progress_time(real_time_limit)}. Remember, you only have to stop working when the time limit has been reached. Make full use of knowledge base-related tools to maximize the acquisition of relevant knowledge."
+                        periodic_msg = f"Info: {format_progress_time(elapsed_time)} time elapsed out of {format_progress_time(real_time_limit)}. Remember, you only have to stop working when the time limit has been reached."
                     else:
                         elapsed_time = time.time() - start_time
                         periodic_msg = f"Info: {format_progress_time(elapsed_time)} time elapsed"

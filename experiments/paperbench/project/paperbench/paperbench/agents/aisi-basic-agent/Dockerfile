@@ -24,5 +24,10 @@ COPY ./chz /tmp/chz
 RUN conda run -n ${CONDA_ENV_NAME} pip install /tmp/chz && \
     rm -rf /tmp/chz  
 
+# Make conda agent packages visible to system Python (needed for Jupyter kernel)
+RUN CONDA_SITE=$(/opt/conda/envs/${CONDA_ENV_NAME}/bin/python -c "import site; print(site.getsitepackages()[0])") && \
+    SYSTEM_SITE=$(python3 -c "import site; print(site.getsitepackages()[0])") && \
+    echo "$CONDA_SITE" > "$SYSTEM_SITE/conda_agent.pth"
+
 # copy remaining agent files into ${AGENT_DIR}
 COPY . ${AGENT_DIR}

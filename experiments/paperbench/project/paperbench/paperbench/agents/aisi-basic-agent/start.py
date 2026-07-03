@@ -38,24 +38,43 @@ additional_notes = additional_notes_template.substitute(
     workspace=CODE_DIR,
     workspace_base=WORKSPACE_BASE,
 )
-with open(f"{WORKSPACE_BASE}/instructions.txt", "r") as file:
+
+# 根据 KNOWLEDGE_ENABLED 选择 instructions 文件
+knowledge_enabled = os.environ.get("KNOWLEDGE_ENABLED", "false").lower() == "true"
+if knowledge_enabled:
+    instructions_file = f"{WORKSPACE_BASE}/instructions_with_knowledge.txt"
+else:
+    instructions_file = f"{WORKSPACE_BASE}/instructions.txt"
+
+with open(instructions_file, "r") as file:
     partial_instructions = file.read()
 
 instructions = partial_instructions + additional_notes
 
+# Add DeepSeek-specific hints if using DeepSeek model
+if "deepseek" in MODEL.lower():
+    hints_deepseek_path = Path(__file__).parent.parent / "instructions" / "hints_deepseek.txt"
+    if hints_deepseek_path.exists():
+        with open(hints_deepseek_path, "r") as f:
+            instructions += "\n\n" + f.read()
+
 
 @task
 def pb_task():
-    research_tools = [
-        get_overview(),          # <--- 添加新工具1
-        # get_similar_papers(),      # <--- 添加新工具2
-        get_similar_techniques(),  # <--- 添加新工具3
-        get_full_techniques()
-    ]
+    # 支持环境变量控制
+    knowledge_enabled = os.environ.get("KNOWLEDGE_ENABLED", "false").lower() == "true"
+
+    research_tools = []
+    if knowledge_enabled:
+        research_tools = [
+            get_overview(),          # 工具1：获取论文概览
+            get_similar_techniques(),  # 工具2：获取相似技术
+            get_full_techniques()      # 工具3：获取完整技术实现
+        ]
+
     if ITERATIVE_AGENT:
         solver = basic_agent_iterative(
             tools=[bash(), read_file_chunk()] + research_tools,
-            # tools=[bash(), read_file_chunk()],
             max_attempts=1,
             disallow_submit=DISALLOW_SUBMIT, # type: ignore
             real_time_limit=int(float(MAX_TIME_IN_HOURS) * 60 * 60),
@@ -63,7 +82,6 @@ def pb_task():
     else:
         solver = basic_agent_plus(
             tools=[bash(), python(), read_file_chunk(), search_file()] + web_browser() + research_tools,
-            # tools=[bash(), python(), read_file_chunk(), search_file()] + web_browser(),
             max_attempts=1,
             disallow_submit=DISALLOW_SUBMIT, # type: ignore
             real_time_limit=int(float(MAX_TIME_IN_HOURS) * 60 * 60),

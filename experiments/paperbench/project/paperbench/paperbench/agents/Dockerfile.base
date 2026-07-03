@@ -84,3 +84,4 @@ RUN chmod +x ${SUBMISSION_DIR}/.git/hooks/pre-commit
 # Set up git config
 RUN git config --global user.email "agent@example.com" && \
     git config --global user.name "agent"
+
