@@ -190,7 +190,7 @@ python -m xKG.scripts.retrieve_kg --mode papers --title "Paper Title" --limit 5
 
 ### 1. Setup Evaluation Environment
 
-Follow the PaperBench README for full setup:
+Follow the [PaperBench README](experiments/paperbench/project/paperbench/README.md) for full setup:
 ```bash
 cd experiments/paperbench/project/paperbench
 conda create -n paperbench python=3.11
