@@ -7,7 +7,7 @@ name = "xKG"
 version = "0.1.0"
 description = "Executable Knowledge Graphs for AI Research Replication"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name = "Yujie Luo", email = "luo.yj@zju.edu.cn"}
 ]
