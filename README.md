@@ -213,9 +213,11 @@ conda activate paperbench && bash scripts/run_dummy_dev.sh
 PaperBench defines target paper splits in `experiments/paperbench/project/paperbench/experiments/splits/` (e.g., `debug`, `lite`, `dev`, `all`). You can use an existing split or create your own.
 
 **Option A: For Papers in `lite` split**
+
 Existing papers are already parsed in `experiments/paperbench/data/papers/`. Skip to **Run Evaluation** section below.
 
 **Option B: For New/Custom Papers**
+
 Preprocess papers and collect corpus.
 
 ```bash
@@ -253,10 +255,10 @@ Results will be saved in `experiments/paperbench/project/paperbench/runs` direct
 
 We build upon the excellent work of:
 
-- **PaperBench** — Evaluation framework & agent baselines from [OpenAI](https://github.com/openai/frontier-evals/tree/main/project/paperbench)
-- **Paper2Code** — Agent baseline from [paper2code](https://github.com/going-doer/paper2code)
-- **AutoSDT** — Code verification logic adapted from [AutoSDT](https://github.com/OSU-NLP-Group/AutoSDT)
-- **DeepWiki** — Embedding and retrieval methods from [deepwiki-open](https://github.com/AsyncFuncAI/deepwiki-open)
+- **PaperBench** — Evaluation framework & agent baselines from [OpenAI](https://github.com/openai/frontier-evals/tree/main/project/paperbench).
+- **Paper2Code** — Agent baseline from [paper2code](https://github.com/going-doer/paper2code).
+- **AutoSDT** — Code verification logic adapted from [AutoSDT](https://github.com/OSU-NLP-Group/AutoSDT).
+- **DeepWiki** — Embedding and retrieval methods from [DeepWiki](https://github.com/AsyncFuncAI/deepwiki-open).
 
 We thank all authors and contributors for their pioneering work!
 
