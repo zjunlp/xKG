@@ -109,7 +109,7 @@ xKG demonstrates **substantial and consistent improvements** across three agent 
    
    **Option B: API-Based Embedding (CPU/GPU compatible)**
    
-   Uses `text-embedding-3-small` via OpenAI API (pre-configured):
+   Uses `text-embedding-3-small` via OpenAI API:
    ```yaml
    retrieve: &kg-retrieve-settings
      embedding_model: text-embedding-3-small

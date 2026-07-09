@@ -48,8 +48,6 @@ paper: &paper-settings
 retrieve: &kg-retrieve-settings
   embedding_model: all-MiniLM-L6-v2
   embedding_client: local
-  # embedding_model: text-embedding-3-small
-  # embedding_client: openai
   technique_similarity: 0.5 # Only retrieve techniques with similarity above this threshold
   paper_similarity: 0.5 # Only retrieve papers with similarity above this threshold
 
