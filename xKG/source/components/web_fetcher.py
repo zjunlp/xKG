@@ -1,5 +1,5 @@
 """
-收集信息
+Information collection
 """
 import re
 import requests
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 MAX_ARXIV_RESULTS = 50
 
 # ──────────────────────────────────────────────────────────────────────────────
-# GithubFetcher  —  负责 clone 仓库
+# GithubFetcher  —  responsible for cloning repositories
 # ──────────────────────────────────────────────────────────────────────────────
 
 class GithubFetcher(BaseTool):
@@ -190,7 +190,7 @@ Please wrap your final answer between two ``` in the end.
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# ArxivFetcher  —  负责按标题精确搜索 arXiv 并下载 LaTeX 源码
+# ArxivFetcher  —  responsible for exact title search on arXiv and downloading LaTeX source
 # ──────────────────────────────────────────────────────────────────────────────
 
 class ArxivFetcher(BaseTool):
@@ -416,7 +416,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
         return paper_path
 
 # ──────────────────────────────────────────────────────────────────────────────
-# ArxivFetcher  —  负责模糊查找相关论文
+# OpenAlexFetcher  —  responsible for fuzzy search of related papers
 # ──────────────────────────────────────────────────────────────────────────────
 class OpenAlexFetcher:
     """Handles OpenAlex paper search. Search only — download via ArxivFetcher."""
@@ -498,7 +498,7 @@ class OpenAlexFetcher:
         return papers
 
 # ──────────────────────────────────────────────────────────────────────────────
-# WebFetcher  —  统一调度器: 负责论文下载与代码下载
+# WebFetcher  —  unified dispatcher: responsible for paper and code downloading
 # ──────────────────────────────────────────────────────────────────────────────
 
 class WebFetcher(BaseTool):
@@ -506,15 +506,15 @@ class WebFetcher(BaseTool):
     High-level dispatcher that coordinates ArxivFetcher and GithubFetcher.
 
     Public API:
-        paper_search_exact(title, ...)  → (paper_path, code_path) 默认走arXiv精确标题搜索下载论文
-        paper_search_fuzzy(query, ...)  → List[(paper_path, code_path)] 默认走OpenAlex模糊搜索论文，再走arXiv下载
-        code_search_exact(url, ...) → code_path 直接克隆GitHub仓库
-        code_search_paper(title, ...) → code_path 通过论文标题搜索相关代码仓库 直接挑选官方实现
-        code_search_fuzzy(query, ...) → List[code_path] 通过关键词搜索相关代码仓库，返回多个结果供后续筛选
-        
-    注意paper: Paper = None 是可选的，如果是None则不进行LLM验证，直接返回搜索结果列表；如果提供了paper对象，则会使用paper的title和abstract进行LLM验证，筛选出与paper最相关的结果返回。
+        paper_search_exact(title, ...)  → (paper_path, code_path) Uses arXiv exact title search to download paper by default
+        paper_search_fuzzy(query, ...)  → List[(paper_path, code_path)] Uses OpenAlex fuzzy search for papers, then downloads via arXiv
+        code_search_exact(url, ...) → code_path Directly clone a GitHub repository
+        code_search_paper(title, ...) → code_path Search for related code repos by paper title, select official implementation
+        code_search_fuzzy(query, ...) → List[code_path] Search for related code repos by keywords, return multiple results for downstream filtering
 
-    
+    Note: paper: Paper = None is optional. If None, no LLM verification is performed and the raw search results are returned. If a paper object is provided, its title and abstract are used for LLM verification to filter and return the most relevant results.
+
+
     """
 
     def __init__(
@@ -733,6 +733,45 @@ Wrap your final answer between two ``` in the end.
             logger.error(f"Failed to clone '{github_url}': {e}")
             return None
 
+    def fetch_paper_code_pair(
+        self,
+        title: str,
+        paper_save_path: str = "./",
+        code_save_path: str = "./",
+        fetch_code: bool = True,
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Fetch paper LaTeX and code for a given title.
+
+        Pipeline:
+            1. ArxivFetcher.fetch(title)      → paper_path (LaTeX)
+            2. (Optional) Extract GitHub URL from paper  → github_url
+            3. (Optional) Clone repository               → code_path
+
+        Args:
+            title: Paper title to search on arXiv
+            paper_save_path: Directory to save paper LaTeX
+            code_save_path: Directory to save cloned code
+            fetch_code: Whether to fetch and clone code repository (default: True)
+
+        Returns:
+            (paper_path, code_path) where either may be None on failure
+        """
+        paper_path = self._arxiv.fetch(title, save_path=paper_save_path)
+        if not paper_path:
+            logger.error(f"fetch_paper_code_pair: could not download paper for '{title}'")
+            return None, None
+
+        # Only fetch code if requested
+        code_path = None
+        if fetch_code:
+            title_meta, abstract_meta = self._load_paper_meta(paper_path)
+            title_meta = title_meta or title
+            github_url = self._find_github_url(paper_path, title_meta, abstract_meta)
+            code_path = self._clone_code(github_url, code_save_path) if github_url else None
+
+        return paper_path, code_path
+
     def paper_search_exact(
         self,
         title: str,
@@ -741,27 +780,8 @@ Wrap your final answer between two ``` in the end.
     ) -> Tuple[Optional[str], Optional[str]]:
         """
         Download a paper by exact title and find its code repository.
-
-        Pipeline:
-            1. ArxivFetcher.run(title)        → paper_path
-            2. Extract GitHub URL from LaTeX  → github_url
-               (fall back to GitHub API search if not found in LaTeX)
-            3. GithubFetcher.run(github_url)  → code_path
-
-        Returns:
-            (paper_path, code_path)  — either may be None on failure.
         """
-        paper_path = self._arxiv.fetch(title, save_path=paper_save_path)
-        if not paper_path:
-            logger.error(f"paper_search_exact: could not download paper for '{title}'")
-            return None, None
-
-        title_meta, abstract_meta = self._load_paper_meta(paper_path)
-        title_meta = title_meta or title
-        github_url = self._find_github_url(paper_path, title_meta, abstract_meta)
-        code_path = self._clone_code(github_url, code_save_path) if github_url else None
-
-        return paper_path, code_path
+        return self.fetch_paper_code_pair(title, paper_save_path, code_save_path)
 
     def paper_search_fuzzy(
         self,

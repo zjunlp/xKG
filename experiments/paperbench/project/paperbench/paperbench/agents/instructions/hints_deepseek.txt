@@ -7,5 +7,4 @@
     [...file contents...]
     EOF
 ```
-Note: NEVER use {"cmd": ...} to wrap your command, just provide the raw command directly like in the example above.
-- Note: Your task is to provide a functional code implementation that fully reproduces the content of the paper. Crucially, you must NOT waste time on execution, verification or debugging!!!
+- Your task is to provide a functional code implementation that fully reproduces the content of the paper. Crucially, you must NOT waste time on execution, verification or debugging. Prioritize building a complete code repository. 

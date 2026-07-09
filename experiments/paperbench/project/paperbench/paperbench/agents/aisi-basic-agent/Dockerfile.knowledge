@@ -1,0 +1,27 @@
+FROM aisi-basic-agent
+
+# Build context must be set to xKG repository root
+# Build command: see scripts/build-docker-images.sh
+
+# Use HuggingFace mirror to accelerate model downloads
+ENV HF_ENDPOINT="https://hf-mirror.com"
+
+# Absolute path for KG data; config.py overrides relative path via XKG_KG_PATH env var
+ENV XKG_KG_PATH=/opt/xKG/xKG/storage/kg
+
+# Copy xKG package structure
+COPY pyproject.toml /opt/xKG/pyproject.toml
+COPY README.md /opt/xKG/README.md
+COPY requirements.txt /opt/xKG/requirements.txt
+COPY .env /opt/xKG/.env
+COPY xKG/__init__.py /opt/xKG/xKG/__init__.py
+COPY xKG/config.yaml /opt/xKG/xKG/config.yaml
+COPY xKG/source/ /opt/xKG/xKG/source/
+
+# Copy KG data
+COPY xKG/storage/kg/ /opt/xKG/xKG/storage/kg/
+
+# Install xKG dependencies and package
+RUN conda run -n ${CONDA_ENV_NAME} pip install -r /opt/xKG/requirements.txt && \
+    conda run -n ${CONDA_ENV_NAME} pip install -e /opt/xKG && \
+    conda clean -afy

@@ -8,8 +8,9 @@ __pycache__/
 storage/
 tmp/
 logs/
-/test*.py
-/out*.txt
+test*.py
+out*.txt
+nohup.out
 .vscode/
 .claude/
 .DS_Store

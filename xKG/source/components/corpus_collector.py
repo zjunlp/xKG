@@ -217,7 +217,9 @@ Wrap your final answer between two ``` in the end.
         Returns list of (title, paper_path, code_path) where both paths are valid.
         """
         results = []
-        for title in titles:
+        total = len(titles)
+        for idx, title in enumerate(titles, 1):
+            logger.info(f"[{idx}/{total}] Downloading: '{title[:60]}...'")
             try:
                 paper_path, code_path = self._fetcher.paper_search_exact(
                     title,
@@ -225,11 +227,17 @@ Wrap your final answer between two ``` in the end.
                     code_save_path=self.code_save_path,
                 )
                 if paper_path and code_path:
+                    logger.info(f"  ✓ Success: paper + code")
                     results.append((title, paper_path, code_path))
+                elif paper_path:
+                    logger.info(f"  ⚠ Skipping: paper found but no code")
+                elif code_path:
+                    logger.info(f"  ⚠ Skipping: code found but no paper")
                 else:
-                    logger.info(f"Skipping '{title}': missing paper={paper_path}, code={code_path}")
+                    logger.info(f"  ✗ Skipping: paper not found on arXiv")
             except Exception as e:
-                logger.warning(f"Download failed for '{title}': {e}")
+                logger.warning(f"  ✗ Download failed: {e}")
+        logger.info(f"Downloaded: {len(results)}/{total} papers with code")
         return results
 
     def _rerank_and_trim(
@@ -269,20 +277,111 @@ Wrap your final answer between two ``` in the end.
 
         return reranked
 
-    def collect_corpus(
+    @staticmethod
+    def _flatten_techniques(techniques: list) -> list:
+        """Recursively flatten nested techniques/components into a flat list."""
+        flat = []
+        for tech in techniques:
+            if not isinstance(tech, dict):
+                continue
+            flat.append(tech)
+            if tech.get('components'):
+                flat.extend(CorpusCollector._flatten_techniques(tech['components']))
+        return flat
+
+    def _node_to_paper(self, node: dict) -> Optional[Paper]:
+        """Convert a Node dict to a Paper object for corpus collection."""
+        try:
+            all_techniques = self._flatten_techniques(node.get('techniques', []))
+
+            technique_descriptions = []
+            contributions = []
+            for tech in all_techniques:
+                name = tech.get('name', '')
+                desc = tech.get('description', '')
+                if name and desc:
+                    technique_descriptions.append(f"Technique: {name}\n{desc}")
+                    contributions.append({'name': name, 'type': 'Technique', 'description': desc})
+
+            paper_data = {
+                'title': node.get('paper_title', 'Unknown'),
+                'abstract': node.get('paper_abstract', ''),
+                'url': None,
+                'year': 2024,
+                'authors': [],
+                'sections': [],
+                'references': node.get('paper_references', []),
+                'equations': [],
+                'introduction': '\n\n'.join(technique_descriptions) if technique_descriptions else node.get('paper_abstract', ''),
+                'code_url': None,
+                'contributions': contributions,
+            }
+
+            paper = Paper.from_dict(paper_data)
+            logger.info(f"Converted node to Paper: {paper.title}")
+            logger.info(f"  References: {len(paper.references or [])}, Techniques (flat): {len(all_techniques)}")
+            return paper
+
+        except Exception as e:
+            logger.error(f"Failed to convert node to Paper: {e}", exc_info=True)
+            return None
+
+    def collect_corpus_from_title(
+        self,
+        title: str,
+        save_process: bool = None,
+    ) -> List[Tuple[str, str, str]]:
+        """
+        Collect corpus for a paper given its title.
+
+        Args:
+            title: Paper title to search on arXiv
+            save_process: Whether to save results (default: config setting)
+
+        Returns:
+            List of (title, paper_path, code_path) for related papers
+        """
+        from .paper_parser import PaperParser
+        from ..utils import get_raw_papers_path, get_raw_code_path
+
+        logger.info(f"Collecting corpus for title: '{title}'")
+
+        # Step 1: Download paper
+        logger.info(f"  Downloading paper from arXiv...")
+        paper_path, _ = self._fetcher.fetch_paper_code_pair(
+            title=title,
+            paper_save_path=str(get_raw_papers_path()),
+            code_save_path=str(get_raw_code_path()),
+            fetch_code=False,  # Don't fetch code for target paper
+        )
+        if not paper_path:
+            logger.error(f"Failed to fetch paper: {title}")
+            return []
+
+        # Step 2: Parse paper
+        logger.info(f"  Parsing paper...")
+        try:
+            paper_parser = PaperParser(model=self.model)
+            paper = paper_parser.parse(paper_path=paper_path, paper_format="latex", save_process=False)
+            if not paper:
+                logger.error(f"Failed to parse paper")
+                return []
+            logger.info(f"  ✓ Paper parsed: {len(paper.sections)} sections")
+        except Exception as e:
+            logger.error(f"Paper parsing failed: {e}")
+            return []
+
+        # Step 3: Collect corpus
+        logger.info(f"  Collecting related papers...")
+        return self.collect_corpus_from_paper(paper, save_process=save_process)
+
+    def collect_corpus_from_paper(
         self,
         target_paper: Paper,
         save_process: bool = None,
     ) -> List[Tuple[str, str, str]]:
         """
         Collect related papers with code for a given Paper object.
-
-        Pipeline:
-          1. Rank paper.references by relevance → top 10 titles
-          2. Generate 5 queries → _scholar_search each → top 2 per query
-          3. Download paper + code for all candidates (union of 1 & 2)
-          4. Keep only pairs where both paper and code downloaded
-          5. LLM rerank, exclude target paper, return top 10
 
         Args:
             paper: Paper object to collect corpus for
@@ -337,3 +436,41 @@ Wrap your final answer between two ``` in the end.
                 logger.error(f"Failed to save corpus: {e}", exc_info=True)
 
         return final
+
+    def collect_corpus_from_node(
+        self,
+        target_node: dict,
+        save_process: bool = None,
+    ) -> List[Tuple[str, str, str]]:
+        """
+        Collect related papers with code for a given Node object.
+
+        This method converts a node (knowledge graph node with paper metadata and techniques)
+        into a Paper object and then collects related corpus.
+
+        Args:
+            node: Node dict with keys like:
+                  - paper_title: str
+                  - paper_abstract: str
+                  - paper_references: List[str]
+                  - techniques: List[dict] with 'name', 'description', 'components'
+                  - code_overview: Optional[str]
+            save_process: Whether to save final results. If None, uses config setting.
+
+        Returns:
+            List of (title, paper_path, code_path), up to 10 entries.
+        """
+        import json
+
+        # Convert node to Paper object
+        paper_title = target_node.get('paper_title', 'Unknown')
+        logger.info(f"Collecting corpus for node: '{paper_title}'")
+
+        # Construct Paper object from node
+        paper = self._node_to_paper(target_node)
+        if not paper:
+            logger.error(f"Failed to convert node to Paper")
+            return []
+
+        # Use existing collect_corpus logic with converted Paper
+        return self.collect_corpus_from_paper(paper, save_process=save_process)

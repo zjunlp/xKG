@@ -1,5 +1,5 @@
 """
-代码库schema定义
+Code repository schema definitions
 """
 from dataclasses import dataclass, field, fields
 from typing import List, Optional, Dict, Any, Set

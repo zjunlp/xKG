@@ -1,5 +1,5 @@
-""" 
-基本的解析paper的内容
+"""
+Basic paper content parsing module.
 """
 import os
 import re
@@ -60,7 +60,7 @@ Please wrap your final answer between two ``` in the end.
     
     def _find_references(self, root_dir: Path) -> List[str]:
         """
-        查找 .bib 文件，并用正则表达式提取所有标题。
+        Find the .bib file and extract all titles using regex.
         """
         bib_path = next(root_dir.rglob('*.bib'), None)
         
@@ -95,7 +95,7 @@ Please wrap your final answer between two ``` in the end.
             
     
     def _find_main_tex(self, root_dir: Path) -> Optional[Path]:
-        """在指定目录中查找包含 '\\documentclass' 的主 .tex 文件。"""
+        """Find the main .tex file containing '\\documentclass' in the specified directory."""
         if not root_dir.is_dir():
             raise FileNotFoundError(f"Directory not found: {root_dir}")
             
@@ -115,7 +115,7 @@ Please wrap your final answer between two ``` in the end.
         return None
 
     def _load_tex_content(self, file_path: Path, already_read: set = None) -> List[str]:
-        """递归地加载 .tex 文件及其所有 \\input 和 \\include 的内容。"""
+        """Recursively load a .tex file and all its \\input and \\include contents."""
         if already_read is None:
             already_read = set()
         
@@ -130,7 +130,7 @@ Please wrap your final answer between two ``` in the end.
                 for line in f:
                     match = re.match(r'\\(input|include)\{([^}]+)\}', line)
                     if match:
-                        # 如果找到 \input 或 \include，递归加载
+                        # If \input or \include found, load recursively
                         fname = match.group(2)
                         included_path = file_path.parent / (fname if fname.endswith('.tex') else f"{fname}.tex")
                         content.extend(self._load_tex_content(included_path, already_read))
@@ -142,7 +142,7 @@ Please wrap your final answer between two ``` in the end.
         return content
     
     def _get_valid_nodes(self, node_list: List) -> Optional[List]:
-        """递归查找第一个包含 section 宏的节点列表。"""
+        """Recursively find the first node list containing section macros."""
         if any(isinstance(child, LatexMacroNode) and 'section' in child.macroname for child in node_list):
             return node_list 
 
@@ -154,7 +154,7 @@ Please wrap your final answer between two ``` in the end.
         return None
     
     def _construct_latex_node(self, content: List[str]) -> Tuple[str, List]:
-        """从加载的 LaTeX 内容中构建节点树。"""
+        """Build the node tree from loaded LaTeX content."""
         start = 0
         end = len(content)
         for i, line in enumerate(content):
@@ -162,31 +162,31 @@ Please wrap your final answer between two ``` in the end.
                 start = i
             if "\\end{document}" in line:
                 end = i
-                break # 找到 end{document} 就可以停止
-        
-        # 只处理 \begin{document} 和 \end{document} 之间的内容
+                break # Stop once \end{document} is found
+
+        # Only process content between \begin{document} and \end{document}
         document_content = ''.join(content[start:end])
         
         lw = LatexWalker(document_content)
         content_nodes, _, _ = lw.get_latex_nodes()
         
-        # 寻找包含 section 的有效节点部分
+        # Find the valid node section containing section macros
         valid_nodes = self._get_valid_nodes(content_nodes)
         
         return document_content, valid_nodes
 
     def _extract_labeled_environments(self, content_nodes: List, keyword: str) -> Dict[str, str]:
         """
-        从节点中提取带标签的环境，如表格(table)和图形(figure)。
+        Extract labeled environments from nodes, such as tables and figures.
         """
         extracted_items = {}
         for node in content_nodes:
             if isinstance(node, LatexEnvironmentNode) and keyword in node.environmentname:
                 label = None
-                # 在环境的子节点中寻找标签
+                # Search for labels in the environment's child nodes
                 for sub_node in node.nodelist:
                     if isinstance(sub_node, LatexMacroNode) and sub_node.macroname == 'label':
-                        # 提取大括号内的标签名
+                        # Extract the label name within curly braces
                         label_match = re.search(r'\{([^}]+)\}', sub_node.latex_verbatim())
                         if label_match:
                             label = label_match.group(1)
@@ -196,7 +196,7 @@ Please wrap your final answer between two ``` in the end.
         return extracted_items
     
     def _extract_equations(self, content_nodes: List) -> Dict[str, str]:
-        """从节点中提取带标签或编号的方程。"""
+        """Extract labeled or numbered equations from nodes."""
         equations = {}
         valid_equations = set()
         eq_count = 1
@@ -221,7 +221,7 @@ Please wrap your final answer between two ``` in the end.
         return equations
     
     def _extract_section_content(self, content_nodes: List, start_idx: int, end_idx: int) -> Dict[str, str]:
-        """提取单个章节内容的辅助函数。"""
+        """Helper function to extract the content of a single section."""
         section = {"name": "", "content": ""}
         
         name_node_content = content_nodes[start_idx].latex_verbatim()
@@ -240,7 +240,7 @@ Please wrap your final answer between two ``` in the end.
     
     def _extract_sections(self, content_nodes: List) -> Optional[List[Section]]:
         """
-        从节点中直接提取并构建一个包含两级嵌套的 Section 对象列表。
+        Extract and build a two-level nested list of Section objects directly from nodes.
         """
         section_nodes = {
             idx: node.macroname
@@ -266,9 +266,9 @@ Please wrap your final answer between two ``` in the end.
                 section_data = self._extract_section_content(content_nodes, sec_pos, sec_end)
                 
                 if sec_type == 'section':
-                    # 开始一个新的主章节
+                    # Start a new main section
                     main_sec_num += 1
-                    sub_sec_num = 0 # 重置子章节计数器
+                    sub_sec_num = 0 # Reset subsection counter
                     
                     new_section = Section(
                         id=str(main_sec_num),
@@ -277,15 +277,15 @@ Please wrap your final answer between two ``` in the end.
                     )
                     logger.debug(f"Extracted section: {json.dumps(asdict(new_section))}")
                     root_sections.append(new_section)
-                    current_main_section = new_section # 更新当前主章节的上下文
+                    current_main_section = new_section # Update the current main section context
                 
                 elif sec_type == 'subsection':
-                    # 检查是否存在一个可以依附的主章节
+                    # Check if there is a parent main section to attach to
                     if current_main_section is None:
                         logger.warning(f"Found a subsection at index {sec_pos} before any main section. Skipping.")
                         continue
                     
-                    # 创建一个子章节并添加到当前主章节
+                    # Create a subsection and add it to the current main section
                     sub_sec_num += 1
                     
                     new_subsection = Section(
@@ -307,7 +307,7 @@ Please wrap your final answer between two ``` in the end.
 
     def _inject_references(self, sections: List[Section], figures: Dict, tables: Dict):
         """
-        递归地遍历 Section 对象列表，将图和表的LaTeX代码注入到第一次引用它们的位置。
+        Recursively traverse the Section object list and inject figure/table LaTeX code at the position of their first reference.
         """
         all_references = {**figures, **tables}
         if not all_references:
@@ -342,23 +342,23 @@ Please wrap your final answer between two ``` in the end.
 
     def extract(self, paper_path: str, save_path: str = None) -> Paper:
         """
-        主入口函数：解析LaTeX项目，提取结构化信息，并保存为JSON。
+        Main entry function: parse a LaTeX project, extract structured information, and save as JSON.
         """
-        # 路径提取与解析
+        # Path extraction and resolution
         paper_dir = Path(paper_path)
         dir_name = paper_dir.name
         
-        # 2. 加载元信息
+        # 2. Load meta information
         meta_info_path = paper_dir / f"{dir_name}.json"
         try:
             with meta_info_path.open('r', encoding='utf-8') as f:
                 meta_data = json.load(f)
         except FileNotFoundError:
-            # TODO: 进行arxiv元信息的重新获取
+            # TODO: Re-fetch arxiv meta information
             raise FileNotFoundError(f"Meta info file not found: {meta_info_path}")
         paper = Paper.from_dict(meta_data)
 
-        # 3. 加载并解析LaTeX内容
+        # 3. Load and parse LaTeX content
         main_tex_file = self._find_main_tex(paper_dir)
         if main_tex_file is None:
             logger.error(f"Failed to find main .tex file in {paper_dir}.")
@@ -371,7 +371,7 @@ Please wrap your final answer between two ``` in the end.
             logger.error(f"Failed to extract content nodes from '{main_tex_file.name}'.")
             return None
         
-        # 4. 从解析后的节点中提取各个部分
+        # 4. Extract individual components from the parsed nodes
         references = self._find_references(paper_dir)
         sections = self._extract_sections(content_nodes)
         tables = self._extract_labeled_environments(content_nodes, keyword='tab')
@@ -380,7 +380,7 @@ Please wrap your final answer between two ``` in the end.
         if sections:
             self._inject_references(sections, figures, tables)
         
-        # 存储数据
+        # Store data
         paper.sections = sections if sections else None
         paper.equations = [f"{key}: {value}" for key, value in equations.items()] if  equations else None
         paper.references = references if references else None
@@ -389,7 +389,7 @@ Please wrap your final answer between two ``` in the end.
         
         if save_path:
             output_dir = Path(save_path)
-            output_dir.mkdir(parents=True, exist_ok=True) # 确保输出目录存在
+            output_dir.mkdir(parents=True, exist_ok=True) # Ensure the output directory exists
             output_path = output_dir / f"{dir_name}.json"
             with output_path.open("w", encoding='utf-8') as f:
                 json.dump(asdict(paper), f, ensure_ascii=False, indent=4)
@@ -594,14 +594,14 @@ class PaperParser(BaseTool):
                 memory=self.memory
             )
         
-        # 1. 使用MatchExtractor进行结构化信息提取
+        # 1. Use MatchExtractor for structured information extraction
         should_save = save_process if save_process is not None else should_save_process()
         save_path = str(self.get_output_path("paper_parser")) if should_save else None
         paper = self.match_extractor.extract(paper_path=paper_path, save_path=save_path)
         if not paper:
             raise ValueError("MatchExtractor failed to extract paper content.")
 
-        # 2. 使用LLMExtractor进行进一步的信息补全
+        # 2. Use LLMExtractor for further information completion
         paper = self.llm_extractor.extract(paper=paper, save_path=save_path)
         if not paper:
             raise ValueError("LLMExtractor failed to extract paper content.")

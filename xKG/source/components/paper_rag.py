@@ -15,17 +15,17 @@ logger = logging.getLogger(__name__)
 
 class PaperRAG:
     """
-    一个用于处理学术论文（Paper对象）的、配置驱动的RAG实现。
+    A configuration-driven RAG implementation for processing academic papers (Paper objects).
     """
     def __init__(self):
         """
-        初始化 PaperRAG。
-        - 加载 'paper' 专属配置。
-        - 将 'embedder' 子配置传递给 BaseEmbedder。
+        Initialize PaperRAG.
+        - Load 'paper' specific configuration.
+        - Pass 'embedder' sub-configuration to BaseEmbedder.
         """
         self.config = get_paper_rag_config()
         
-        # 将 embedder 配置注入 BaseEmbedder
+        # Inject embedder configuration into BaseEmbedder
         embedder_config = self.config.get("embedder", {})
         if not embedder_config:
             raise ValueError("Embedder configuration is missing in 'paper' config.")
@@ -36,7 +36,7 @@ class PaperRAG:
 
     def _paper_to_documents(self, paper: Paper) -> List[Document]:
         """
-        将 Paper 对象的 sections 转换为 Document 列表，并清理特殊 tokens。
+        Convert the sections of a Paper object into a list of Documents, sanitizing special tokens.
         """
         if not paper.sections:
             logger.warning(f"Paper '{paper.title}' has no sections. No documents will be created.")
@@ -86,7 +86,7 @@ class PaperRAG:
     
     def prepare_retriever(self, paper: Paper, db_path: str = None):
         """
-        准备检索器。如果本地有数据库，则加载；否则，基于论文内容创建新的。
+        Prepare the retriever. If a local database exists, load it; otherwise, create a new one based on paper content.
         """
         documents = self._paper_to_documents(paper)
         if not documents:
@@ -104,7 +104,7 @@ class PaperRAG:
         logger.info("Creating FAISS retriever from configuration...")
         try:
             self.retriever = FAISSRetriever(
-                **retriever_config, # 使用配置动态设置 top_k 等参数
+                **retriever_config, # Dynamically set top_k and other parameters from config
                 embedder=self.embedder.embedder, 
                 documents=transformed_docs,
                 document_map_func=lambda doc: doc.vector
@@ -116,7 +116,7 @@ class PaperRAG:
 
     def __call__(self, query: str) -> List[str]:
         """
-        根据查询检索相关的论文片段，并返回文本列表。
+        Retrieve relevant paper snippets based on the query and return a list of text strings.
         """
         if not self.retriever:
             raise RuntimeError("Retriever is not prepared. Call prepare_retriever() first.")

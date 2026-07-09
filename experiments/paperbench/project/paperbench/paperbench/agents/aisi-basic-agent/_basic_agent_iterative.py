@@ -23,7 +23,7 @@ from inspect_ai.tool._tool import Tool, ToolResult, tool
 from inspect_ai.tool._tool_with import tool_with
 from openai import LengthFinishReasonError
 from typing_extensions import TypedDict, Unpack
-from utils import generate_patched, prune_messages
+from utils import generate_patched, prune_messages, append_hints
 
 logger = getLogger(__name__)
 MAX_TOOL_OUTPUT = 256 * 1024
@@ -125,7 +125,9 @@ def basic_agent_iterative(
 
     # resolve init
     if init is None:
-        init = system_message(DEFAULT_SYSTEM_MESSAGE)
+        model_name = os.environ.get("MODEL", "")
+        sys_msg = append_hints(model_name, DEFAULT_SYSTEM_MESSAGE)
+        init = system_message(sys_msg)
     init = init if isinstance(init, list) else [init]
 
     continue_user_message = (

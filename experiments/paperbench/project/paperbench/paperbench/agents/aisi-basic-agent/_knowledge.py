@@ -7,13 +7,38 @@ from inspect_ai.tool import Tool, ToolError, tool, ToolResult
 from dataclasses import asdict
 import json
 
-# 使用主xKG包（通过pip install -e安装）
-from xKG.source.schema.garph import Node, Technique
-from xKG.source.interface.retrieve import (
-    initialize_kg,
-    find_similar_techniques,
-    find_similar_papers
-)
+# xKG lazy import: only actually called when KNOWLEDGE_ENABLED=true
+_xkg_imported = False
+Node = None
+Technique = None
+initialize_kg = None
+find_similar_techniques = None
+find_similar_papers = None
+
+
+def _ensure_xkg_imported():
+    """Lazy-import the xKG package, executed only on first use."""
+    global _xkg_imported, Node, Technique, initialize_kg, find_similar_techniques, find_similar_papers
+    if _xkg_imported:
+        return
+    try:
+        from xKG.source.schema.garph import Node as _Node, Technique as _Technique
+        from xKG.source.interface.retrieve import (
+            initialize_kg as _initialize_kg,
+            find_similar_techniques as _find_similar_techniques,
+            find_similar_papers as _find_similar_papers
+        )
+        Node = _Node
+        Technique = _Technique
+        initialize_kg = _initialize_kg
+        find_similar_techniques = _find_similar_techniques
+        find_similar_papers = _find_similar_papers
+        _xkg_imported = True
+    except ImportError as e:
+        raise ImportError(
+            f"xKG package is not installed. Please ensure xKG is installed in the container via 'pip install -e /opt/xKG'.\n"
+            f"Original error: {e}"
+        )
 
 logger = logging.getLogger(__name__)
 
@@ -22,39 +47,42 @@ _kg_init_lock = asyncio.Lock()
 
 async def get_kg_instance():
     global _kg_instance
-    # 如果实例已存在，直接返回
+    # If instance already exists, return it directly
     if _kg_instance:
         return _kg_instance
-    
-    # 使用锁来防止多个并发任务同时初始化KG
+
+    # Ensure xKG is imported
+    _ensure_xkg_imported()
+
+    # Use a lock to prevent multiple concurrent tasks from initializing KG simultaneously
     async with _kg_init_lock:
-        # 再次检查，因为在等待锁的时候，可能另一个任务已经完成了初始化
+        # Check again, because while waiting for the lock, another task may have completed initialization
         if _kg_instance:
             return _kg_instance
-        
-        logger.info("--- [KG] 正在初始化知识图谱，这可能需要一些时间...")
+
+        logger.info("--- [KG] Initializing knowledge graph, this may take some time...")
         try:
-            # initialize_kg 是一个同步函数，我们用 to_thread 在后台线程中运行它
-            # 以免阻塞 asyncio 事件循环
+            # initialize_kg is a synchronous function; we use to_thread to run it in a background thread
+            # to avoid blocking the asyncio event loop
             graph = await asyncio.to_thread(initialize_kg)
             _kg_instance = graph
-            logger.info("--- [KG] 知识图谱初始化完成。")
+            logger.info("--- [KG] Knowledge graph initialization complete.")
             return _kg_instance
         except Exception as e:
-            logger.error(f"知识图谱初始化失败: {e}", exc_info=True)
-            raise ToolError(f"无法初始化知识图谱: {e}")
+            logger.error(f"Knowledge graph initialization failed: {e}", exc_info=True)
+            raise ToolError(f"Unable to initialize knowledge graph: {e}")
 
 # ==============================================================================
-#  工具 1: 获取论文的关键技术 
+#  Tool 1: Get key techniques from the paper
 # ==============================================================================
 @tool
 def get_overview() -> Tool:
     """
-    定义一个工具，用于从指定的论文中提取关键技术。
+    Defines a tool to extract key techniques from a specified paper.
     """
     async def execute() -> ToolResult:
         """
-        Extracts and lists key academic techniques and contributions from the given academic paper.
+        Extracts and lists key academic techniques and contributions from the given academic paper. This tool requires no arguments.
 
         Returns:
             ToolResult: A formatted string containing key techniques and contributions
@@ -74,12 +102,12 @@ def get_overview() -> Tool:
     return execute
 
 # ==============================================================================
-#  工具 2: 获取相似的技术
+#  Tool 2: Get similar techniques
 # ==============================================================================
 @tool
 def get_similar_techniques() -> Tool:
     """
-    定义一个工具，根据给定的技术名称和描述，查找相似的技术。
+    Defines a tool to find similar techniques based on a given technique name and description.
     """
     async def execute(technique_name: str, technique_description: str) -> ToolResult:
         """
@@ -97,31 +125,31 @@ def get_similar_techniques() -> Tool:
             ToolError: If `technique_name` or `technique_description` parameters are empty.
         """
         if not technique_name or not technique_description:
-            raise ToolError("technique_name 和 technique_description 参数都不能为空。")
+            raise ToolError("Both technique_name and technique_description parameters must not be empty.")
 
-        logger.info(f"--- [Tool] 正在为技术 '{technique_name}' 查找相似项...")
+        logger.info(f"--- [Tool] Searching for similar items for technique '{technique_name}'...")
 
         try:
             await get_kg_instance()
             
-            # 假设 find_similar_techniques 返回一个技术列表
+            # Assuming find_similar_techniques returns a list of techniques
             similar_techs = await asyncio.to_thread(
-                find_similar_techniques, name=technique_name, description=technique_description, code_only=False, top_k=1
+                find_similar_techniques, name=technique_name, description=technique_description, code_only=True, top_k=1
             )
 
             if not similar_techs:
                 return f"No similar techniques found for '{technique_name}'."
 
-            # 格式化输出
+            # Format the output
             result = []
-            for tech in similar_techs:
-                tech = {
+            for tech, score in similar_techs:
+                tech_info = {
                     "name": tech.name,
                     "implementation": tech.code.implementation,
                     "test": tech.code.test,
                     "documenation": tech.code.documentation
                 }
-                result.append(tech)
+                result.append(tech_info)
             res =  f"""
             The following are relevant implementations concerning the technology {technique_name}, as retrieved from the knowledge base.
             Review the following content, which include code snippets to guide your implementation.
@@ -138,13 +166,13 @@ def get_similar_techniques() -> Tool:
             return res
 
         except Exception as e:
-            logger.error(f"查找相似技术时发生错误: {e}", exc_info=True)
+            logger.error(f"Error occurred while searching for similar techniques: {e}", exc_info=True)
             return f"An internal error occurred while searching for similar techniques for '{technique_name}': {str(e)}"
 
     return execute
 
 # ==============================================================================
-#  工具 3: 获取论文关键技术的相关实现
+#  Tool 3: Get relevant implementations of key paper techniques
 # ==============================================================================
 @tool
 def get_full_techniques() -> Tool:
@@ -154,7 +182,7 @@ def get_full_techniques() -> Tool:
     """
     async def execute() -> ToolResult:
         """
-        Retrieves code snippets from the knowledge base that may be useful for implementing the paper.
+        Retrieves code snippets from the knowledge base that may be useful for implementing the paper. This tool requires no arguments.
 
         Returns:
             ToolResult: A formatted string containing relevant technique implementations from the knowledge base.
@@ -162,6 +190,9 @@ def get_full_techniques() -> Tool:
         logger.info("--- [Tool] Starting to extract key techniques from the paper guide and find relevant implementations...")
 
         try:
+            # Ensure xKG is imported (Node class is needed)
+            _ensure_xkg_imported()
+
             # 1. Read and parse the paper guide file
             file_path = "/home/guide.json"
             try:
@@ -188,7 +219,7 @@ def get_full_techniques() -> Tool:
             for technique in techniques:
                 logger.info(f"Searching for similar implementations for technique: '{technique.name}'")
                 similar_techs = await asyncio.to_thread(
-                    find_similar_techniques, name=technique.name, description=technique.description, code_only=False, top_k=3
+                    find_similar_techniques, name=technique.name, description=technique.description, code_only=True, top_k=3
                 )
                 
                 # Original logic preserved: If no similar techniques are found, just continue to the next one.
@@ -199,11 +230,11 @@ def get_full_techniques() -> Tool:
                 # Original logic preserved: Directly modify the 'code' attribute of the technique object.
                 implementations = [
                     {
-                        "name": tech.name, 
-                        "implementation": tech.code.implementation, 
-                        "test": tech.code.test, 
+                        "name": tech.name,
+                        "implementation": tech.code.implementation,
+                        "test": tech.code.test,
                         "documentation": tech.code.documentation
-                    } for tech in similar_techs
+                    } for tech, score in similar_techs
                 ]
                 technique.code = f"[Relevant Implementations]: {json.dumps(implementations)}"
 

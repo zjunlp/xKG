@@ -150,6 +150,10 @@ async def grade_on_computer(
         judge_kwargs = handle_judge_kwargs(
             judge_type, code_only, paper, model_name, reasoning_effort
         )
+        # Create grader logs dir in container
+        grader_logs_container_dir = Path("/grader_logs")
+        await computer.send_shell_command(f"mkdir -p {grader_logs_container_dir}")
+
         judge = create_judge(
             judge_type=judge_type,
             judge_kwargs=judge_kwargs,
@@ -161,6 +165,7 @@ async def grade_on_computer(
             ),
             submission_dir=Path("/submission"),
             paper_md=paper.paper_md,
+            log_path=grader_logs_container_dir,
         )
         logger.info(f"Judge created: {judge}")
         grader_output = await grade_on_cluster(judge, computer, logger, code_only)
@@ -173,6 +178,30 @@ async def grade_on_computer(
         with open(grader_upload_path, "wb") as f:
             f.write(grader_result)
         logger.info(f"Grading results have been written to local file: {grader_upload_path}")
+
+        # Step 4: Download all log files from /output to run_dir/grader
+        if run_dir:
+            try:
+                # Find all .log and .jsonl files in /output
+                result = await computer.send_shell_command("find /output -type f \\( -name '*.log' -o -name '*.jsonl' \\) 2>/dev/null")
+                if result.exit_code == 0 and result.output:
+                    files = result.output.decode().strip().split('\n')
+                    grader_dir = Path(run_dir) / "grader"
+                    grader_dir.mkdir(parents=True, exist_ok=True)
+                    for fpath in files:
+                        if fpath and fpath.strip():
+                            try:
+                                content = await computer.download(fpath)
+                                local_path = grader_dir / Path(fpath).name
+                                local_path.parent.mkdir(parents=True, exist_ok=True)
+                                local_path.write_bytes(content)
+                                logger.info(f"✓ Downloaded {fpath} → {local_path}")
+                            except Exception as e:
+                                logger.warning(f"✗ Failed to download {fpath}: {e}")
+                else:
+                    logger.info("No log files found in /output")
+            except Exception as e:
+                logger.warning(f"Error downloading grader logs: {e}")
     except Exception as e:
         error_msg = str(e)
         logger.exception(f"Grading failed with error:\n{error_msg}")
@@ -195,6 +224,7 @@ async def grade_locally(
     logger: logging.Logger,
     code_only: bool = False,
     reasoning_effort: str | None = None,
+    run_dir: str | None = None,
 ) -> Optional[JudgeOutput]:
     """
     Grade a single submission locally
@@ -209,10 +239,14 @@ async def grade_locally(
     logger.info(f"Grading {submission_path} for paper {paper_id}")
 
     error_msg = token_usage = None
+    graded_task_tree = None
     try:
         # Step 1: Unzip submission from submission_path to tmp dir
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_dir = Path(tmp_dir)
+            # Create a grader logs directory for detailed LLM I/O tracking
+            grader_logs_dir = tmp_dir / "grader_logs"
+            grader_logs_dir.mkdir(parents=True, exist_ok=True)
 
             logger.info(f"Unzipping submission to {tmp_dir}")
             with bf.BlobFile(submission_path, "rb") as f:
@@ -241,6 +275,7 @@ async def grade_locally(
                 ),
                 submission_dir=tmp_dir,
                 paper_md=paper.paper_md,
+                log_path=grader_logs_dir,
             )
             logger.info(f"Judge created: {judge}")
             graded_task_tree = await judge.grade()
@@ -255,12 +290,34 @@ async def grade_locally(
                 json.dumps(graded_task_tree.to_dict(), indent=4).encode("utf-8"),
             )
             logger.info(f"Grading results have been written to file: {grader_upload_path}")
+
+            # Step 4: Copy grader logs to run_dir
+            if grader_logs_dir.exists() and list(grader_logs_dir.glob("*")) and run_dir:
+                for log_file in sorted(grader_logs_dir.glob("*")):
+                    log_dst = f"{run_dir}/{log_file.name}"
+                    with open(log_file, "r") as f:
+                        bf.write_text(log_dst, f.read())
+
+                logger.info(f"Grader logs saved to {run_dir}")
     except Exception as e:
         error_msg = str(e)
         logger.exception(f"Grading failed with error:\n{error_msg}")
     finally:
         time_end = time.time()
         logger.info(f"Grading completed in {time_end - time_start:.2f} seconds.")
+
+        if graded_task_tree is None:
+            logger.error("Grading failed: graded_task_tree is None")
+            return JudgeOutput(
+                judge_type=judge_type,
+                model_name=model_name,
+                score=0.0,
+                num_leaf_nodes=0,
+                num_invalid_leaf_nodes=0,
+                graded_at=get_timestamp(),
+                graded_task_tree=None,
+                token_usage=token_usage,
+            )
 
         judge_output = JudgeOutput(
             judge_type=judge_type,

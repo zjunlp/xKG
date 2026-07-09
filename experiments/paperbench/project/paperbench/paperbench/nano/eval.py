@@ -67,11 +67,11 @@ import time
 import sys
 
 def probe(message, logger=None, level="info"):
-    """打印带有时间戳和 flush=True 的调试信息"""
+    """Print debug message with timestamp and flush=True"""
     log_msg = f"[{time.time()}] PROBE: {message}"
     print(log_msg, flush=True)
     if logger:
-        # 同时利用它本身的 logger 系统，可能会写到文件里
+        # Also use its own logger system, which may write to files
         getattr(logger, level)(f"PROBE: {message}", destinations=["console", "run"])
 
 GRADER_OPENAI_API_KEY = os.getenv("GRADER_OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
@@ -280,7 +280,6 @@ class PBTask(ComputerTask):
                 (paper.addendum, f"{WORKSPACE_BASE}/paper/addendum.md"),
                 (paper.blacklist, f"{WORKSPACE_BASE}/paper/blacklist.txt"),
                 (paper.guide, f"/home/guide.json"),
-                # (paper.code, f"{WORKSPACE_BASE}/paper/code.json"),
             ]:
                 with open(src, "rb") as f:
                     await computer.upload(f.read(), dst)
@@ -629,6 +628,7 @@ class PBTask(ComputerTask):
                 logger=ctx_logger.bind(destinations=["run"]),
                 code_only=self.judge.code_only,
                 reasoning_effort=self.judge.reasoning_effort,
+                run_dir=self.run_dir,
             )
         else:
             async with self._start_computer(self.judge.cluster_config) as computer:
@@ -1042,14 +1042,36 @@ class PaperBench(PythonCodingEval):
             
         agents_dir = agent_registry.get_agents_dir()
         probe(f"PaperBench.get_instances(): Got agents_dir: {agents_dir}.")
-        
+
+        # Get agent configuration to determine knowledge and iterative settings
+        try:
+            agent_config = agent_registry.get_agent(self.solver.agent_id)
+            env_vars = agent_config.env_vars
+            knowledge_enabled = env_vars.get("KNOWLEDGE_ENABLED", "false").lower() == "true"
+            iterative_enabled = env_vars.get("ITERATIVE_AGENT", "false").lower() == "true"
+            probe(f"PaperBench.get_instances(): Agent {self.solver.agent_id} - knowledge={knowledge_enabled}, iterative={iterative_enabled}")
+        except Exception as e:
+            probe(f"PaperBench.get_instances(): Failed to get agent config: {e}, falling back to string matching")
+            knowledge_enabled = "knowledge" in self.solver.agent_id.lower()
+            iterative_enabled = "iterative" in self.run_group_id.lower()
+
+        # Select instructions based on code_only, iterative, and knowledge settings
         if self.judge.code_only:
-            instructions = agents_dir / "instructions" / "code_only_instructions.txt"
-        elif "iterative" in self.run_group_id:
-            # TODO: This is a hack to load the iterative instructions. We should refactor this
-            #  such that it occurs agent-side e.g., update the agent start.py to use the instructions needed.
-            instructions = agents_dir / "instructions" / "instructions_iterative.txt"
+            if knowledge_enabled:
+                instructions = agents_dir / "instructions" / "code_only_instructions_with_knowledge.txt"
+            else:
+                instructions = agents_dir / "instructions" / "code_only_instructions.txt"
+        elif iterative_enabled:
+            # Iterative agent instructions
+            if knowledge_enabled:
+                instructions = agents_dir / "instructions" / "instructions_iterative_with_knowledge.txt"
+            else:
+                instructions = agents_dir / "instructions" / "instructions_iterative.txt"
+        elif knowledge_enabled:
+            # Knowledge-enhanced instructions for basic agent
+            instructions = agents_dir / "instructions" / "instructions_with_knowledge.txt"
         else:
+            # Standard instructions
             instructions = agents_dir / "instructions" / "instructions.txt"
 
         # populate tasks with all the run_ids

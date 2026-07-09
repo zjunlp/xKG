@@ -22,7 +22,7 @@ from inspect_ai.tool._tool import Tool, ToolResult, tool
 from inspect_ai.tool._tool_with import tool_with
 from openai import LengthFinishReasonError
 from typing_extensions import TypedDict, Unpack
-from utils import generate_patched, prune_messages
+from utils import generate_patched, prune_messages, append_hints
 
 logger = getLogger(__name__)
 
@@ -143,6 +143,8 @@ def basic_agent_plus(
             if os.environ.get("PB_CODE_ONLY", "false") == "true"
             else DEFAULT_SYSTEM_MESSAGE
         )
+        model_name = os.environ.get("MODEL", "")
+        sys_message = append_hints(model_name, sys_message)
         init = system_message(sys_message)
     init = init if isinstance(init, list) else [init]
 

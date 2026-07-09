@@ -2,18 +2,16 @@
 
 set -e
 
-# 获取脚本所在目录的绝对路径（paperbench目录）
 PAPERBENCH_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 
-# 构建 Docker 镜像
+XKG_ROOT="$(cd "${PAPERBENCH_DIR}/../../../.." && pwd)"
+
 NEW_IMAGE="aisi-basic-agent-iterative-knowledge:latest"
 
-# 参数解析
 AGENT_ID="${1:-aisi-basic-agent-iterative-knowledge}"
 JUDGE_MODEL="${2:-o3-mini}"
 PAPER_SPLIT="${3:-dev}"
 
-# 自动检测 NVIDIA GPU
 HAS_NVIDIA_GPU=False
 if command -v nvidia-smi &> /dev/null; then
     if nvidia-smi &> /dev/null; then
@@ -21,15 +19,25 @@ if command -v nvidia-smi &> /dev/null; then
     fi
 fi
 
+cd "${XKG_ROOT}"
+
+echo "Building Knowledge Docker image from context: $(pwd)"
+echo "Image name: ${NEW_IMAGE}"
+
+
 docker build -t "${NEW_IMAGE}" -f - . <<'EOF'
-FROM aisi-basic-agent
+FROM aisi-basic-knowledge-agent
 
-ENV HF_ENDPOINT="https://hf-mirror.com"
+COPY ./experiments/paperbench/project/paperbench/paperbench/agents/aisi-basic-agent/ /home/agent/
 
-COPY ./paperbench/agents/aisi-basic-agent/ /home/agent/
+COPY ./xKG/source/ /opt/xKG/xKG/source/
+COPY ./xKG/config.yaml /opt/xKG/xKG/config.yaml
+COPY ./pyproject.toml /opt/xKG/pyproject.toml
+
+COPY ./xKG/storage/kg/ /opt/xKG/xKG/storage/kg/
+
 EOF
 
-# 运行评估
 python -m paperbench.nano.entrypoint \
     paperbench.paper_split="${PAPER_SPLIT}" \
     paperbench.solver.agent_id="${AGENT_ID}" \
@@ -38,6 +46,5 @@ python -m paperbench.nano.entrypoint \
     paperbench.solver=paperbench.nano.eval:ExternalPythonCodingSolver \
     paperbench.solver.cluster_config=alcatraz.clusters.local:LocalConfig \
     paperbench.solver.cluster_config.image="${NEW_IMAGE}" \
-    paperbench.solver.cluster_config.local_network=True \
     runner.recorder=nanoeval.json_recorder:json_recorder \
     paperbench.solver.is_nvidia_gpu_env="${HAS_NVIDIA_GPU}"

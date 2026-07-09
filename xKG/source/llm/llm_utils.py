@@ -1,5 +1,5 @@
-""" 
-LLM调用相关功能函数
+"""
+LLM calling utility functions
 """
 import backoff
 import logging

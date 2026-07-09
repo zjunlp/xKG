@@ -1,102 +1,105 @@
 #!/bin/bash
 
-# 脚本功能: 
-# 1. 从命令行读取一个数字，指定每篇论文的运行次数。
-# 2. 读取同目录下的 'split.txt' 文件，获取论文ID列表。
-# 3. 对列表中的每篇论文，并行执行指定次数的复现流程（此版本使用 guide.json）。
-# 4. 使用一个任务池来控制并发数量，防止系统过载。
-# 5. 将每个任务的输出重定向到独立的日志文件，方便调试。
+# Script functionality:
+# 1. Read the number of runs per paper from command line.
+# 2. Read the 'split.txt' file in the same directory to get the paper ID list.
+# 3. For each paper in the list, execute the reproduction process in parallel (this version uses guide.json).
+# 4. Use a task pool to control concurrency and prevent system overload.
+# 5. Redirect each task's output to an independent log file for debugging.
 
-# --- 安全设置 ---
-# -e: 如果任何命令失败，脚本立即退出
-# -u: 如果使用未定义的变量，脚本报错并退出
-# -o pipefail: 如果管道中的任何命令失败，整个管道的返回值为失败
+# --- Safety settings ---
+# -e: Exit immediately if any command fails
+# -u: Exit if an undefined variable is used
+# -o pipefail: Return failure if any command in a pipeline fails
 set -euo pipefail
 
-# --- 配置区域 ---
+# --- Configuration area ---
 
 # Agent ID
 AGENT_ID="paper2code"
 
-# 设置最大并行任务数。请根据你的CPU核心数、内存和API速率限制进行调整。
+# Set the maximum number of parallel jobs. Adjust based on your CPU cores, memory, and API rate limits.
 MAX_PARALLEL_JOBS=5
 
-# 从 .env 文件读取 API 配置
+# Read API configuration from .env file
 ENV_FILE=".env"
 if [ -f "$ENV_FILE" ]; then
-    export OPENAI_API_KEY=$(grep '^OPENAI_API_KEY=' "$ENV_FILE" | cut -d'=' -f2-)
-    export OPENAI_BASE_URL=$(grep '^OPENAI_BASE_URL=' "$ENV_FILE" | cut -d'=' -f2-)
+    set -a
+    source "$ENV_FILE"
+    set +a
 else
-    echo "错误: .env 文件未找到: $ENV_FILE"
+    echo "Error: .env file not found: $ENV_FILE"
     exit 1
 fi
 
-# 模型配置
+# Model configuration
 GPT_VERSION="${1:-o3-mini}"
 EVAL_MODEL="${2:-o3-mini}"
 
-# 固定运行次数
+# Fixed number of runs per paper
 NUM_RUNS_PER_PAPER=1
-SPLIT_FILE="split.txt"
-# 获取脚本所在目录（用于计算相对路径）
+# Get the script's directory (for relative path calculation)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Split file name (passed as parameter, default to 'debug')
+SPLIT_NAME="${3:-debug}"
+SPLIT_FILE="${SCRIPT_DIR}/../../experiments/splits/${SPLIT_NAME}.txt"
 RUN_TIMESTAMP=$(date -u +%Y-%m-%dT%H-%M-%S-UTC)
 RUNS_DIR="${SCRIPT_DIR}/../../runs/${RUN_TIMESTAMP}_${AGENT_ID}"
 
-LOG_DIR="${RUNS_DIR}/logs" # 日志文件存放目录
+LOG_DIR="${RUNS_DIR}/logs" # Log file directory
 
 if [ ! -f "$SPLIT_FILE" ]; then
-    echo "错误: 'split.txt' 文件在当前目录未找到。"
+    echo "Error: Split file not found at: $SPLIT_FILE"
     exit 1
 fi
 
-# 创建日志目录
+# Create log directory
 mkdir -p "$LOG_DIR"
-echo "所有任务日志将保存在 '${LOG_DIR}' 目录下。"
+echo "All task logs will be saved to '${LOG_DIR}' directory."
 
-# --- 核心处理函数 ---
-# 将处理单篇论文的所有逻辑封装到此函数中
+# --- Core processing function ---
+# Encapsulate all logic for processing a single paper into this function
 process_paper() {
     local PAPER_ID=$1
     local run_num=$2
-    
-    # --- 为本次运行设置变量 ---
-    local RUN_ID=$(date +%Y%m%d_%H%M%S) # 使用 年月日_时分秒 作为唯一ID
+
+    # --- Set variables for this run ---
+    local RUN_ID=$(date +%Y%m%d_%H%M%S) # Use YYYYMMDD_HHMMSS as unique ID
     local REPO_INDEX="${PAPER_ID}-${RUN_ID}"
-    # local REPO_INDEX="fre-20251003_220301"
 
     echo "========================================================================"
-    echo ">> 开始运行: 第 ${run_num}/${NUM_RUNS_PER_PAPER} 次"
-    echo ">> 论文ID  : ${PAPER_ID}"
-    echo ">> 运行ID  : ${RUN_ID}"
-    echo ">> 仓库索引: ${REPO_INDEX}"
+    echo ">> Starting run: ${run_num}/${NUM_RUNS_PER_PAPER}"
+    echo ">> Paper ID    : ${PAPER_ID}"
+    echo ">> Run ID      : ${RUN_ID}"
+    echo ">> Repo index  : ${REPO_INDEX}"
     echo "========================================================================"
 
-    # --- 定义路径 ---
-    local BASE_DATA_DIR="/disk/disk_20T/luoyujie/preparedness/project/paperbench/data/papers"
+    # --- Define paths ---
+    local BASE_DATA_DIR="data/papers"
     local BASE_RUN_DIR="${RUNS_DIR}"
 
     local PDF_JSON_PATH="${BASE_DATA_DIR}/${PAPER_ID}/paper.json"
     local PDF_JSON_CLEANED_PATH="${BASE_DATA_DIR}/${PAPER_ID}/paper_cleaned.json"
-    local GUIDE_PATH="${BASE_DATA_DIR}/${PAPER_ID}/guide.json" # Guide 路径
+    local GUIDE_PATH="${BASE_DATA_DIR}/${PAPER_ID}/guide.json" # Guide path
     local OUTPUT_DIR="${BASE_RUN_DIR}/${PAPER_ID}"
     local OUTPUT_REPO_DIR="${OUTPUT_DIR}_repo"
 
-    # --- 创建输出目录 ---
+    # --- Create output directories ---
     mkdir -p "$OUTPUT_DIR"
     mkdir -p "$OUTPUT_REPO_DIR"
 
-    # --- 激活 Conda 环境并执行 ---
-    # !! 注意: conda activate 需要在函数内部，因为每个子shell需要独立激活环境
-    echo "------- 切换到 'researchkg' 环境 -------"
-    source activate researchkg
+    # --- Activate Conda environment and execute ---
+    # !! Note: conda activate must be inside the function because each subshell needs independent activation
+    echo "------- Switching to 'xkg' environment -------"
+    eval "$(conda shell.bash hook)"
+    conda activate xkg
 
-    echo "------- 1. 预处理 PDF JSON -------"
+    echo "------- 1. Preprocessing PDF JSON -------"
     python paperbench/agents/paper2code/codes/0_pdf_process.py \
         --input_json_path "${PDF_JSON_PATH}" \
         --output_json_path "${PDF_JSON_CLEANED_PATH}"
 
-    echo "------- 2. PaperCoder - 规划 (Planning with Guide) -------"
+    echo "------- 2. PaperCoder - Planning (Planning with Guide) -------"
     python paperbench/agents/paper2code/codes/1_planning_with_knowledge.py \
         --paper_name "$REPO_INDEX" \
         --gpt_version "${GPT_VERSION}" \
@@ -104,15 +107,15 @@ process_paper() {
         --guide_json_path "${GUIDE_PATH}" \
         --output_dir "${OUTPUT_DIR}"
 
-    echo "------- 3. PaperCoder - 提取配置 (Extract Config) -------"
+    echo "------- 3. PaperCoder - Extract Config -------"
     python paperbench/agents/paper2code/codes/1.1_extract_config.py \
         --paper_name "$REPO_INDEX" \
         --output_dir "${OUTPUT_DIR}"
 
-    # 复制配置文件
+    # Copy config file
     cp -rp "${OUTPUT_DIR}/planning_config.yaml" "${OUTPUT_REPO_DIR}/config.yaml"
 
-    echo "------- 4. PaperCoder - 分析 (Analyzing with Guide) -------"
+    echo "------- 4. PaperCoder - Analyzing (Analyzing with Guide) -------"
     python paperbench/agents/paper2code/codes/2_analyzing_with_knowledge.py \
         --paper_name "$REPO_INDEX" \
         --gpt_version "${GPT_VERSION}" \
@@ -120,7 +123,7 @@ process_paper() {
         --guide_json_path "${GUIDE_PATH}" \
         --output_dir "${OUTPUT_DIR}"
 
-    echo "------- 5. PaperCoder - 编码 (Coding with guide) -------"
+    echo "------- 5. PaperCoder - Coding (Coding with guide) -------"
     python paperbench/agents/paper2code/codes/3_coding_with_knowledge.py \
         --paper_name "$REPO_INDEX" \
         --gpt_version "${GPT_VERSION}" \
@@ -129,15 +132,16 @@ process_paper() {
         --output_repo_dir "${OUTPUT_REPO_DIR}" \
         --guide_json_path "${GUIDE_PATH}" \
 
-    # --- 切换环境进行评估 ---
-    echo "------- 切换到 'paperbench' 环境进行评估 -------"
-    source activate paperbench
+    # --- Switch environment for evaluation ---
+    echo "------- Switching to 'paperbench' environment for evaluation -------"
+    eval "$(conda shell.bash hook)"
+    conda activate paperbench
 
     local SUBMISSION_PATH="$OUTPUT_REPO_DIR"
     local SAVE_PATH="${SUBMISSION_PATH}/evaluation"
 
-    echo "------- 6. 运行评估 -------"
-    python /disk/disk_20T/luoyujie/preparedness/project/paperbench/paperbench/scripts/run_judge.py \
+    echo "------- 6. Running evaluation -------"
+    python paperbench/scripts/run_judge.py \
          --submission-path "$SUBMISSION_PATH" \
          --paper-id "$PAPER_ID" \
          --judge simple \
@@ -145,15 +149,15 @@ process_paper() {
          --out-dir "$SAVE_PATH" \
          --reasoning-effort high \
          --code-only
-         
-    echo ">> 完成运行: ${REPO_INDEX}"
+
+    echo ">> Completed run: ${REPO_INDEX}"
     echo "------------------------------------------------------------------------"
 }
 
-# --- 主循环和任务分发 ---
-# 导出函数，以便子shell可以通过 `bash -c` 访问
+# --- Main loop and task dispatching ---
+# Export function so that subshells can access it via `bash -c`
 export -f process_paper
-# 导出需要的环境变量，确保子shell也能获取
+# Export environment variables to ensure subshells can access them
 export OPENAI_API_KEY
 export OPENAI_BASE_URL
 export GPT_VERSION
@@ -161,30 +165,30 @@ export EVAL_MODEL
 export AGENT_ID
 export RUNS_DIR
 
-# 外层循环: 控制每篇论文运行的次数
+# Outer loop: control the number of runs for each paper
 for (( run_num=1; run_num<=NUM_RUNS_PER_PAPER; run_num++ )); do
-    # 内层循环: 读取 split.txt, 遍历每篇论文
+    # Inner loop: read split.txt and iterate through each paper
     while IFS= read -r PAPER_ID || [ -n "$PAPER_ID" ]; do
-        # 跳过空行
+        # Skip empty lines
         if [ -z "$PAPER_ID" ]; then
             continue
         fi
 
-        # 当活动的后台任务数量达到上限时，等待任何一个任务完成
-        # `jobs -p` 列出所有后台任务的PID
+        # When the number of active background tasks reaches the limit, wait for any to complete
+        # `jobs -p` lists all background task PIDs
         while (( $(jobs -p | wc -l) >= MAX_PARALLEL_JOBS )); do
             sleep 1
         done
 
-        # 启动后台任务，并将标准输出和错误输出重定向到日志文件
-        echo "正在为 ${PAPER_ID} (第 ${run_num} 次) 派发新任务..."
-        # 使用 bash -c 是为了确保在新的子shell中执行，并且可以方便地传递参数和重定向
+        # Start background task and redirect stdout and stderr to log file
+        echo "Dispatching new task for ${PAPER_ID} (run ${run_num})..."
+        # Using bash -c ensures execution in a new subshell with convenient parameter passing and redirection
         bash -c "process_paper '$PAPER_ID' '$run_num'" > "${LOG_DIR}/${PAPER_ID}_run${run_num}.log" 2>&1 &
 
     done < "$SPLIT_FILE"
 done
 
-# 等待所有剩余的后台任务完成
-echo "所有任务已派发，正在等待剩余任务全部完成..."
+# Wait for all remaining background tasks to complete
+echo "All tasks dispatched, waiting for remaining tasks to complete..."
 wait
-echo "!!!!!!!!!! 所有任务已全部完成 !!!!!!!!!! "
+echo "All tasks completed."

@@ -119,7 +119,7 @@ class BaseEmbedder:
 
     def count_tokens(self, text: str) -> int:
         """
-        使用 tiktoken 计算文本的 token 数量。如果失败，则回退到基于字符的估算
+        Count the number of tokens in text using tiktoken. Falls back to character-based estimation on failure.
         """
         try:
             model_name = self.config["model_kwargs"]["model"]
@@ -137,7 +137,7 @@ class BaseEmbedder:
         
     def _prepare_data_pipeline(self) -> adal.Sequential:
         """
-        构建数据处理流水线，包括文本切分和嵌入
+        Build the data processing pipeline, including text splitting and embedding.
         """
         splitter_config = self.config.get("text_splitter", {})
         batch_size = self.config.get("batch_size", 32)
@@ -147,7 +147,7 @@ class BaseEmbedder:
             embedder=self.embedder, batch_size=batch_size
         )
 
-        # 将切分器和嵌入器串联起来
+        # Chain the splitter and embedder together
         data_transformer = adal.Sequential(
             splitter, embedder_transformer
         ) 
@@ -157,13 +157,13 @@ class BaseEmbedder:
         if db_path and os.path.exists(db_path):
             logger.info(f"Loading existing database from '{db_path}'...")
             try:
-                # 1. 加载数据库状态
+                # 1. Load database state
                 self.db = LocalDB.load_state(filepath=db_path)
-                
-                # 2. 尝试获取已转换的文档
+
+                # 2. Attempt to get transformed documents
                 documents = self.db.get_transformed_data(key="split_and_embed")
-                
-                # 3. 如果成功获取到非空文档列表，则任务完成，直接返回
+
+                # 3. If a non-empty document list is successfully retrieved, task is complete, return directly
                 if documents:
                     logger.info(f"Loaded {len(documents)} documents from existing database.")
                     self.transformed_docs = documents
@@ -174,7 +174,7 @@ class BaseEmbedder:
             except Exception as e:
                 logger.error(f"Error loading existing database: {e}. Will create a new one.")
 
-        # 创建新数据库
+        # Create new database
         if not documents:
             raise ValueError("No documents were generated from the provided code. Cannot create an empty database.")
         

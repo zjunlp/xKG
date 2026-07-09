@@ -9,7 +9,7 @@ from _basic_agent_iterative import basic_agent_iterative  # type: ignore
 from _basic_agent_plus import basic_agent_plus  # type: ignore
 from _execute import bash, python
 from _file_reader import read_file_chunk, search_file  # type: ignore
-from _knowledge import get_overview, get_similar_papers, get_similar_techniques, get_full_techniques
+from _knowledge import get_overview, get_similar_techniques, get_full_techniques
 from inspect_ai import Task, eval, task  # type: ignore
 from inspect_ai.dataset import Sample  # type: ignore
 from inspect_ai.tool import web_browser  # type: ignore
@@ -38,38 +38,23 @@ additional_notes = additional_notes_template.substitute(
     workspace=CODE_DIR,
     workspace_base=WORKSPACE_BASE,
 )
-
-# 根据 KNOWLEDGE_ENABLED 选择 instructions 文件
-knowledge_enabled = os.environ.get("KNOWLEDGE_ENABLED", "false").lower() == "true"
-if knowledge_enabled:
-    instructions_file = f"{WORKSPACE_BASE}/instructions_with_knowledge.txt"
-else:
-    instructions_file = f"{WORKSPACE_BASE}/instructions.txt"
-
-with open(instructions_file, "r") as file:
+with open(f"{WORKSPACE_BASE}/instructions.txt", "r") as file:
     partial_instructions = file.read()
 
 instructions = partial_instructions + additional_notes
 
-# Add DeepSeek-specific hints if using DeepSeek model
-if "deepseek" in MODEL.lower():
-    hints_deepseek_path = Path(__file__).parent.parent / "instructions" / "hints_deepseek.txt"
-    if hints_deepseek_path.exists():
-        with open(hints_deepseek_path, "r") as f:
-            instructions += "\n\n" + f.read()
-
 
 @task
 def pb_task():
-    # 支持环境变量控制
+    # Support environment variable control
     knowledge_enabled = os.environ.get("KNOWLEDGE_ENABLED", "false").lower() == "true"
 
     research_tools = []
     if knowledge_enabled:
         research_tools = [
-            get_overview(),          # 工具1：获取论文概览
-            get_similar_techniques(),  # 工具2：获取相似技术
-            get_full_techniques()      # 工具3：获取完整技术实现
+            get_overview(),          # Tool 1: Get paper overview
+            get_similar_techniques(),  # Tool 2: Get similar techniques
+            get_full_techniques()      # Tool 3: Get complete technique implementation
         ]
 
     if ITERATIVE_AGENT:

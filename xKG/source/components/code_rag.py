@@ -37,7 +37,7 @@ MAX_EMBEDDING_TOKENS = 8192
 class CodeRAG:
     def __init__(self):
         """
-        初始化 CodeRAG
+        Initialize CodeRAG
         """
         self.config = get_code_rag_config()
         self.embedder = BaseEmbedder(self.config.get("embedder", {}))
@@ -91,9 +91,9 @@ class CodeRAG:
     
     def prepare_retriever(self, code: Code = None, db_path: str = None):
         """
-        准备检索器。如果本地有数据库，则加载；否则，创建新的。
+        Prepare the retriever. If a local database exists, load it; otherwise, create a new one.
         """
-        # embed_and_save_to_db 处理code base
+        # embed_and_save_to_db processes the code base
         if not code:
             logger.debug(f"Code object is empty or None:{json.dumps(asdict(code), ensure_ascii=False)}")
             transformed_docs = self.embedder.embed_and_save_to_db(db_path=db_path)
@@ -104,7 +104,7 @@ class CodeRAG:
         if not transformed_docs:
             raise ValueError("No documents available to create a retriever.")
         
-        # 从配置中获取 retriever 参数
+        # Get retriever parameters from config
         retriever_config = self.config.get("retriever", {}).get("faiss", {})
         
         logger.info("Creating FAISS retriever...")
@@ -122,7 +122,7 @@ class CodeRAG:
 
     def __call__(self, query: str) -> List[FileSnippet]:
         """
-        根据查询检索相关的代码片段，并将其组织成按文件分类的 CodeSnippet 对象列表
+        Retrieve relevant code snippets based on the query and organize them into a list of CodeSnippet objects grouped by file.
         """
         if not self.retriever:
             raise RuntimeError("Retriever is not prepared. Call prepare_retriever() first.")

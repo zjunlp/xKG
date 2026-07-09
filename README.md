@@ -1,167 +1,276 @@
-# ResearchKG
-- 创建`python=3.10`环境
+# xKG: Executable Knowledge Graphs for Replicating AI Research
 
-- 创建`.env`文件并将`.env.example`中的内容拷贝过去并填充完
-  
-- cmd所在的目录：`ResearchKG`，一切命令都在这个目录下执行
+<div align="center">
 
-- 执行的命令：`python -m xkg.run_kg` 模块化运行 以便适配到其它项目中
+**What Makes AI Research Replicable?**  
+Executable Knowledge Graphs as Scientific Knowledge Representations
 
-- 如何一键集成到外部：
-  - 根据`xkg/interface/retrieve.py`中定义的接口 直接调用
-  - 使用方法：`/disk/disk_20T/luoyujie/ResearchKG/xkg/run.py`中咋用就咋用 非常方便
-  - 用的话直接import函数就行，类似：
-    ```
-    from ResearchKG.xkg.schema import Node
-    from ResearchKG.xkg.interface.retrieve import (
-        initialize_kg,
-        find_node_by_paper_title,
-        find_similar_techniques,
-        find_similar_papers
-    )
-    ```
+[🌐Repository](https://github.com/zjunlp/xKG) • [📄Paper](https://arxiv.org/abs/2510.17795) • [🤗HuggingFace](https://huggingface.co/papers/2510.17795) • [📦Runtime](https://drive.google.com/drive/folders/1VUZkZs6svMynXG0PuvEpZ1symzTJNJXE?usp=drive_link)
 
+![](https://img.shields.io/badge/python-3.10+-blue.svg)
+![](https://img.shields.io/badge/version-v1.0.0-green)
+![](https://img.shields.io/badge/PRs-Welcome-red)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# PaperBench
+</div>
 
-## 环境配置
+---
 
-本项目已为 Mac（ARM64）和 Linux（x86_64）平台进行了优化适配。按以下步骤配置 PaperBench 评估环境：
+## 🌟 Overview
 
-### 前置要求
-- Docker Desktop（已安装并运行）
-- Python 3.11
-- Git
+Replicating AI research is crucial yet challenging for LLM agents. Existing approaches often struggle with **insufficient background knowledge** and **fragmented information** scattered across papers, code repositories, and configuration files. Many papers omit critical implementation details, code repositories are incomplete or unavailable, and essential background knowledge is hidden across diverse sources.
 
-### 步骤 1：创建 PaperBench 专用环境
+**xKG (Executable Knowledge Graphs)** solves this by automatically integrating code snippets and technical insights extracted from scientific literature into a **paper-centric knowledge base**. Unlike conventional knowledge graphs, xKG captures both conceptual relations and **executable components**, enabling agents to assemble the precise artifacts needed for faithful research reproduction.
+
+![Framework Overview](assets/method.png)
+
+xKG addresses AI research replication through three key innovations:
+
+1. **Code-Grounded Knowledge Representation** — Represents each paper as a hierarchical graph of technique nodes (conceptual) linked directly to code nodes (executable), ensuring all knowledge has verifiable implementations
+
+2. **Automated Paper-Aware Pipeline** — Dynamically curates corpus of related papers (top references + technique-based web retrieval), extracts implementation-level code signals, and filters techniques to only those with proven executable code
+
+3. **Proven Integration Strategy** — Seamlessly integrates into diverse agent frameworks (ReAct, iterative agents, specialized code generators) at both planning stages (high-level technique overview) and implementation stages (low-level code references)
+
+xKG demonstrates **substantial and consistent improvements** across three agent frameworks and two LLM backbones on PaperBench Code-Dev:
+
+| Agent | Model | Avg Improvement | Max Improvement |
+|-------|-------|-----------------|-----------------|
+| BasicAgent | o3-mini | **+6.68%** | +24.26% (MU-DPO) |
+| IterativeAgent | o3-mini | **+7.31%** | +21.48% (MU-DPO) |
+| PaperCoder | o3-mini | **+10.90%** | +23.33% (MU-DPO) |
+| BasicAgent | DeepSeek-R1 | **+3.73%** | +7.27% (One-SBI) |
+| IterativeAgent | DeepSeek-R1 | **+8.20%** | +31.20% (MU-DPO) |
+| PaperCoder | DeepSeek-R1 | **+8.11%** | +21.85% (One-SBI) |
+
+> Note: Due to some variance in the results from a single run, multiple runs are recommended for more reliable performance. We report the best@3 performance for each task. Raw runtime logs are available [here](https://drive.google.com/drive/folders/1VUZkZs6svMynXG0PuvEpZ1symzTJNJXE?usp=drive_link).
+
+---
+
+## 🔧 Environment Setup
+
+### Prerequisites
+
+1. **Python 3.10+**
+   ```bash
+   conda create -n xkg python=3.10
+   conda activate xkg
+   ```
+
+2. **Clone Repository and Install Dependencies**
+   
+   ```bash
+   # Clone the repository
+   git clone https://github.com/zjunlp/xKG.git
+   cd xKG
+   
+   # Install from repository root directory
+   pip install -r requirements.txt
+   pip install -e .
+   ```
+   
+3. **Configure API Keys**
+   
+   Copy `.env.example` to `.env` and fill in your API credentials:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Required environment variables:
+   - `OPENAI_API_KEY` — OpenAI API key 
+   - `OPENAI_BASE_URL` — API endpoint URL (supports OpenAI-compatible endpoints)
+   - `GITHUB_TOKEN` — GitHub personal access token for repository access
+
+4. **Configure Models and Hyperparameters (Optional)**
+   
+   Edit `xKG/config.yaml` to customize settings:
+
+   Key configurations:
+   - `active_profile` — Select model profile
+   - `model` — General-purpose LLM (used for most tasks)
+   - `paper_model` — Specialized for technique extraction from papers
+   - `code_model` — Specialized for code rewriting and debugging
+   - Embedding settings (local vs API-based)
+
+5. **Fetch Embedding Model (Optional)**
+   
+   xKG supports two embedding modes (configured in `config.yaml`):
+   
+   **Option A: Local Embedding (GPU recommended)**
+   
+   To use `all-MiniLM-L6-v2`, modify `config.yaml`:
+   ```yaml
+   retrieve: &kg-retrieve-settings
+     embedding_model: all-MiniLM-L6-v2
+     embedding_client: local
+   ```
+   - The embedding model will be automatically downloaded on first use. If automatic download fails, manually download from [HuggingFace](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) and set `embedding_model` to the local path.
+   - For GPU acceleration execute `pip install faiss-gpu-cu12==1.12.0` to replace the default `faiss-cpu`.
+   
+   **Option B: API-Based Embedding (CPU/GPU compatible)**
+   
+   Uses `text-embedding-3-small` via OpenAI API (pre-configured):
+   ```yaml
+   retrieve: &kg-retrieve-settings
+     embedding_model: text-embedding-3-small
+     embedding_client: openai
+   ```
+   - No model download needed. 
+   - Requires `OPENAI_API_KEY` in `.env`.
+
+6. **Initialize Knowledge Graph (Optional)**
+   
+   For quick testing, you can initialize with example KGs:
+   ```bash
+   mkdir xKG/storage/kg/
+   cp -r xKG/storage_example/kg/* xKG/storage/kg/
+   ```
+   Needed for quick testing without generating KGs from scratch.
+
+7. **Docker Setup for Code Verifier (Optional)**
+   
+   Needed if you want to verify code executability when generating KGs.
+   ```bash
+   # Install Docker: https://docs.docker.com/engine/install/
+   
+   # Build verifier Docker image
+   bash xKG/source/docker/build_verifier_image.sh
+   ```
+   This step takes time. Required if:
+   - Building nodes from papers and need executable code validation.
+   - Generating new KGs nodes with code verification (`--verify-code true`).
+     
+
+---
+
+## ⏩ Usage Methods
+
+### 1. Generate Node for a Single Paper
 
 ```bash
-# 创建 Python 3.11 的 conda 环境
-conda create -n paperbench python=3.11 -y
-conda activate paperbench
+# Generate KG node from paper title (auto-downloads paper + optional code)
+python -m xKG.scripts.generate_node \
+  --title "Your Paper Title" \
+  --profile basic-deepseek-v3 \
+  --fetch-code true
+
+# Output: paper default saved to xKG/storage/kg/{paper_title}.json
 ```
 
-### 步骤 2：安装 PaperBench 依赖包
+### 2. Collect Related Papers for KG
 
 ```bash
-# 进入 PaperBench 目录
-cd experiments/paperbench/project
+# Collect related papers for a target paper node
+python -m xKG.scripts.collect_corpus \
+  --title "Your Paper Title"  \
+  --max-papers 10 \
+  --fetch-code true
 
-# 安装核心模块（按顺序安装）
-pip install -e nanoeval/
-pip install -e alcatraz/
-pip install -e nanoeval_alcatraz/
-pip install -e paperbench/
-
-# 安装额外工具
-pip install inspect-ai
+# Output: corpus default saved to xKG/storage/kg/
 ```
+> Note: Setting high parallel jobs or frequent requests may trigger arXiv rate limit. Please retry after a short delay.
 
-### 步骤 3：配置环境变量
+### 3. Query the Knowledge Graph
 
 ```bash
-# 在 experiments/paperbench/project/paperbench 目录下
-cd paperbench
+# Query by technique name for similar techniques
+python -m xKG.scripts.retrieve_kg --mode techniques --query "Technique Description" --limit 5
 
-# 复制并编辑环境配置
-cp .env.example .env
-# 编辑 .env 文件，填入你的 API keys:
-# - OPENAI_API_KEY: 你的 OpenAI API 密钥
-# - OPENAI_BASE_URL: OpenAI API 端点（可选，使用代理时设置）
-# - GRADER_OPENAI_API_KEY: 评分器使用的 API 密钥（可选，默认使用 OPENAI_API_KEY）
+# Complex semantic search for complex techniques
+python -m xKG.scripts.retrieve_kg --mode search --query "Complex Technique Description" --limit 5
 
-# 配置 agent 环境变量
-cp paperbench/agents/agent.env.example paperbench/agents/agent.env
-# 编辑 paperbench/agents/agent.env，填入:
-# - OPENAI_API_KEY: agent 使用的 API 密钥
-# - HF_TOKEN: HuggingFace 令牌（某些论文需要）
+# Query by paper title (for paper in corpus)
+python -m xKG.scripts.retrieve_kg --mode node --title "Paper Title"
+
+# Query by paper for similar papers (for paper in corpus)
+python -m xKG.scripts.retrieve_kg --mode papers --title "Paper Title" --limit 5
 ```
 
-### 步骤 4：构建 Docker 镜像
+## 🔬 PaperBench Integration
+
+### 1. Setup Evaluation Environment
+
+Follow the PaperBench README for full setup:
+```bash
+cd experiments/paperbench/project/paperbench
+conda create -n paperbench python=3.11
+# See: experiments/paperbench/project/paperbench/README.md for:
+# - Environment setup (Python 3.11, separate conda)
+# - Docker image building
+# - API key configuration
+# - Agent configuration
+# - Target paper split
+```
+> Note: You can skip the `Git-LFS` step in the original PaperBench README, with all required data already included in this repository.
+
+You can run the following script to verify the environment setup:
+```bash
+conda activate paperbench && bash scripts/run_dummy_dev.sh
+```
+
+### 2. Target Paper Preprocessing
+
+PaperBench defines target paper splits in `experiments/paperbench/project/paperbench/experiments/splits/` (e.g., `debug`, `lite`, `dev`, `all`). You can use an existing split or create your own.
+
+**Option A: For Papers in `lite` split**
+Existing papers are already parsed in `experiments/paperbench/data/papers/`. Skip to **Run Evaluation** section below.
+
+**Option B: For New/Custom Papers**
+Preprocess papers and collect corpus.
 
 ```bash
-# 在 experiments/paperbench/project/paperbench 目录下执行
-bash paperbench/scripts/build-docker-images.sh
+cd experiments/paperbench/project/paperbench
+
+# Initialize target paper (generates guide.json + collects corpus)
+conda activate xkg && bash scripts/initialize_target_with_corpus.sh dev
 ```
 
-脚本会自动检测你的平台（Mac ARM64 或 Linux x86_64）并构建相应的镜像：
-- `pb-env:latest` - 基础环境
-- `dummy:latest` - 测试 agent
-- `aisi-basic-agent:latest` - BasicAgent
-- `pb-grader:latest` - 评分器
-- `pb-reproducer:latest` - 代码执行环境
+> Note: Setting high parallel jobs or frequent requests may trigger arXiv rate limit. Please retry after a short delay.
 
-### 步骤 5：验证环境
+### 3. Run Evaluation
 
 ```bash
-# 测试 dummy agent（验证端到端流程）
-cd /Users/luoyujie/Documents/Code/xKG/experiments/paperbench/project/paperbench
-conda activate paperbench
-python -m paperbench.nano.entrypoint \
-    paperbench.paper_split=debug \
-    paperbench.solver=paperbench.nano.eval:ExternalPythonCodingSolver \
-    paperbench.solver.agent_id=dummy \
-    paperbench.solver.cluster_config=alcatraz.clusters.local:LocalConfig \
-    paperbench.solver.cluster_config.image=dummy:latest \
-    paperbench.judge.scaffold=dummy \
-    runner.recorder=nanoeval.json_recorder:json_recorder
+cd experiments/paperbench/project/paperbench
+
+# Basic Agent (without xKG / with xKG)
+conda activate paperbench && bash scripts/aisi-basic/run.sh aisi-basic-agent-my-o3
+conda activate paperbench && bash scripts/aisi-basic/run_knowledge.sh aisi-basic-agent-basic-o3-knowledge
+
+# Iterative Agent (without xKG / with xKG)
+conda activate paperbench && bash scripts/aisi-iterative/run.sh aisi-basic-agent-iterative
+conda activate paperbench && bash scripts/aisi-iterative/run_knowledge.sh aisi-basic-agent-iterative-knowledge
+
+# Paper2Code Agent (without xKG / with xKG)
+conda activate paperbench && bash scripts/paper2code/run.sh
+conda activate paperbench && bash scripts/paper2code/run_knowledge.sh
 ```
 
-### 步骤 6：运行 PaperBench 评估
+Results will be saved in `experiments/paperbench/project/paperbench/runs` directory. Raw runtime logs are available [here](https://drive.google.com/drive/folders/1VUZkZs6svMynXG0PuvEpZ1symzTJNJXE?usp=drive_link).
 
-```bash
-# 运行 BasicAgent（开发配置，5 分钟超时）
-python -m paperbench.nano.entrypoint \
-    paperbench.solver=paperbench.nano.eval:ExternalPythonCodingSolver \
-    paperbench.solver.agent_id=aisi-basic-agent-openai-dev \
-    paperbench.solver.cluster_config=alcatraz.clusters.local:LocalConfig \
-    paperbench.solver.cluster_config.image=aisi-basic-agent:latest \
-    runner.recorder=nanoeval.json_recorder:json_recorder
+---
 
-# 运行 Code-Dev 评估（跳过代码执行和结果验证，仅检查代码开发）
-# 添加 paperbench.judge.code_only=True 标志来降低成本和执行时间
-python -m paperbench.nano.entrypoint \
-    paperbench.solver=paperbench.nano.eval:ExternalPythonCodingSolver \
-    paperbench.solver.agent_id=aisi-basic-agent-openai-dev \
-    paperbench.solver.cluster_config=alcatraz.clusters.local:LocalConfig \
-    paperbench.solver.cluster_config.image=aisi-basic-agent:latest \
-    paperbench.judge.code_only=True \
-    runner.recorder=nanoeval.json_recorder:json_recorder
+## 🎉 Acknowledgments
+
+We build upon the excellent work of:
+
+- **PaperBench** — Evaluation framework & agent baselines from [OpenAI](https://github.com/openai/frontier-evals/tree/main/project/paperbench)
+- **Paper2Code** — Agent baseline from [paper2code](https://github.com/going-doer/paper2code)
+- **AutoSDT** — Code verification logic adapted from [AutoSDT](https://github.com/OSU-NLP-Group/AutoSDT)
+- **DeepWiki** — Embedding and retrieval methods from [deepwiki-open](https://github.com/AsyncFuncAI/deepwiki-open)
+
+We thank all authors and contributors for their pioneering work!
+
+---
+
+## 📚 Citation
+
+If you find xKG useful in your research, please cite our paper:
+
+```bibtex
+@article{luo2025executable,
+  title={Executable Knowledge Graphs for Replicating AI Research},
+  author={Luo, Yujie and Yu, Zhuoyun and Wang, Xuehai and Zhu, Yuqi and Zhang, Ningyu and Wei, Lanning and Du, Lun and Zheng, Da and Chen, Huajun},
+  journal={arXiv preprint arXiv:2510.17795},
+  year={2025}
+}
 ```
-
-### 查看评估结果
-
-```bash
-# 评估结果保存在 runs 目录下
-# 每个 run 包含：
-#   - metadata.json: 元信息
-#   - pb_result.json: 评分结果
-#   - run.log: 运行日志
-#   - status.json: 运行状态
-
-ls runs/
-```
-
-## 常见问题
-
-### Docker 镜像构建失败
-- 确保 Docker Desktop 正在运行
-- 清理旧镜像：`docker system prune -a`
-- 重新运行构建脚本
-
-### API 调用超时
-- 检查网络连接
-- 确认 OPENAI_API_KEY 有效
-- 如果使用代理，确认 OPENAI_BASE_URL 配置正确
-
-### GPU 不可用
-- 当前配置针对 CPU 优化
-- 如需 GPU 支持，修改 Docker 配置中的 `is_nvidia_gpu_env: True`
-
-## 平台适配说明
-
-本项目已自动适配以下平台：
-- **Mac ARM64（Apple Silicon）**: 自动检测并使用 arm64 Docker 镜像和 aarch64 Miniconda
-- **Linux x86_64**: 自动检测并使用 amd64 Docker 镜像和 x86_64 Miniconda
-
-无需手动配置，构建脚本会自动处理平台差异。

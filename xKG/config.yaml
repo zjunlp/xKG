@@ -1,7 +1,7 @@
-# 默认选定哪个配置 也可以通过命令行参数配置来覆盖
+# Default profile selection
 active_profile: basic-deepseek-v3
 
-# Code-RAG的处理参数
+# Code-RAG processing parameters
 code: &code-repo-settings
   code_extensions: [".py", ".js", ".ts", ".java", ".cpp", ".c", ".h", ".hpp", ".go", ".rs", ".php", ".cs"]
   doc_extensions: [".md", ".txt", ".rst", ".json", ".yaml", ".yml"]
@@ -26,7 +26,7 @@ code: &code-repo-settings
   exec_check_code: false
   exec_debug_num: 8
 
-# Paper-RAG的处理参数
+# Paper-RAG processing parameters
 paper: &paper-settings
   rag: true
   embedder: 
@@ -44,11 +44,14 @@ paper: &paper-settings
     faiss:
       top_k: 5
 
-# KG召回的参数配置
+# Knowledge graph retrieval parameters
 retrieve: &kg-retrieve-settings
-  embedding_model: all-MiniLM-L6-v2 # 召回时使用的模型
-  technique_similarity: 0.6 # 只有当技术点相似度大于这个值才会被召回
-  paper_similarity: 0.6 # 只有当论文相似度大于这个值才会被召回
+  embedding_model: all-MiniLM-L6-v2
+  embedding_client: local
+  # embedding_model: text-embedding-3-small
+  # embedding_client: openai
+  technique_similarity: 0.5 # Only retrieve techniques with similarity above this threshold
+  paper_similarity: 0.5 # Only retrieve papers with similarity above this threshold
 
 common: &common-settings
   <<: *kg-retrieve-settings
@@ -66,12 +69,11 @@ common: &common-settings
 basic-deepseek-v3:
   <<: *common-settings
   api_type: openai
-  model: DeepSeek-V3.2 # 通用模型
-  paper_model: o4-mini-2025-04-16 # 特指在进行technique抽取+重构的时候会用到的模型
-  code_model: o4-mini-2025-04-16 # 特指在进行重写code+debug code的时候会用到的模型
+  model: deepseek-v3.2 # General-purpose model
+  paper_model: o4-mini # Specialized model for technique extraction and reconstruction
+  code_model: o4-mini # Specialized model for code rewriting and debugging
 
-
-# 新增模型配置 可自定义
+# Additional model configurations (customizable)
 gpt-5-2025-08-07:
   <<: *common-settings
   api_type: openai

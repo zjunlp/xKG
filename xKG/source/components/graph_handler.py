@@ -1,8 +1,8 @@
 """ 
-构建code-text对
+Build code-text pairs
 1. code-paper
-2. 纯code
-3. 纯paper
+2. pure code
+3. pure paper
 """
 
 import os
@@ -13,6 +13,7 @@ from dataclasses import asdict
 import glob
 import faiss
 from rank_bm25 import BM25Okapi
+from functools import lru_cache
 import numpy as np
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -26,46 +27,72 @@ from .base_tool import BaseTool
 from .code_verifier import CodeVerifier
 from .code_rag import CodeRAG
 from .paper_rag import PaperRAG
+from .embedder import BaseEmbedder
 from ..utils import *
 from ..utils import should_save_process, get_process_path
 from ..llm import extract_backtick_text, extract_backtick_texts, extract_object, REPOSITORY_ANALYZER_PROMPT, CODE_REWRITER_PROMPT
 
 logger = logging.getLogger(__name__)
 
-MAX_ATTEMPTS = 2
+MAX_ATTEMPTS = 5
 REFERENCE_SIMILARITY_THRESHOLD = 95
 RETRIEVE_TECHNIQUES= 10
 
 class KnowledgeIndex:
     """
-    知识索引库
-    - 为 name 和 description 同时构建 BM25 和 FAISS 索引
-    - 预先计算并存储所有向量，以支持高效的成对比较
-    - 建立 Technique 对象到其唯一 ID 的快速反向映射
+    Knowledge Index Library
+    - Build BM25 and FAISS indexes for name and description simultaneously
+    - Supports two modes：
+      1. local: Uses SentenceTransformer with precomputed vectors (GPU-friendly)
+      2. openai: Uses OpenAI API for dynamic vector computation (no GPU restriction)
+    - Establishes fast reverse mapping from Technique objects to their unique IDs
     """
-    def __init__(self, model_name: str = 'all-MiniLM-L6-v2'):
-        self.model = SentenceTransformer(model_name)
-        
-        # 索引
+    def __init__(self, model_name: str = 'all-MiniLM-L6-v2', embedding_client: str = 'openai'):
+        self.model_name = model_name
+        self.embedding_client = embedding_client
+        self.model = None
+        self.embedder = None
+
+        # Choose initialization method based on embedding_client
+        if embedding_client == 'local':
+            logger.info(f"Using local SentenceTransformer model: {model_name}")
+            self.model = SentenceTransformer(model_name)
+        elif embedding_client == 'openai':
+            logger.info(f"Using OpenAI API for embedding: {model_name}")
+            # Construct OpenAI embedder config
+            embedder_config = {
+                "model_client": "OpenAIClient",
+                "batch_size": 100,
+                "model_kwargs": {
+                    "model": model_name,
+                    "dimensions": 256,
+                    "encoding_format": "float"
+                }
+            }
+            self.embedder = BaseEmbedder(embedder_config)
+        else:
+            raise ValueError(f"Unknown embedding_client: {embedding_client}. Must be 'local' or 'openai'.")
+
+        # Index
         self.bm25_name: BM25Okapi = None
         self.faiss_name: faiss.Index = None
         self.bm25_desc: BM25Okapi = None
         self.faiss_desc: faiss.Index = None
         self.bm25_title: BM25Okapi = None
-        
-        # 数据和映射
+
+        # Data and mappings
         self.title_indexed_nodes: List[Node] = []
         self.flat_techniques: List[Technique] = []
         self.id_to_technique: Dict[int, Technique] = {}
         self.tech_to_id: Dict[Technique, int] = {}
         self.tech_id_to_node_id: Dict[int, int] = {}
-        
-        # 预计算的向量，用于高效成对比较
+
+        # Precomputed vectors for efficient pairwise comparison (local mode only)
         self.name_vectors: np.ndarray = None
         self.desc_vectors: np.ndarray = None
 
     def _flatten_and_map_techniques(self, nodes: List[Node]):
-        """扁平化所有 Node 中的 Technique，并建立正向和反向 ID 映射"""
+        """Flatten all Technique nodes and establish forward and reverse ID mappings"""
         self.flat_techniques.clear()
         self.id_to_technique.clear()
         self.tech_to_id.clear()
@@ -85,10 +112,37 @@ class KnowledgeIndex:
             if node.techniques:
                 _recursive_walk(node.techniques, node_idx)
 
+    @lru_cache(maxsize=2048)
+    def _encode_text_api_cached(self, text: str) -> tuple:
+        """Encode text using OpenAI API (with caching)。"""
+        try:
+            import openai
+            model_kwargs = self.embedder.config.get("model_kwargs", {})
+            model_name = model_kwargs.get("model", "text-embedding-3-small")
+
+            client = openai.OpenAI()
+            response = client.embeddings.create(
+                input=text,
+                model=model_name,
+                dimensions=model_kwargs.get("dimensions", 256),
+                encoding_format=model_kwargs.get("encoding_format", "float")
+            )
+            embedding = response.data[0].embedding
+            return tuple(embedding)
+        except Exception as e:
+            logger.warning(f"Error encoding text with API: {e}, returning zero vector")
+            dim = self.embedder.config.get("model_kwargs", {}).get("dimensions", 256)
+            return tuple([0.0] * dim)
+
+    def _encode_text_api(self, text: str) -> np.ndarray:
+        """Encode text using OpenAI API."""
+        cached_result = self._encode_text_api_cached(text)
+        return np.array(cached_result, dtype='float32')
+
     def build_indexes(self, nodes: List[Node]):
-        """为所有 Technique 构建索引并存储预计算的向量。"""
-        logger.info("Building hybrid indexes and pre-calculating vectors...")
-        
+        """Build indexes for all Techniques。"""
+        logger.info(f"Building hybrid indexes (embedding_client={self.embedding_client})...")
+
         self._flatten_and_map_techniques(nodes)
         if not self.flat_techniques:
             logger.warning("No techniques found to index.")
@@ -97,17 +151,24 @@ class KnowledgeIndex:
         names_corpus = [tech.name for tech in self.flat_techniques]
         descs_corpus = [tech.description for tech in self.flat_techniques]
 
-        # 1. 构建 BM25 索引 (同时为 name 和 description)
+        # 1. Build BM25 index (for both name and description)
         logger.info("Building BM25 indexes for names and descriptions...")
         self.bm25_name = BM25Okapi([name.split() for name in names_corpus])
         self.bm25_desc = BM25Okapi([desc.split() for desc in descs_corpus])
-        
-        # 2. 编码并存储向量 (一次性完成)
-        logger.info("Encoding names and descriptions for FAISS and pairwise comparison...")
-        self.name_vectors = self.model.encode(names_corpus, show_progress_bar=True, convert_to_numpy=True).astype('float32')
-        self.desc_vectors = self.model.encode(descs_corpus, show_progress_bar=True, convert_to_numpy=True).astype('float32')
 
-        # 3. 构建 FAISS 索引
+        # 2. Precompute all vectors (regardless of local or openai mode)
+        logger.info(f"Encoding names and descriptions for FAISS and pairwise comparison ({self.embedding_client} mode)...")
+
+        if self.embedding_client == 'local':
+            # Local model encoding
+            self.name_vectors = self.model.encode(names_corpus, show_progress_bar=True, convert_to_numpy=True).astype('float32')
+            self.desc_vectors = self.model.encode(descs_corpus, show_progress_bar=True, convert_to_numpy=True).astype('float32')
+        else:
+            # OpenAI API encoding (batch calls, with caching)
+            self.name_vectors = np.array([self._encode_text_api(name) for name in names_corpus], dtype='float32')
+            self.desc_vectors = np.array([self._encode_text_api(desc) for desc in descs_corpus], dtype='float32')
+
+        # 3. Build FAISS index
         if self.name_vectors.size > 0:
             dim = self.name_vectors.shape[1]
             # Name FAISS Index
@@ -121,14 +182,14 @@ class KnowledgeIndex:
             self.faiss_desc = faiss.IndexIDMap(index_desc)
             self.faiss_desc.add_with_ids(self.desc_vectors, ids)
 
-        logger.info(f"Hybrid indexes built successfully for {len(self.flat_techniques)} techniques.")
-        
-        # 4. 构建标题 BM25 索引
+        logger.info(f"Hybrid indexes built successfully for {len(self.flat_techniques)} techniques ({self.embedding_client} mode).")
+
+        # 4. Build title BM25 index
         logger.info("Building BM25 index for paper titles...")
-        
-        self.title_indexed_nodes.clear() # 清空旧数据
+
+        self.title_indexed_nodes.clear() # Clear old data
         nodes_with_titles = [node for node in nodes if node.paper_title]
-        
+
         if nodes_with_titles:
             self.title_indexed_nodes = nodes_with_titles
             tokenized_titles = [node.paper_title.split() for node in self.title_indexed_nodes]
@@ -138,24 +199,30 @@ class KnowledgeIndex:
             self.bm25_title = None
             logger.warning("No papers with titles found to build title index.")
 
-# 给整个paper-code对进行编码
+# Encode the entire paper-code pair
 class GraphHandler(BaseTool):
     def __init__(
         self,
         model: Optional[str] = None,
         memory: Optional[str] = None,
-        embedding_model: str = None
+        embedding_model: str = None,
+        embedding_client: str = None
     ):
-        super().__init__(model, memory)    
+        super().__init__(model, memory)
         if embedding_model is None:
-            embedding_model = get_config().get('embedding_model', 'all-MiniLM-L6-v2')    
-            
+            embedding_model = get_config().get('embedding_model', 'text-embedding-3-small')
+        if embedding_client is None:
+            embedding_client = get_config().get('embedding_client', 'openai')
+
+        logger.info(f"GraphHandler initialized with embedding_model={embedding_model}, embedding_client={embedding_client}")
+
         self.paper_rag = PaperRAG()
         self.code_rag = CodeRAG()
         docker_image = get_code_rag_config().get('docker_image', 'xkg-coderunner:latest')
-        self.code_verifier = CodeVerifier(model=self.model, docker_image=docker_image)
+        code_model = get_config().get('code_model', model)
+        self.code_verifier = CodeVerifier(model=code_model, docker_image=docker_image)
         self.knowledge_base = None
-        self.knowledge_index = KnowledgeIndex(model_name=embedding_model)
+        self.knowledge_index = KnowledgeIndex(model_name=embedding_model, embedding_client=embedding_client)
     
     @property
     def _prompt_rag_paper(self):
@@ -439,9 +506,9 @@ Now please think and reason carefully, and wrap your final answer between two ``
     def _get_relevant_code(
         self, 
         query: str, 
-        code: Code = None, # 用于构建详细的重排 prompt
-        paper: Optional[Paper] = None, # 用于构建详细的重排 prompt
-        technique: Optional[Technique] = None, # 同上
+        code: Code = None, # Used for constructing detailed re-ranking prompt
+        paper: Optional[Paper] = None, # Used for constructing detailed re-ranking prompt
+        technique: Optional[Technique] = None, # Same as above
         llm_rerank: bool = True, 
         top_complete_file: int = None,
         top_files: int = None,
@@ -468,7 +535,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
         
         if llm_rerank:
             logger.info("Performing LLM re-ranking...")
-            # 构建详细的重排 prompt
+            # Construct detailed re-ranking prompt
             rerank_prompt = self._prompt_check_snippets.format(
                 paper=paper.title if paper else "N/A",
                 technique=technique_des,
@@ -487,11 +554,11 @@ Now please think and reason carefully, and wrap your final answer between two ``
                 logger.warning(f"LLM re-ranking did not identify any relevant code files for query '{query[:50]}...'.")
                 return []
 
-            # 根据重排结果重新组织文件列表
+            # Reorganize file list based on re-ranking results
             snippet_map = {fs.file_name: fs for fs in initial_snippets}
             final_files = [snippet_map[name] for name in filtered_file_names if name in snippet_map]
             
-            # 为排名靠前的文件加载完整内容
+            # Load full content for top-ranked files
             if top_complete_file > 0:
                 file_content_map = {f.name: f.content for f in code.file_list}
                 max_size_limit_bytes = get_config().get('max_prompt_code_bytes', 20 * 1024)
@@ -507,7 +574,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
                     logger.info(f"Replacing snippet with full content for '{file_name}'.")
                     fs_object.code_list = [full_content_str]
         else:
-            # 如果不进行重排，则直接使用 RAG 的原始结果
+            # If not re-ranking, directly use the original RAG results
             logger.info("Skipping LLM re-ranking, using initial RAG results.")
             final_files = initial_snippets
         final_files = final_files[:top_files]
@@ -581,7 +648,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
             logger.warning(f"Extracted code for '{tech.name}' is empty after rewriting.")
             return None
         
-        # 分割实现与测试
+        # Split implementation and test
         implementation, test = code.strip(), ""
         lines = code.splitlines()
         separator_idx = next((i for i, line in enumerate(lines) if "# TEST BLOCK" in line), next((i for i, line in enumerate(lines) if "TEST BLOCK" in line), len(lines)))
@@ -594,7 +661,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
             documentation=documentation.strip()
         )
         
-        # 二步检验
+        # Two-step verification
         if get_code_rag_config().get('llm_check_code', False):
             check_prompt = self._prompt_check_rewrite_code.format(
                 paper=paper.title,
@@ -616,45 +683,45 @@ Now please think and reason carefully, and wrap your final answer between two ``
         
     def _rag_paper(self, paper: Paper, techniques: List[Technique]) -> None:
         """
-        根据论文内容，重写给定 Technique 列表的描述。
-        此函数会直接修改传入的 `techniques` 列表中的对象。
+        Rewrite descriptions for the given Technique list based on paper content。
+        This function directly modifies objects in the passed `techniques` list.
         """
         logger.info(f"Starting rewrite of paper contributions for '{paper.title}'...")
 
         ### MODIFIED ###
-        # 不再从 paper.contributions 创建新的 Technique 对象
-        # 直接使用传入的 `techniques` 参数
+        # No longer create new Technique objects from paper.contributions
+        # Directly use the passed `techniques` parameter
         if not techniques:
             logger.warning("No methodology/technique contributions provided to rewrite.")
             return
 
-        # Step 2: 获取所有节点的扁平列表
+        # Step 2: Get the flattened list of all nodes
         all_techniques = []
-        for tech in techniques: # 使用传入的 techniques
+        for tech in techniques: # Use the passed techniques
             all_techniques.extend(self._get_all_nodes(tech))
 
         if not all_techniques:
             logger.warning(f"No nested techniques found in paper '{paper.title}'. Skipping rewrite.")
             return
 
-        # 2. 准备 RAG 系统
+        # 2. Prepare the RAG system
         logger.info(f"Preparing paper RAG for '{paper.title}'...")
         paper_db_path = os.path.join(get_config().get('raw_index_path'), "paper", f"{sanitize_filename(paper.title)}.pkl")
         self.paper_rag.prepare_retriever(paper, paper_db_path)
 
-        # 3. 遍历并直接修改传入的 technique 对象
+        # 3. Iterate and directly modify the passed technique objects
         logger.info(f"Rewriting descriptions for {len(all_techniques)} contributions...")
         for c in all_techniques:
-            # a. 构造查询
+            # a. Construct the query
             query = f"{c.name}: {c.description}"
             
-            # b. 使用RAG检索相关原文片段
+            # b. Use RAG to retrieve relevant original text excerpts
             excerpts = self.paper_rag(query)
             if not excerpts:
                 logger.warning(f"No relevant paper excerpts found for '{c.name}'. Skipping rewrite.")
                 continue
 
-            # c. 准备Prompt并调用LLM
+            # c. Prepare Prompt and call LLM
             node_info = {"name": c.name, "description": c.description}
             rewrite_prompt = self._prompt_rag_paper.format(
                 paper=paper.title,
@@ -669,7 +736,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
             
             rewrited_description = extract_backtick_text(response[0])
             if rewrited_description and rewrited_description.strip() not in ["", "None", "null"]:
-                # 核心：直接修改传入对象的属性
+                # Core: directly modify the properties of the passed object
                 c.description = rewrited_description.strip() 
                 logger.debug(f"Successfully rewrote description for '{c.name}'.")
             else:
@@ -680,58 +747,58 @@ Now please think and reason carefully, and wrap your final answer between two ``
         self, 
         paper: Paper, 
         code: Code, 
-        techniques: List[Technique], ### MODIFIED: 接收 techniques 列表 ###
+        techniques: List[Technique], ### MODIFIED: Receive techniques list ###
         database_path: str, 
         llm_rerank: bool
-    ) -> None: ### MODIFIED: 返回值为 None，因为是就地修改 ###
+    ) -> None: ### MODIFIED: Return value is None, because modification is in-place ###
         
         ### MODIFIED ###
-        # Step 1: 直接使用传入的 techniques，不再重新创建
+        # Step 1: Directly use the passed techniques, no longer recreate
         if not techniques:
             logger.warning("No methodology/technique contributions provided to map.")
-            return # 直接返回
+            return # Return directly
 
         top_level_techniques = techniques
 
-        # Step 2: 获取所有节点的扁平列表
+        # Step 2: Get the flattened list of all nodes
         all_techniques = []
         for tech in top_level_techniques:
             all_techniques.extend(self._get_all_nodes(tech))
         
-        # Step 3: 分配权重
+        # Step 3: Assign weights
         num_leaves = sum(1 for tech in all_techniques if not tech.components)
         if num_leaves == 0:
-            return # 直接返回
+            return # Return directly
         base_weight = 1.0 / num_leaves
         for tech in top_level_techniques:
             self._assign_weights(tech, base_weight)
 
         all_techniques.sort(key=lambda tech: tech.weight)
         
-        # Step 4: 为所有节点执行 CodeRAG
+        # Step 4: Execute CodeRAG for all nodes
         if not code:
             logger.info("No code repository provided. Skipping code mapping.")
             for tech in all_techniques:
                 tech.code = None
-            return # 直接返回
+            return # Return directly
 
         database_path = os.path.join(get_config().get('raw_index_path'), "code", f"{code.name}.pkl") if database_path is None else database_path
         self.code_rag.prepare_retriever(code, database_path)
         
         logger.info("Performing RAG for all technique nodes...")
         for tech in all_techniques:
-            query = f"{tech.name}: {tech.description}" # 这里会使用到可能已被重写过的 description
+            query = f"{tech.name}: {tech.description}" # Here it will use the possibly already-rewritten description
             relevant_files = self._get_relevant_code(query=query, code=code, paper=paper, technique=tech, llm_rerank=llm_rerank)
             tech.code = json.dumps([asdict(rf) for rf in relevant_files], ensure_ascii=False) if relevant_files else None
 
-        # Step 5: 顺序为所有节点生成/整合代码
+        # Step 5: Generate/integrate code for all nodes in order
         logger.info("Generating/Integrating code for all techniques in bottom-up order...")
         if llm_rerank:
             for tech in all_techniques:
                 tech.code = self._get_rewrited_code(paper=paper, tech=tech)
 
         logger.info("Code generation/integration completed for all techniques.")
-        ### MODIFIED: 不再返回任何值 ###
+        ### MODIFIED: No longer returns any value ###
 
     
     def exec_verify_node(self, node: Node, save_process: bool = None) -> Node:
@@ -760,9 +827,9 @@ Now please think and reason carefully, and wrap your final answer between two ``
             verify_code = get_code_rag_config().get('exec_check_code', False)
 
         # Set up process output path for saving intermediate Node results
-        should_save_process = save_process if save_process is not None else should_save_process()
+        _save_process = save_process if save_process is not None else should_save_process()
         process_output_path = None
-        if should_save_process:
+        if _save_process:
             process_base = get_process_path()
             process_output_path = process_base / "graph_handler"
             process_output_path.mkdir(parents=True, exist_ok=True)
@@ -805,7 +872,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
 
         # Verify code if requested
         if verify_code:
-            node = self.exec_verify_node(node, save_process=should_save_process)
+            node = self.exec_verify_node(node, save_process=_save_process)
             # Save verified Node to process cache
             if process_output_path:
                 paper_safe = sanitize_filename(paper.title)
@@ -841,6 +908,12 @@ Now please think and reason carefully, and wrap your final answer between two ``
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
+
+                # Skip corpus.json files (which are lists) - they're not KG nodes
+                if isinstance(data, list):
+                    logger.info(f"Skipping corpus file (list format): '{file_path}'")
+                    continue
+
                 node_object = Node.from_dict(data)
                 nodes.append(node_object)
 
@@ -863,12 +936,12 @@ Now please think and reason carefully, and wrap your final answer between two ``
         self.knowledge_index.build_indexes(self.knowledge_base)
         
     def _calculate_technique_similarity(
-        self, 
-        tech1: Technique, 
+        self,
+        tech1: Technique,
         tech2: Technique,
         name_weight: float = 0.5,
         description_weight: float = 0.5,
-        bm25_weight: float = 0.5, 
+        bm25_weight: float = 0.5,
         embedding_weight: float = 0.5
     ) -> float:
 
@@ -879,28 +952,47 @@ Now please think and reason carefully, and wrap your final answer between two ``
         tokenized_query_name = tech1.name.split()
         name_bm25_score_raw = self.knowledge_index.bm25_name.get_scores(tokenized_query_name)[id2]
         name_bm25_norm = 1.0 / (1.0 + np.exp(-name_bm25_score_raw))
-        
-        # 1. name相似度计算
-        query_name_vec = self.knowledge_index.model.encode([tech1.name])[0]
-        candidate_name_vec = self.knowledge_index.name_vectors[id2]
+
+        # Choose encoding method based on embedding_client
+        if self.knowledge_index.embedding_client == 'local':
+            # Local mode: use precomputed vectors
+            query_name_vec = self.knowledge_index.model.encode([tech1.name])[0]
+            candidate_name_vec = self.knowledge_index.name_vectors[id2]
+        else:
+            # OpenAI mode: dynamically call API
+            query_name_vec = self._encode_text_api(tech1.name)
+            candidate_name_vec = self._encode_text_api(tech2.name)
+
         dot_product_name = np.dot(query_name_vec, candidate_name_vec)
         norm_name = np.linalg.norm(query_name_vec) * np.linalg.norm(candidate_name_vec)
         name_emb_score = (dot_product_name / norm_name + 1) / 2 if norm_name != 0 else 0.0
         total_name_score = (name_bm25_norm * bm25_weight) + (name_emb_score * embedding_weight)
 
-        # 2. description相似度计算
+        # 2. Description similarity calculation
         tokenized_query_desc = tech1.description.split()
         desc_bm25_score_raw = self.knowledge_index.bm25_desc.get_scores(tokenized_query_desc)[id2]
         desc_bm25_norm = 1.0 / (1.0 + np.exp(-desc_bm25_score_raw))
-        query_desc_vec = self.knowledge_index.model.encode([tech1.description])[0]
-        candidate_desc_vec = self.knowledge_index.desc_vectors[id2]
+
+        if self.knowledge_index.embedding_client == 'local':
+            # Local mode: use precomputed vectors
+            query_desc_vec = self.knowledge_index.model.encode([tech1.description])[0]
+            candidate_desc_vec = self.knowledge_index.desc_vectors[id2]
+        else:
+            # OpenAI mode: dynamically call API
+            query_desc_vec = self._encode_text_api(tech1.description)
+            candidate_desc_vec = self._encode_text_api(tech2.description)
+
         dot_product_desc = np.dot(query_desc_vec, candidate_desc_vec)
         norm_desc = np.linalg.norm(query_desc_vec) * np.linalg.norm(candidate_desc_vec)
         desc_emb_score = (dot_product_desc / norm_desc + 1) / 2 if norm_desc != 0 else 0.0
         total_desc_score = (desc_bm25_norm * bm25_weight) + (desc_emb_score * embedding_weight)
-        
-        # 3. 最终加权融合
+
+        # 3. Final weighted fusion
         return (total_name_score * name_weight) + (total_desc_score * description_weight)
+
+    def _encode_text_api(self, text: str) -> np.ndarray:
+        """Encode text using OpenAI API, delegating to KnowledgeIndex's cached implementation."""
+        return self.knowledge_index._encode_text_api(text)
 
     
     def _rerank_techniques_by_llm(self, description: str, candidates: List['Technique'], top_k: int = 5) -> List['Technique']:
@@ -960,10 +1052,10 @@ Now please think and reason carefully, and wrap your final answer between two ``
         return reranked_results[:top_k] if reranked_results else candidates[:top_k]
 
 
-    def retrieve_technique_by_technique(self, technique: Technique, top_k: int = 5, code_only: bool = True, return_code: bool = True, return_components: bool = False, llm_rerank: bool = True) -> List[Technique]:
+    def retrieve_technique_by_technique(self, technique: Technique, top_k: int = 5, code_only: bool = True, return_code: bool = True, return_components: bool = False, llm_rerank: bool = True) -> List[Tuple[Technique, float]]:
         if not self.knowledge_index.flat_techniques:
             return []
-        
+
         query_tech_id = self.knowledge_index.tech_to_id.get(id(technique))
         query_node_id = self.knowledge_index.tech_id_to_node_id.get(query_tech_id) if query_tech_id else None
 
@@ -978,7 +1070,7 @@ Now please think and reason carefully, and wrap your final answer between two ``
 
             similarity = self._calculate_technique_similarity(technique, candidate_tech)
             scores.append((candidate_tech, similarity))
-            
+
         scores.sort(key=lambda x: x[1], reverse=True)
         technique_similarity_threshold = get_config().get('technique_similarity', 0)
         retrieve_num = max(RETRIEVE_TECHNIQUES, top_k * 2)
@@ -994,10 +1086,12 @@ Now please think and reason carefully, and wrap your final answer between two ``
                 for node in all_nodes_in_copy:
                     node.code = None
             processed_results.append((tech_copy, score))
-            
+
         if llm_rerank:
             techniqe_description = f"{technique.name}: {technique.description}"
-            return self._rerank_techniques_by_llm(techniqe_description, [tr[0] for tr in processed_results], top_k=top_k)
+            reranked_techs = self._rerank_techniques_by_llm(techniqe_description, [tr[0] for tr in processed_results], top_k=top_k)
+            # Return tuples with score, using 0.0 for reranked items (score lost after LLM reranking)
+            return [(tech, 0.0) for tech in reranked_techs]
         return processed_results[:top_k]
 
     def retrieve_technique_by_query(self, name: str , description: str = None, top_k: int = 5, code_only: bool = True, return_code: bool = True, return_components: bool = False, llm_rerank: bool = True) -> List[Tuple[Technique, float]]:

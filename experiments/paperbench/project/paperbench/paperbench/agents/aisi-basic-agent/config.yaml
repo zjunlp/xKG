@@ -191,12 +191,12 @@ aisi-basic-agent-iterative-my-o3-dev-test:
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
     ITERATIVE_AGENT: true
 
-# 这里是base agent
+# basic agent
 aisi-basic-agent-my-o3:
   <<: *common_settings
   env_vars:
     <<: *env-config-vars
-    MODEL: openai/o3-mini-2025-01-31
+    MODEL: openai/o3-mini
     MAX_TIME_IN_HOURS: 3
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
@@ -205,17 +205,17 @@ aisi-basic-agent-my-r1:
   <<: *common_settings
   env_vars:
     <<: *env-config-vars
-    MODEL: openai/deepseek-r1-0528
+    MODEL: openai/deepseek-r1-local-II
     MAX_TIME_IN_HOURS: 3
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
     
-# 这里是iterative agent
+# iterative agent
 aisi-basic-agent-iterative-my-o3:
   <<: *common_settings
   env_vars:
     <<: *env-config-vars
-    MODEL: openai/o3-mini-2025-01-31
+    MODEL: openai/o3-mini
     MAX_TIME_IN_HOURS: 1
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
@@ -231,34 +231,22 @@ aisi-basic-agent-iterative-my-r1:
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
     ITERATIVE_AGENT: true
 
-# Paper2Code ReAct Agent configurations
-aisi-basic-agent-basic:
+aisi-basic-agent-basic-o3-knowledge:
   <<: *common_settings
   env_vars:
     <<: *env-config-vars
-    MODEL: openai/o3-mini-2025-01-31
-    MAX_TIME_IN_HOURS: 1
-    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
-    KNOWLEDGE_ENABLED: false
-
-aisi-basic-agent-basic-knowledge:
-  <<: *common_settings
-  env_vars:
-    <<: *env-config-vars
-    MODEL: openai/o3-mini-2025-01-31
-    MAX_TIME_IN_HOURS: 1
+    MODEL: openai/o3-mini
+    MAX_TIME_IN_HOURS: 3
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
     KNOWLEDGE_ENABLED: true
 
-# Paper2Code Iterative Agent configurations
 aisi-basic-agent-iterative:
   <<: *common_settings
   env_vars:
     <<: *env-config-vars
-    MODEL: openai/o3-mini-2025-01-31
-    MAX_TIME_IN_HOURS: 1
+    MODEL: openai/o3-mini
+    MAX_TIME_IN_HOURS: 3
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
     ITERATIVE_AGENT: true
@@ -268,8 +256,8 @@ aisi-basic-agent-iterative-knowledge:
   <<: *common_settings
   env_vars:
     <<: *env-config-vars
-    MODEL: openai/o3-mini-2025-01-31
-    MAX_TIME_IN_HOURS: 1
+    MODEL: openai/o3-mini
+    MAX_TIME_IN_HOURS: 3
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
     ITERATIVE_AGENT: true

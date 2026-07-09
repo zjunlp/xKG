@@ -5,8 +5,9 @@
 
 python -m paperbench.nano.entrypoint \
     paperbench.paper_split=debug \
-    paperbench.solver=paperbench.solvers.dummy.solver:PaperBenchDummySolver \
+    paperbench.solver=paperbench.nano.eval:ExternalPythonCodingSolver \
+    paperbench.solver.agent_id=dummy \
     paperbench.solver.cluster_config=alcatraz.clusters.local:LocalConfig \
-    paperbench.solver.cluster_config.image=pb-env:latest \
+    paperbench.solver.cluster_config.image=dummy:latest  \
     paperbench.judge.scaffold=dummy \
     runner.recorder=nanoeval.json_recorder:json_recorder

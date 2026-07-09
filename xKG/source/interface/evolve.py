@@ -1,6 +1,6 @@
-""" 
-更新库
-1. 手动插入
-2. 定期抓取
-3. 轨迹更新
+"""
+Update library
+1. Manual insertion
+2. Periodic fetching
+3. Trajectory update
 """

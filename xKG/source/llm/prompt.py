@@ -1,5 +1,5 @@
-""" 
-System Prompts定义
+"""
+System Prompts definitions
 """
 DEFAULT = """
 You are a helpful assistant.

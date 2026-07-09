@@ -1,5 +1,5 @@
-""" 
-定义一些数据结构
+"""
+Data structure definitions
 """
 from .code import *
 from .paper import *

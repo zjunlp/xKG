@@ -1,5 +1,5 @@
-""" 
-解析code库的内容
+"""
+Parse code repository content
 """
 import os
 import re

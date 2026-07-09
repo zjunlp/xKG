@@ -5,12 +5,12 @@ from tqdm import tqdm
 import sys
 from utils import extract_planning, content_to_json, print_response, print_log_cost, load_accumulated_cost, save_accumulated_cost
 import copy
-# 使用主xKG包的接口（通过pip install -e安装）
 from xKG.source.interface.retrieve import (
     initialize_kg,
     decompose_and_find_techniques,
 )
 from xKG.source.utils.config import get_llm_backend, get_config
+from xKG.source.schema import Technique
 
 
 import argparse
@@ -112,7 +112,7 @@ This analysis must align precisely with the paper’s methodology, experimental 
 
 def get_relevant_code(todo_file_name, todo_file_desc):
     description = f"{todo_file_name}: {todo_file_desc}"
-    similar_techs = decompose_and_find_techniques(description, top_k=3, code_only=False, llm_rerank=True)
+    similar_techs = decompose_and_find_techniques(description, top_k=3, code_only=True, llm_rerank=True)
     if not similar_techs:
         return "No relevant code found in the knowledge base."
     result = []

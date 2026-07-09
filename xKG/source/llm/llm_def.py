@@ -1,5 +1,5 @@
-""" 
-LLM后端调用接口
+"""
+LLM backend calling interface
 """
 import abc
 import json
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class LLMBackend(abc.ABC):
     """
-    所有LLM后端实现的抽象基类（接口）
+    Abstract base class (interface) for all LLM backend implementations
     """
     @abc.abstractmethod
     def query(
@@ -26,13 +26,13 @@ class LLMBackend(abc.ABC):
         **model_kwargs,
     ) -> tuple[OutputType, float, int, int, dict]:
         """
-        执行一次查询并返回完整结果。
+        Execute a single query and return the complete result.
         """
         raise NotImplementedError
 
 class OpenAIBackend(LLMBackend):
     """
-    使用 openai-python 库与 OpenAI 兼容的 API 进行交互的后端实现。
+    Backend implementation using the openai-python library to interact with OpenAI-compatible APIs.
     """
     
     TIMEOUT_EXCEPTIONS = (
@@ -44,11 +44,11 @@ class OpenAIBackend(LLMBackend):
 
     def __init__(self, **client_kwargs):
         """
-        初始化 OpenAI 后端。
-        
+        Initialize the OpenAI backend.
+
         Args:
-            **client_kwargs: 传递给 openai.OpenAI() 构造函数的参数，
-                             例如 api_key, base_url, max_retries等。
+            **client_kwargs: Arguments passed to the openai.OpenAI() constructor,
+                             e.g. api_key, base_url, max_retries, etc.
         """
         if 'max_retries' not in client_kwargs:
             client_kwargs['max_retries'] = 0
@@ -64,10 +64,10 @@ class OpenAIBackend(LLMBackend):
         **model_kwargs,
     ):
         """
-        查询 OpenAI API，可选地使用函数调用。
-        如果模型不支持函数调用，会优雅地降级为纯文本生成。
+        Query the OpenAI API, optionally using function calling.
+        Gracefully falls back to plain text generation if the model does not support function calling.
         """
-        # FOR QWEN3 等模型的特殊处理
+        # Special handling for QWEN3 and similar models
         # if system_message:
         #     system_message += "/no_think"
         logger.debug(
@@ -77,10 +77,10 @@ class OpenAIBackend(LLMBackend):
         )
         filtered_kwargs: dict = select_values(notnone, model_kwargs)
 
-        # 转换 system/user 消息为客户端需要的格式
+        # Convert system/user messages to the format required by the client
         messages = opt_messages_to_list(system_message, user_message)
 
-        # 如果请求了函数调用，则附加函数规范
+        # Attach function specification if function calling is requested
         if func_spec is not None:
             filtered_kwargs["tools"] = [func_spec.as_openai_tool_dict]
             filtered_kwargs["tool_choice"] = func_spec.openai_tool_choice_dict
@@ -88,7 +88,7 @@ class OpenAIBackend(LLMBackend):
         completion = None
         t0 = time.time()
 
-        # 尝试 API 调用
+        # Attempt API call
         try:
             completion = backoff_create(
                 self._client.chat.completions.create,

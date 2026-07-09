@@ -52,6 +52,44 @@ import tenacity
 
 logger = logging.getLogger(__name__)
 
+# Model names that should have special hints appended
+MODELS_WITH_HINTS = ["deepseek"]
+
+APPEND_HINTS = """
+- When using the tools, you MUST provide the raw command or function directly. DO NOT wrap it in a JSON object.
+- Using the bash tool to write to a file, here is an example:
+```
+    bash
+
+    cat << 'EOF' > /path/to/your/file
+    [...file contents...]
+    EOF
+```
+- Your task is to provide a functional code implementation that fully reproduces the content of the paper. Crucially, you must NOT waste time on execution, verification or debugging. Prioritize building a complete code repository.
+"""
+
+
+def append_hints(model_name: str, system_message: str) -> str:
+    """
+    Append model-specific hints to the system message if the model name matches known patterns.
+
+    Args:
+        model_name: The name of the model being used.
+        system_message: The base system message to potentially append hints to.
+
+    Returns:
+        The system message with hints appended if model matches, otherwise the original message.
+    """
+    if not model_name:
+        return system_message
+
+    model_lower = model_name.lower()
+    for model_pattern in MODELS_WITH_HINTS:
+        if model_pattern in model_lower:
+            return system_message + "\n" + APPEND_HINTS
+
+    return system_message
+
 
 def handle_message_len(
     msg: ChatMessage,

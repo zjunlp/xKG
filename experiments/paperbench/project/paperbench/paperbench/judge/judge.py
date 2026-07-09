@@ -253,7 +253,7 @@ class Judge(ABC):
         self.judge_addendum: str | None = judge_addendum
         self.submission_dir: Path = submission_dir
         self.structured_output_model: str = structured_output_model
-        self.log_path: Path | None = log_path
+        self.log_path: Path | None = Path(log_path) if log_path else None
         self.max_depth: int = max_depth
         self.code_only: bool = code_only
 
@@ -362,8 +362,16 @@ class Judge(ABC):
 
         run_logger = logging.getLogger(task.id)
         run_logger.setLevel(logging.DEBUG)
-        log_file_handler = logging.FileHandler(self.log_path / f"{task.id}.log")
-        log_file_handler.setFormatter(logger.handlers[0].formatter)  # match the formatting we have
+        log_file_handler = logging.FileHandler(str(self.log_path / f"{task.id}.log"))
+
+        # Use a standard formatter if the global logger doesn't have one
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        if logger.handlers and hasattr(logger.handlers[0], 'formatter'):
+            formatter = logger.handlers[0].formatter
+
+        log_file_handler.setFormatter(formatter)
         run_logger.addHandler(log_file_handler)
         run_logger.propagate = False
 
@@ -1015,6 +1023,16 @@ class SimpleJudge(Judge):
                 else:
                     judge_token_usage = TokenUsage()
                     messages = await self._construct_grade_leaf_messages(task, leaf_logger)
+
+                    # Log LLM input
+                    leaf_logger.info(f"=== LLM CALL #{task.id} ===")
+                    leaf_logger.info(f"Model: {self.model}")
+                    leaf_logger.info(f"Task Category: {task.task_category}")
+                    leaf_logger.info(f"Task Requirement: {task.requirements[:200]}...")
+                    leaf_logger.info(f"Input Messages Count: {len(messages)}")
+                    for i, msg in enumerate(messages):
+                        leaf_logger.debug(f"Message {i} ({msg.get('role')}): {str(msg.get('content', ''))[:300]}")
+
                     model_response = await oai_completion_with_retry_async(
                         self.openai_client.chat.completions.create,
                         model=self.model,
@@ -1022,14 +1040,21 @@ class SimpleJudge(Judge):
                         **self.completion_kwargs,
                     )
                     judge_token_usage.add_from_completion(self.model, model_response.usage)
-                    model_response = model_response.choices[0].message.content
-                    messages += [{"role": "assistant", "content": model_response}]
+                    model_response_text = model_response.choices[0].message.content
+                    messages += [{"role": "assistant", "content": model_response_text}]
 
-                    leaf_logger.info(f"model response: {model_response}")
+                    # Log LLM output
+                    leaf_logger.info(f"LLM Response: {model_response_text}")
+                    leaf_logger.info(f"Token Usage - Input: {model_response.usage.prompt_tokens}, Output: {model_response.usage.completion_tokens}")
                     score_response, parse_usage = await self._parse_model_response(
-                        model_response, continuous=(task.task_category == "Subtree")
+                        model_response_text, continuous=(task.task_category == "Subtree")
                     )
                     judge_token_usage.add_from_completion(self.structured_output_model, parse_usage)
+
+                    # Log parsed result
+                    leaf_logger.info(f"Parsed Score: {score_response.score}, Valid: {score_response.valid_score}")
+                    leaf_logger.info(f"Explanation: {score_response.explanation}")
+                    leaf_logger.info(f"=== END LLM CALL #{task.id} ===\n")
                     graded_task_node = GradedTaskNode.from_task(
                         task,
                         score=score_response.score,
@@ -1041,7 +1066,7 @@ class SimpleJudge(Judge):
                         },
                     )
 
-                    # Dump full messages
+                    # Dump full messages (including LLM response)
                     if (
                         self.log_path
                         and leaf_logger.handlers

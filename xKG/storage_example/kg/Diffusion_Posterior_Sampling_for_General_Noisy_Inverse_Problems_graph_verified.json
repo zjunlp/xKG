@@ -1,0 +1,232 @@
+{
+  "paper_title": "Diffusion Posterior Sampling for General Noisy Inverse Problems",
+  "paper_abstract": "Diffusion models have been recently studied as powerful generative inverse\nproblem solvers, owing to their high quality reconstructions and the ease of\ncombining existing iterative solvers. However, most works focus on solving\nsimple linear inverse problems in noiseless settings, which significantly\nunder-represents the complexity of real-world problems. In this work, we extend\ndiffusion solvers to efficiently handle general noisy (non)linear inverse\nproblems via approximation of the posterior sampling. Interestingly, the\nresulting posterior sampling scheme is a blended version of diffusion sampling\nwith the manifold constrained gradient without a strict measurement consistency\nprojection step, yielding a more desirable generative path in noisy settings\ncompared to the previous studies. Our method demonstrates that diffusion models\ncan incorporate various measurement noise statistics such as Gaussian and\nPoisson, and also efficiently handle noisy nonlinear inverse problems such as\nFourier phase retrieval and non-uniform deblurring. Code available at\nhttps://github.com/DPS2022/diffusion-posterior-sampling",
+  "paper_references": [
+    "Generative Modeling by Estimating Gradients of the Data Distribution",
+    "Score Based Generative Modeling through Stochastic Differential Equations",
+    "Phase retrieval algorithms a comparison",
+    "Reconstruction of an object from the modulus of its Fourier transform",
+    "Laplace s method approximations for probabilistic inference in belief networks with continuous variables",
+    "Saddlepoint approximations with applications",
+    "DPM Solver A Fast ODE Solver for Diffusion Probabilistic Model Sampling in Around 10 Steps",
+    "The perception distortion tradeoff",
+    "Estimating High Order Gradients of the Data Distribution by Denoising",
+    "Pseudo Numerical Methods for Diffusion Models on Manifolds",
+    "Oversampling smoothness an effective algorithm for phase retrieval of noisy diffraction intensities",
+    "Denoising Diffusion Probabilistic Models",
+    "Diffusion Models Beat GAN s on Image Synthesis",
+    "ILVR Conditioning Method for Denoising Diffusion Probabilistic Models",
+    "SDEdit Image Synthesis and Editing with Stochastic Differential Equations",
+    "Improved Techniques for Training Score Based Generative Models",
+    "Maximum likelihood training of score based diffusion models",
+    "Wasserstein generative adversarial networks",
+    "Denoising Diffusion Implicit Models",
+    "Deep unsupervised learning using nonequilibrium thermodynamics",
+    "fastMRI Clinical Pathology Annotations for Knee and Brain Fully Sampled Multi Coil MRI Data",
+    "Photo realistic single image super resolution using a generative adversarial network",
+    "Unpaired deep learning for accelerated MRI using optimal transport driven cycleGAN",
+    "Gotta Go Fast When Generating Data with Score Based Models",
+    "Come Closer Diffuse Faster Accelerating Conditional Diffusion Models for Inverse Problems through Stochastic Contraction",
+    "Score based diffusion models for accelerated MRI",
+    "Robust Compressed Sensing MRI with Deep Generative Priors",
+    "Improving Diffusion Models for Inverse Problems using Manifold Constraints",
+    "Bayesian model selection and model averaging",
+    "SNIPS Solving noisy inverse problems stochastically",
+    "Convex analysis and monotone operator theory in Hilbert spaces",
+    "Applied stochastic differential equations",
+    "Uncertainty estimation in medical image denoising with bayesian deep image prior",
+    "Score Based Generative Modeling with Critically Damped Langevin Diffusion",
+    "High Perceptual Quality Image Denoising With a Posterior Sampling cGAN",
+    "Stochastic Image Denoising by Sampling From the Posterior Distribution",
+    "Solving Inverse Problems in Medical Imaging with Score Based Generative Models",
+    "Reverse time diffusion equation models",
+    "Resolution robust Large Mask Inpainting with Fourier Convolutions",
+    "RePaint Inpainting using Denoising Diffusion Probabilistic Models",
+    "Free form image inpainting with gated convolution",
+    "Aggregated contextual transformations for high resolution image inpainting",
+    "Rethinking image inpainting via a mutual encoder decoder with feature equalizations",
+    "Diverse image inpainting with bidirectional and autoregressive transformers",
+    "Generating diverse structure for image inpainting with hierarchical VQ VAE",
+    "High fidelity pluralistic image completion with transformers",
+    "PatchMatch A randomized correspondence algorithm for structural image editing",
+    "Denoising Diffusion Restoration Models",
+    "Generative image inpainting with contextual attention",
+    "Palette Image to image diffusion models",
+    "Glide Towards photorealistic image generation and editing with text guided diffusion models",
+    "Hierarchical Text Conditional Image Generation with CLIP Latents",
+    "Auto Encoding Variational Bayes",
+    "Variational diffusion models",
+    "A deep convolutional neural network using directional wavelets for low dose X ray CT reconstruction",
+    "Stochastic Solutions for Linear Inverse Problems using the Prior Implicit in a Denoiser",
+    "Algebraic reconstruction techniques ART for three dimensional electron microscopy and X ray photography",
+    "A style based generator architecture for generative adversarial networks",
+    "Imagenet A large scale hierarchical image database",
+    "Deep learning based sinogram completion for low dose CT",
+    "Computed tomography",
+    "2 step sparse view ct reconstruction with a domain specific perceptual network",
+    "A fast iterative shrinkage thresholding algorithm for linear inverse problems",
+    "S cientific C omputational I maging CO de SCICO",
+    "Fast image deconvolution using hyper Laplacian priors",
+    "Beyond a gaussian denoiser Residual learning of deep cnn for image denoising",
+    "GANs Trained by a Two Time Scale Update Rule Converge to a Local Nash Equilibrium",
+    "Demystifying mmd gans",
+    "The unreasonable effectiveness of deep features as a perceptual metric",
+    "On projection algorithms for solving convex feasibility problems",
+    "Note on the generalized inverse of a matrix product",
+    "Video Diffusion Models",
+    "Progressive growing of gans for improved quality stability and variation",
+    "The lung image database consortium LIDC and image database resource initiative IDRI a completed reference database of lung nodules on CT scans",
+    "dkazanc ToMoBAR",
+    "CCPi Regularisation toolkit for computed tomographic image reconstruction with proximal splitting algorithms",
+    "Image to image translation with conditional adversarial networks",
+    "Unpaired image to image translation using cycle consistent adversarial networks",
+    "Very deep convolutional networks for large scale image recognition",
+    "Neural discrete representation learning",
+    "Proximal algorithms",
+    "Generating diverse high fidelity images with vq vae 2",
+    "Convex optimization",
+    "Lsun Construction of a large scale image dataset using deep learning with humans in the loop",
+    "Guided image generation with conditional invertible neural networks",
+    "Intermediate layer optimization for inverse problems using deep generative models",
+    "Compressed sensing using generative models",
+    "Noise2Score Tweedie textquoteright s Approach to Self Supervised Image Denoising without Clean Images",
+    "Adaptive estimation of a quadratic functional by model selection",
+    "A connection between score matching and denoising autoencoders",
+    "Tweedie s formula and selection bias",
+    "CLIP guided diffusion",
+    "Learning transferable visual models from natural language supervision",
+    "DiffusionCLIP Text Guided Diffusion Models for Robust Image Manipulation",
+    "Phase retrieval and image reconstruction for astronomy",
+    "Phase problem in crystallography",
+    "The reconstruction of a multidimensional sequence from the phase or magnitude of its Fourier transform",
+    "Nonlinear camera response functions and image deblurring Theoretical analysis and practice",
+    "Deep multi scale convolutional neural network for dynamic scene deblurring",
+    "Inverse problems a Bayesian perspective",
+    "Plug and play ADMM for image restoration Fixed point convergence and applications",
+    "Explore image deblurring via encoded blur kernel space",
+    "Local kernels that approximate Bayesian regularization and proximal operators",
+    "On the ambiguity of the image reconstruction problem",
+    "DeepPhaseCut deep relaxation in phase for unsupervised fourier phase retrieval",
+    "Sparse phase retrieval Convex algorithms and limitations",
+    "Estimation of the mean of a multivariate normal distribution",
+    "An empirical Bayes approach to statistics",
+    "Least squares generative adversarial networks",
+    "On the theory of stochastic processes with particular reference to applications",
+    "Memoir on the probability of the causes of events",
+    "The approximation of a Poisson distribution by a Gaussian distribution",
+    "Statistical image reconstruction for polyenergetic X ray computed tomography",
+    "Low dose X ray CT reconstruction via dictionary learning",
+    "Least squares methods with Poissonian noise Analysis and comparison with the Richardson Lucy algorithm",
+    "Detection of optical and infrared radiation",
+    "On a global upper bound for Jensen s inequality",
+    "Bounds on the Jensen gap and implications for mean concentrated distributions"
+  ],
+  "resources": [],
+  "findings": [
+    "Jensen Gap Upper Bound for Gaussian Likelihood Approximation: A theoretical upper bound on the error introduced by approximating p(y|x_t) by p(y|x̂₀). For a Gaussian forward model y=A(x₀)+n with n∼N(0,σ²I) and Lipschitz continuous A, the Jensen gap J = E[f(x₀)] − f(E[x₀]) (with f(x₀)=p(y|x₀)) satisfies J ≤ (d/√{2πσ²}) e^{−1/(2σ²)} · ‖∇_x A(x)‖_∞ · m₁, where m₁ = E[‖x₀−x̂₀‖]. The bound vanishes as σ→∞, explaining DPS’s robustness to high noise levels.",
+    "MCG as a Noiseless Special Case of DPS: Manifold Constrained Gradients (MCG) is shown to be a special case of DPS when measurement noise is zero (σ=0) and the data-consistency correction uses Euclidean projections onto the measurement subspace. DPS generalizes MCG by removing the projection step and replacing it with a gradient-based surrogate, preventing error amplification in noisy inverse problems."
+  ],
+  "code_file": "Dockerfile\nREADME.md\nconfigs/diffusion_config.yaml\nconfigs/gaussian_deblur_config.yaml\nconfigs/imagenet_model_config.yaml\nconfigs/inpainting_config.yaml\nconfigs/model_config.yaml\nconfigs/motion_deblur_config.yaml\nconfigs/nonlinear_deblur_config.yaml\nconfigs/phase_retrieval_config.yaml\nconfigs/super_resolution_config.yaml\ndata/dataloader.py\ndata/samples/00003.png\ndata/samples/00014.png\ndata/samples/00015.png\nfigures/cover.jpg\nfigures/motion_blur.gif\nfigures/super_resolution.gif\nguided_diffusion/__init__.py\nguided_diffusion/condition_methods.py\nguided_diffusion/fp16_util.py\nguided_diffusion/gaussian_diffusion.py\nguided_diffusion/measurements.py\nguided_diffusion/nn.py\nguided_diffusion/posterior_mean_variance.py\nguided_diffusion/unet.py\nrequirements.txt\nsample_condition.py\nscripts/run_sampling.sh\nutil/compute_metric.py\nutil/fastmri_utils.py\nutil/img_utils.py\nutil/logger.py\nutil/resizer.py\nutil/tools.py",
+  "code_overview": "# Diffusion Posterior Sampling for General Noisy Inverse Problems - Project Overview\n\n## Overview\nThis repository implements the ICLR 2023 spotlight paper \"Diffusion Posterior Sampling for General Noisy Inverse Problems\". The project extends diffusion models to handle noisy inverse problems through posterior sampling approximation. Key highlights:\n- Provides solutions for both linear and nonlinear inverse problems\n- Offers a more flexible generative path compared to previous approaches\n- Includes pre-trained models and sample configurations\n- Supports various tasks like super-resolution, deblurring, inpainting, and phase retrieval\n\n## System Architecture\nThe project follows a modular design with clear separation of concerns:\n\n### Main Components\n1. **Diffusion Core** (`guided_diffusion/`):\n   - `gaussian_diffusion.py`: Implements the base diffusion process\n   - `posterior_mean_variance.py`: Handles posterior computations\n   - `condition_methods.py`: Contains conditioning methods for different tasks\n   - `measurements.py`: Implements various measurement operators\n\n2. **Configuration System** (`configs/`):\n   - Model configurations (`model_config.yaml`, `imagenet_model_config.yaml`)\n   - Diffusion process configurations (`diffusion_config.yaml`)\n   - Task-specific configurations (e.g., `super_resolution_config.yaml`)\n\n3. **Utilities** (`util/`):\n   - Image processing (`img_utils.py`, `resizer.py`)\n   - Metrics computation (`compute_metric.py`)\n   - Logging (`logger.py`)\n   - Miscellaneous tools (`tools.py`)\n\n4. **External Integrations**:\n   - Motion blur via `motionblur` repository\n   - Non-linear deblurring via `bkse` repository\n\n## Core Features\n\n### Supported Tasks\n1. **Linear Inverse Problems**:\n   - Super-resolution\n   - Gaussian deblurring\n   - Motion deblurring\n   - Inpainting\n\n2. **Nonlinear Inverse Problems**:\n   - Nonlinear deblurring\n   - Phase retrieval\n\n### Key Functionality\n1. **Flexible Conditioning**:\n   - Multiple conditioning methods available through `condition_methods.py`\n   - Configurable via YAML files\n\n2. **Noise Handling**:\n   - Supports both Gaussian and Poisson noise models\n   - Configurable noise levels\n\n3. **Measurement Operators**:\n   - Various measurement operators implemented in `measurements.py`\n   - Easy to extend with new operators\n\n4. **Efficient Sampling**:\n   - Includes optimized sampling routines\n   - Supports FP16 operations via `fp16_util.py`\n\n### Implementation Details\n- **Model Architecture**: Uses UNet-based architecture (`unet.py`)\n- **Diffusion Process**: Implements Gaussian diffusion with configurable steps\n- **Posterior Sampling**: Specialized implementation in `posterior_mean_variance.py`\n\n## Usage\nThe project provides:\n- Docker support for easy setup\n- Clear configuration system for different tasks\n- Sample scripts for running inference (`sample_condition.py`, `run_sampling.sh`)\n- Pre-trained models for FFHQ and ImageNet\n\n## Dependencies\n- Python 3.8\n- PyTorch 1.11.0+\n- CUDA 11.3+ (lower versions supported with compatible PyTorch)\n- Additional requirements listed in `requirements.txt`\n\n## Extensibility\nThe modular design makes it easy to:\n- Add new measurement operators\n- Implement new conditioning methods\n- Extend to new types of inverse problems",
+  "techniques": [
+    {
+      "name": "Diffusion Posterior Sampling (DPS)",
+      "description": "An end-to-end sampling algorithm that uses a pre-trained diffusion model as an implicit prior and incorporates data consistency with arbitrary forward measurement models (linear or non-linear, Gaussian or Poisson noise). DPS replaces the intractable likelihood term ∇_{x_t} log p(y|x_t) in the diffusion reverse SDE by a tractable surrogate computed on a point estimate of the clean signal x̂₀. At each diffusion timestep t (discretized to i), DPS (1) denoises x_i via the pre-trained score network s_θ(x_i,i) to compute the posterior mean estimate x̂₀, (2) takes an unconditional reverse diffusion step, and (3) corrects via a gradient descent on the surrogate loss ‖y − A(x̂₀)‖² (or its weighted variant for Poisson noise). This procedure yields approximate posterior samples x̂₀~p(x|y) without computing expensive spectral decompositions or requiring linearity.",
+      "weight": 1.0,
+      "code": {
+        "implementation": "import torch\nfrom torch import Tensor\nfrom typing import Tuple\n\n\nclass SurrogateLikelihoodApproximator:\n    \"\"\"\n    Implements the Surrogate Likelihood Approximation from \"Diffusion Posterior Sampling\n    for General Noisy Inverse Problems\". Approximates the intractable ∇_{x_t} log p(y|x_t)\n    by computing ∇_{x_t} of a norm-based proxy log p(y|x0_hat), where x0_hat is a\n    differentiable estimate of the clean signal. Supports Gaussian and Poisson noise.\n    \"\"\"\n\n    def __init__(self, operator: object, noiser_name: str):\n        \"\"\"\n        Args:\n            operator: A measurement operator A with a .forward(x: Tensor) -> Tensor method.\n            noiser_name: Noise model, either 'gaussian' or 'poisson'.\n        \"\"\"\n        self.operator = operator\n        self.noiser_name = noiser_name.lower()\n        if self.noiser_name not in ('gaussian', 'poisson'):\n            raise ValueError(f\"Unsupported noise model '{noiser_name}'\")\n\n    def grad_and_value(\n        self,\n        x_t: Tensor,\n        x0_hat: Tensor,\n        measurement: Tensor\n    ) -> Tuple[Tensor, Tensor]:\n        \"\"\"\n        Compute the surrogate log-likelihood proxy and its gradient wrt x_t.\n\n        Args:\n            x_t: Current latent tensor, must have requires_grad=True.\n            x0_hat: Posterior mean estimate tensor (differentiable wrt x_t).\n            measurement: Observed measurement tensor y.\n\n        Returns:\n            grad: Tensor same shape as x_t, surrogate ∇_{x_t} log p(y|x_t).\n            value: Scalar Tensor, the proxy log-likelihood (norm-based).\n        \"\"\"\n        # Compute forward model A(x0_hat)\n        Ax0 = self.operator.forward(x0_hat)\n\n        if self.noiser_name == 'gaussian':\n            # Gaussian: L2-norm proxy ‖y - A x0_hat‖₂\n            diff = measurement - Ax0\n            value = torch.linalg.norm(diff)\n            # gradient of the proxy w.r.t. x_t\n            grad = torch.autograd.grad(\n                outputs=value,\n                inputs=x_t,\n                retain_graph=True,\n                create_graph=True\n            )[0]\n\n        else:  # poisson\n            # Poisson: mean(‖y - A x0_hat‖₂ / |y|)\n            diff = measurement - Ax0\n            # avoid division by zero\n            denom = measurement.abs().clamp_min(1e-6)\n            value = (torch.linalg.norm(diff, dim=list(range(1, diff.ndim))) / denom).mean()\n            grad = torch.autograd.grad(\n                outputs=value,\n                inputs=x_t,\n                retain_graph=True,\n                create_graph=True\n            )[0]\n\n        return grad, value\n\n\nclass DPSPosteriorSampler:\n    \"\"\"\n    Diffusion Posterior Sampling (DPS) correction step:\n    At each diffusion timestep, applies a surrogate likelihood gradient descent\n    to the current latent x_t based on measurement y and estimate x0_hat.\n    \"\"\"\n\n    def __init__(self, operator: object, noise_model: str = 'gaussian', scale: float = 1.0):\n        \"\"\"\n        Args:\n            operator: Measurement operator A with .forward(x)->Tensor.\n            noise_model: 'gaussian' or 'poisson'.\n            scale: Step size ζ for the gradient correction.\n        \"\"\"\n        self.surrogate = SurrogateLikelihoodApproximator(operator, noise_model)\n        self.scale = scale\n\n    def step(\n        self,\n        x_t: Tensor,\n        x0_hat: Tensor,\n        measurement: Tensor\n    ) -> Tuple[Tensor, Tensor]:\n        \"\"\"\n        Perform one DPS correction step:\n        x_t_new = x_t - scale * ∇_{x_t} proxy_loglikelihood\n\n        Args:\n            x_t: Current latent tensor, requires_grad=True.\n            x0_hat: Posterior mean estimate (differentiable from x_t).\n            measurement: Observed measurement tensor y.\n\n        Returns:\n            x_t_new: Updated latent tensor after correction (detached).\n            proxy_value: The scalar proxy log-likelihood before the step.\n        \"\"\"\n        # Ensure gradients can flow from x0_hat to x_t\n        x_t = x_t.requires_grad_(True)\n        grad, proxy_value = self.surrogate.grad_and_value(x_t, x0_hat, measurement)\n        x_t_new = x_t - self.scale * grad\n        # Detach to break autograd graph for the next iteration\n        return x_t_new.detach(), proxy_value.detach()",
+        "test": "if __name__ == \"__main__\":\n    # Define a simple identity measurement operator\n    class IdentityOperator:\n        def forward(self, x: Tensor) -> Tensor:\n            return x\n\n    # Instantiate operator and sampler\n    operator = IdentityOperator()\n    sampler = DPSPosteriorSampler(operator, noise_model='gaussian', scale=0.5)\n\n    # Ground truth and measurement (no noise)\n    x_true = torch.tensor([[1.0, -2.0, 3.0]], dtype=torch.float32)\n    measurement = x_true.clone()  # y = x_true\n\n    # Simulate a latent x_t and a simple x0_hat estimate (e.g., half of x_t)\n    torch.manual_seed(0)\n    x_t = torch.randn_like(x_true, requires_grad=True)\n    x0_hat = 0.5 * x_t  # pretend this came from a score network\n\n    # Perform one DPS correction step\n    x_updated, proxy_val = sampler.step(x_t, x0_hat, measurement)\n\n    print(\"Initial x_t:\", x_t)\n    print(\"x0_hat estimate:\", x0_hat)\n    print(\"Measurement y:\", measurement)\n    print(\"Proxy log-likelihood value:\", proxy_val.item())\n    print(\"Updated x_t:\", x_updated)",
+        "documentation": "This module implements the core surrogate likelihood gradient correction\nused in Diffusion Posterior Sampling (DPS) for noisy inverse problems.\nIt provides:\n\n1. SurrogateLikelihoodApproximator: computes a norm-based proxy for the\n   intractable likelihood term and its gradient wrt the diffusion state x_t,\n   supporting Gaussian and Poisson noise.\n2. DPSPosteriorSampler: wraps the approximator to perform one DPS correction\n   step, adjusting x_t by a gradient descent on the proxy log-likelihood.\n3. A minimal test block demonstrating usage with an identity operator,\n   Gaussian noise, and a dummy x0_hat estimate.\n\nUsers can integrate DPSPosteriorSampler within any diffusion reverse SDE\nsampler by calling `.step(x_t, x0_hat, measurement)` at each timestep,\nwith `x0_hat` computed via the diffusion model’s score network.",
+        "package": [
+          "torch"
+        ],
+        "pass_exec": true
+      },
+      "components": [
+        {
+          "name": "Tweedie Posterior Mean Estimation",
+          "description": "Given a noisy intermediate diffusion state x_t following VP-SDE or DDPM dynamics, compute the posterior mean estimate of the original clean sample x₀ via Tweedie’s formula: x̂₀ = (x_t + (1−ᾱ_t) ∇_{x_t} log p_t(x_t)) / √{ᾱ_t}. In practice, the time-dependent score ∇_{x_t} log p_t(x_t) is replaced by the pre-trained network s_θ(x_t,t).",
+          "weight": 0.2,
+          "code": null,
+          "components": []
+        },
+        {
+          "name": "Surrogate Likelihood Approximation",
+          "description": "Approximate the intractable marginal likelihood p(y|x_t) = E_{x₀~p(x₀|x_t)}[p(y|x₀)] by its value at the posterior mean: p(y|x_t) ≃ p(y|x̂₀). This surrogate turns the outer expectation over p(x₀|x_t) into an inner evaluation, making ∇_{x_t} log p(y|x_t) tractable as ∇_{x_t} log p(y|x̂₀).",
+          "weight": 0.2,
+          "code": {
+            "implementation": "import torch\nfrom torch import Tensor\nfrom typing import Tuple\n\n\nclass SurrogateLikelihoodApproximator:\n    \"\"\"\n    Implements the Surrogate Likelihood Approximation:\n    Approximate the intractable marginal likelihood p(y|x_t) by evaluating\n    p(y|x_t) ≃ p(y|x0_hat), where x0_hat is the posterior mean estimate.\n    Then compute ∇_{x_t} log p(y|x_t) ≃ ∇_{x_t} log p(y|x0_hat) via automatic differentiation.\n\n    Supports Gaussian and Poisson noise models.\n    \"\"\"\n    def __init__(self, operator: object, noiser_name: str):\n        \"\"\"\n        Args:\n            operator: An object with a .forward(x: Tensor) -> Tensor method modeling the measurement operator A.\n            noiser_name: Name of the noise model, either 'gaussian' or 'poisson'.\n        \"\"\"\n        self.operator = operator\n        self.noiser_name = noiser_name\n\n    def grad_and_value(\n        self,\n        x_t: Tensor,\n        x0_hat: Tensor,\n        measurement: Tensor\n    ) -> Tuple[Tensor, Tensor]:\n        \"\"\"\n        Compute the surrogate log-likelihood gradient and its scalar value.\n\n        Args:\n            x_t: Current latent tensor (with requires_grad=True).\n            x0_hat: Posterior mean estimate tensor.\n            measurement: Observed measurement tensor y.\n\n        Returns:\n            grad: Tensor of same shape as x_t, containing ∇_{x_t} log p(y|x_t) surrogate.\n            value: Scalar Tensor giving the surrogate log-likelihood proxy (norm-based).\n        \"\"\"\n        if self.noiser_name == 'gaussian':\n            # L2 norm penalty: ‖y - A x0_hat‖_2\n            diff = measurement - self.operator.forward(x0_hat)\n            value = torch.linalg.norm(diff)\n            # ∇_{x_t} of the surrogate log-likelihood proxy\n            grad = torch.autograd.grad(outputs=value, inputs=x_t, retain_graph=True, create_graph=True)[0]\n\n        elif self.noiser_name == 'poisson':\n            # Poisson residual penalty: mean(‖y - A x0_hat‖_2 / |y|)\n            Ax0 = self.operator.forward(x0_hat)\n            diff = measurement - Ax0\n            value = (torch.linalg.norm(diff) / measurement.abs()).mean()\n            grad = torch.autograd.grad(outputs=value, inputs=x_t, retain_graph=True, create_graph=True)[0]\n\n        else:\n            raise NotImplementedError(f\"Noise model '{self.noiser_name}' not supported.\")\n\n        return grad, value",
+            "test": "if __name__ == \"__main__\":\n    # Define a simple identity measurement operator\n    class IdentityOperator:\n        def forward(self, x: Tensor) -> Tensor:\n            return x\n\n    # Instantiate the approximator for Gaussian noise\n    operator = IdentityOperator()\n    approximator = SurrogateLikelihoodApproximator(operator, noiser_name='gaussian')\n\n    # Create dummy tensors\n    x_prev = torch.randn((5,), requires_grad=True)     # x_t with gradients enabled\n    x0_hat = torch.randn((5,))                         # posterior mean estimate\n    measurement = torch.randn((5,))                    # observed y\n\n    # Compute surrogate gradient and value\n    grad_estimate, surrogate_value = approximator.grad_and_value(\n        x_t=x_prev,\n        x0_hat=x0_hat,\n        measurement=measurement\n    )\n\n    print(\"Surrogate Value:\", surrogate_value.item())\n    print(\"Surrogate Gradient:\", grad_estimate)",
+            "documentation": "This module encapsulates the Surrogate Likelihood Approximation strategy by approximating p(y|x_t) with p(y|x̂₀), where x̂₀ is the posterior mean. It computes a norm-based proxy for the log-likelihood (L2 for Gaussian noise and a normalized L2 for Poisson noise) and then uses PyTorch automatic differentiation to obtain the gradient with respect to x_t. The `SurrogateLikelihoodApproximator` class takes a measurement operator implementing a `.forward()` method and a noise model name. The `grad_and_value` method returns both the scalar surrogate value and its gradient tensor, enabling easy integration into gradient-based samplers or optimizers. The included test block demonstrates usage with an identity operator and random synthetic data, making it immediately runnable. This implementation requires only PyTorch and no other external dependencies.",
+            "package": [
+              "torch"
+            ],
+            "pass_exec": true
+          },
+          "components": []
+        },
+        {
+          "name": "DPS Update Step for Gaussian Noise",
+          "description": "At diffusion timestep i, after computing x̂₀, perform one reverse diffusion update: x′_{i−1} = √{α_i}(1−ᾱ_{i−1})/(1−ᾱ_i) · x_i + √{ᾱ_{i−1}}β_i/(1−ᾱ_i) · x̂₀ + σ̃_i z, then correct with a gradient descent step x_{i−1} = x′_{i−1} − ζ_i ∇_{x_i} ‖y−A(x̂₀)‖₂². Here ζ_i is a step-size hyperparameter, A(·) is the forward operator, and σ̃_i is the learned reverse diffusion noise scale.",
+          "weight": 0.4,
+          "code": {
+            "implementation": "import torch\nfrom typing import Callable, Tuple\n\n\ndef compute_data_consistency_gradient(\n    x_i: torch.Tensor,\n    x0_hat: torch.Tensor,\n    measurement: torch.Tensor,\n    operator: Callable[[torch.Tensor], torch.Tensor],\n) -> Tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"\n    Compute the gradient of the squared L2 measurement error with respect to x_i.\n\n    Parameters\n    ----------\n    x_i : torch.Tensor\n        The current noisy estimate at timestep i. Must have requires_grad=True and\n        must have been used to compute x0_hat via the diffusion model.\n    x0_hat : torch.Tensor\n        The predicted clean image x̂₀ at timestep i, obtained by the diffusion model\n        from x_i.\n    measurement : torch.Tensor\n        The observed measurement y.\n    operator : Callable[[torch.Tensor], torch.Tensor]\n        A callable forward operator A mapping images to measurement space.\n\n    Returns\n    -------\n    grad : torch.Tensor\n        Gradient ∂/∂x_i ‖y − A(x̂₀)‖₂², same shape as x_i.\n    error_val : torch.Tensor\n        The scalar measurement error ‖y − A(x̂₀)‖₂².\n    \"\"\"\n    # Forward pass through measurement operator\n    Ax0 = operator(x0_hat)\n    # Squared L2 error\n    diff = Ax0 - measurement\n    error_val = torch.sum(diff * diff)\n    # Compute gradient w.r.t. x_i\n    grad = torch.autograd.grad(outputs=error_val, inputs=x_i, retain_graph=True)[0]\n    return grad, error_val\n\n\ndef dps_gaussian_update_step(\n    x_i: torch.Tensor,\n    x0_hat: torch.Tensor,\n    measurement: torch.Tensor,\n    operator: Callable[[torch.Tensor], torch.Tensor],\n    alpha_i: float,\n    alpha_cumprod_im1: float,\n    alpha_cumprod_i: float,\n    beta_i: float,\n    sigma_tilde_i: float,\n    step_size: float,\n) -> Tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"\n    Perform one Diffusion Posterior Sampling (DPS) update step for Gaussian noise.\n\n    The update consists of:\n      1) reverse-diffusion sample:\n         x'_ = sqrt(alpha_i) * ((1 - alphā_{i-1}) / (1 - alphā_i)) * x_i\n              + sqrt(alphā_{i-1}) * (beta_i / (1 - alphā_i)) * x0_hat\n              + sigma_tilde_i * z,  where z ~ N(0, I)\n      2) data-consistency correction:\n         x_{i-1} = x'_ − step_size * ∇_{x_i} ‖y − A(x̂₀)‖₂²\n\n    Parameters\n    ----------\n    x_i : torch.Tensor\n        Noisy input at timestep i (must have requires_grad=True).\n    x0_hat : torch.Tensor\n        Predicted clean image x̂₀ at timestep i from the diffusion model.\n    measurement : torch.Tensor\n        The observed measurement y.\n    operator : Callable[[torch.Tensor], torch.Tensor]\n        Forward operator A mapping image space to measurement space.\n    alpha_i : float\n        Instantaneous alpha coefficient at timestep i (α_i).\n    alpha_cumprod_im1 : float\n        Cumulative product of alphas up to timestep i−1 (ᾱ_{i-1}).\n    alpha_cumprod_i : float\n        Cumulative product of alphas up to timestep i (ᾱ_i).\n    beta_i : float\n        Instantaneous beta coefficient at timestep i (β_i).\n    sigma_tilde_i : float\n        Learned reverse diffusion noise scale σ̃_i.\n    step_size : float\n        Gradient descent step size ζ_i for data consistency.\n\n    Returns\n    -------\n    x_prev : torch.Tensor\n        Updated sample at timestep i−1.\n    error_val : torch.Tensor\n        The scalar measurement error value ‖y − A(x̂₀)‖₂².\n    \"\"\"\n    # Reverse diffusion update\n    noise = torch.randn_like(x_i)\n    coef1 = (alpha_i ** 0.5) * ((1 - alpha_cumprod_im1) / (1 - alpha_cumprod_i))\n    coef2 = (alpha_cumprod_im1 ** 0.5) * (beta_i / (1 - alpha_cumprod_i))\n    x_prime = coef1 * x_i + coef2 * x0_hat + sigma_tilde_i * noise\n\n    # Ensure gradient can be computed w.r.t. x_i\n    if not x_i.requires_grad:\n        x_i.requires_grad_()\n\n    # Compute data-consistency gradient and error\n    grad, error_val = compute_data_consistency_gradient(\n        x_i=x_i,\n        x0_hat=x0_hat,\n        measurement=measurement,\n        operator=operator,\n    )\n\n    # Gradient correction step\n    x_prev = x_prime - step_size * grad\n    return x_prev, error_val",
+            "test": "if __name__ == \"__main__\":\n    # Example with identity forward operator and synthetic data\n    identity_op = lambda x: x\n\n    # Synthetic current noisy sample x_i\n    x_i = torch.randn(1, 3, 32, 32, requires_grad=True)\n\n    # Dummy model prediction: here we simply pass x_i as x0_hat\n    x0_hat = x_i.clone()\n\n    # Synthetic measurement equal to the true image\n    measurement = torch.randn(1, 3, 32, 32)\n\n    # Example diffusion parameters (toy values)\n    alpha_cumprod_im1 = 0.95\n    alpha_cumprod_i = 0.90\n    beta_i = alpha_cumprod_im1 - alpha_cumprod_i  # e.g., 0.05\n    alpha_i = 1.0 - beta_i                        # e.g., 0.95\n    sigma_tilde_i = 0.1\n    step_size = 0.01\n\n    x_prev, err = dps_gaussian_update_step(\n        x_i=x_i,\n        x0_hat=x0_hat,\n        measurement=measurement,\n        operator=identity_op,\n        alpha_i=alpha_i,\n        alpha_cumprod_im1=alpha_cumprod_im1,\n        alpha_cumprod_i=alpha_cumprod_i,\n        beta_i=beta_i,\n        sigma_tilde_i=sigma_tilde_i,\n        step_size=step_size,\n    )\n\n    print(\"Updated sample shape:\", x_prev.shape)\n    print(\"Measurement error (‖y−A(x̂₀)‖²):\", err.item())",
+            "documentation": "This module implements the Gaussian-noise DPS (Diffusion Posterior Sampling) update step for inverse problems. \nIt defines:\n1) compute_data_consistency_gradient: computes the gradient of the squared L2 error ‖y−A(x̂₀)‖₂² w.r.t. the current noisy sample x_i.\n2) dps_gaussian_update_step: performs one reverse-diffusion sample update followed by a data-consistency gradient correction.\nUsers must supply:\n- x_i with requires_grad=True and its corresponding x0_hat predicted by the diffusion model,\n- the observed measurement y,\n- the forward operator A,\n- diffusion hyperparameters α_i, ᾱ_{i−1}, ᾱ_i, β_i, σ̃_i, and gradient step size ζ_i.\nA test block provides a runnable example with an identity operator and synthetic data.",
+            "package": [
+              "torch"
+            ],
+            "pass_exec": true
+          },
+          "components": [
+            {
+              "name": "Reverse Diffusion Update",
+              "description": "Compute the unconditional reverse diffusion proposal x′_{i−1} using the standard VP-SDE (or DDPM) ancestral sampling formula parameterized by α_i, ᾱ_i, β_i, and the posterior mean x̂₀.",
+              "weight": 0.2,
+              "code": null,
+              "components": []
+            },
+            {
+              "name": "Data-Consistency Gradient Step",
+              "description": "Take one gradient descent step on the squared measurement error ‖y−A(x̂₀)‖₂² with respect to x_i, scaled by ζ_i, to enforce consistency with the Gaussian noise model.",
+              "weight": 0.2,
+              "code": {
+                "implementation": "import torch\nfrom typing import Callable, Tuple\n\ndef compute_data_consistency_gradient(\n    x_prev: torch.Tensor,\n    x0_hat: torch.Tensor,\n    measurement: torch.Tensor,\n    operator: Callable[[torch.Tensor], torch.Tensor],\n) -> Tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"\n    Compute the gradient of the L2 measurement error norm with respect to x_prev.\n\n    Parameters\n    ----------\n    x_prev : torch.Tensor\n        The current estimate tensor for which gradient is computed. Must have requires_grad=True.\n    x0_hat : torch.Tensor\n        The reconstructed estimate tensor at the same timestep, used in the forward model.\n    measurement : torch.Tensor\n        The observed measurement tensor y.\n    operator : Callable[[torch.Tensor], torch.Tensor]\n        A callable operator A that maps x0_hat to the measurement domain.\n\n    Returns\n    -------\n    norm_grad : torch.Tensor\n        The gradient ∂/∂x_prev of the L2 norm ‖y − A(x0_hat)‖₂.\n    norm_val : torch.Tensor\n        The scalar L2 norm value ‖y − A(x0_hat)‖₂.\n    \"\"\"\n    # Forward model: A(x0_hat)\n    Ax0 = operator(x0_hat)\n    # Compute difference and its L2 norm\n    diff = measurement - Ax0\n    norm_val = torch.linalg.norm(diff)\n    # Compute gradient of norm w.r.t. x_prev\n    norm_grad = torch.autograd.grad(outputs=norm_val, inputs=x_prev, retain_graph=True)[0]\n    return norm_grad, norm_val\n\ndef data_consistency_gradient_step(\n    x_prev: torch.Tensor,\n    x0_hat: torch.Tensor,\n    measurement: torch.Tensor,\n    operator: Callable[[torch.Tensor], torch.Tensor],\n    scale: float = 1.0,\n) -> Tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"\n    Perform one gradient descent step on the measurement error norm to enforce data consistency.\n\n    The step is: x_new = x_prev - scale * ∂/∂x_prev ‖y − A(x0_hat)‖₂\n\n    Parameters\n    ----------\n    x_prev : torch.Tensor\n        The current estimate tensor. Must have requires_grad=True.\n    x0_hat : torch.Tensor\n        The reconstructed estimate tensor used in the forward model.\n    measurement : torch.Tensor\n        The observed measurement tensor y.\n    operator : Callable[[torch.Tensor], torch.Tensor]\n        A callable operator A that maps x0_hat to the measurement domain.\n    scale : float, optional\n        The step size ζ for the gradient descent, by default 1.0.\n\n    Returns\n    -------\n    x_new : torch.Tensor\n        The updated tensor after one data-consistency gradient step.\n    norm_val : torch.Tensor\n        The L2 norm ‖y − A(x0_hat)‖₂ before the update.\n    \"\"\"\n    # Compute gradient and norm\n    norm_grad, norm_val = compute_data_consistency_gradient(\n        x_prev=x_prev, x0_hat=x0_hat, measurement=measurement, operator=operator\n    )\n    # Gradient descent update\n    x_new = x_prev - scale * norm_grad\n    return x_new, norm_val",
+                "test": "if __name__ == \"__main__\":\n    # Simple identity operator for testing\n    def identity_op(x: torch.Tensor) -> torch.Tensor:\n        return x\n\n    # Create a toy example\n    # x_prev initialized away from measurement\n    x_prev = torch.tensor([0.0, 0.0], requires_grad=True)\n    # In this toy example, x0_hat equals x_prev\n    x0_hat = x_prev\n    # Measurement we want to reach\n    measurement = torch.tensor([3.0, 4.0])\n\n    # Perform a data consistency step with scale=0.1\n    x_updated, norm_before = data_consistency_gradient_step(\n        x_prev=x_prev,\n        x0_hat=x0_hat,\n        measurement=measurement,\n        operator=identity_op,\n        scale=0.1,\n    )\n\n    print(f\"Norm before update: {norm_before.item():.4f}\")\n    print(f\"Updated x: {x_updated.detach().numpy()}\")",
+                "documentation": "This module implements the data-consistency gradient step for Gaussian-noise inverse problems. It computes the L2 measurement error norm ‖y − A(x̂₀)‖₂ and its gradient with respect to the current estimate x_prev. The core update moves x_prev along the negative gradient, scaled by a configurable step size ζ. Users supply a forward operator A (e.g., an imaging model) and the observed measurement y; the code handles any tensor shapes supported by PyTorch. The API consists of two functions: one to compute the gradient and norm (`compute_data_consistency_gradient`) and another to perform the actual gradient descent update (`data_consistency_gradient_step`). A test block at the bottom demonstrates usage with an identity operator, moving an initial point toward a target measurement. The implementation directly follows the original formulation of the data-consistency gradient step for Gaussian noise models.",
+                "package": [
+                  "torch"
+                ],
+                "pass_exec": true
+              },
+              "components": []
+            }
+          ]
+        },
+        {
+          "name": "DPS Update Step for Poisson Noise",
+          "description": "Same as the Gaussian DPS update, but replace the squared ℓ₂ loss by a weighted squared loss ‖y−A(x̂₀)‖^2_Λ where Λ is a diagonal weighting with Λ_{jj} = 1/(2y_j). The gradient step becomes x_{i−1} = x′_{i−1} − ζ_i ∇_{x_i} ‖y−A(x̂₀)‖²_Λ.",
+          "weight": 0.2,
+          "code": {
+            "implementation": "import torch\nfrom typing import Callable, Optional\n\nclass PoissonDPSUpdater:\n    \"\"\"\n    DPS (Diffusion Posterior Sampling) update step for Poisson noise inverse problems.\n\n    This class implements the weighted squared‐loss update:\n        L(x̂₀) = (y - A(x̂₀))^T Λ (y - A(x̂₀)),  with  Λ_jj = 1 / (2 y_j).\n    The gradient of L with respect to the diffusion state x_i is used to\n    adjust the intermediate sample x'_{i-1}:\n        x_{i-1} = x'_{i-1} - ζ_i ∇_{x_i} L(x̂₀).\n\n    Attributes:\n        operator: A callable that maps a reconstruction x to its forward measurement A(x).\n        step_size: The step size ζ_i for the gradient descent update.\n    \"\"\"\n\n    def __init__(self, operator: Callable[[torch.Tensor], torch.Tensor], step_size: float = 1.0):\n        \"\"\"\n        Initialize the Poisson DPS updater.\n\n        Parameters:\n            operator: A function or callable module implementing A(x).\n            step_size: The gradient descent step size ζ_i.\n        \"\"\"\n        self.operator = operator\n        self.step_size = step_size\n\n    def compute_weighted_loss(\n        self,\n        x0_hat: torch.Tensor,\n        measurement: torch.Tensor\n    ) -> torch.Tensor:\n        \"\"\"\n        Compute the weighted squared Poisson loss:\n            L = (y - A(x̂₀))^T Λ (y - A(x̂₀)),  Λ_jj = 1/(2 y_j).\n\n        Parameters:\n            x0_hat: Predicted clean image tensor x̂₀.\n            measurement: Observed Poisson-noisy measurement y.\n\n        Returns:\n            A scalar tensor containing the computed loss.\n        \"\"\"\n        # Compute forward model A(x̂₀)\n        Ax = self.operator(x0_hat)\n        # Compute elementwise difference\n        diff = measurement - Ax\n        # Diagonal weights Λ_jj = 1/(2 y_j)\n        weights = 1.0 / (2.0 * measurement)\n        # Weighted squared loss\n        loss = (diff * diff * weights).sum()\n        return loss\n\n    def update(\n        self,\n        x_dash: torch.Tensor,\n        x_prev: torch.Tensor,\n        x0_hat: torch.Tensor,\n        measurement: torch.Tensor\n    ) -> torch.Tensor:\n        \"\"\"\n        Perform one DPS update step for Poisson noise.\n\n        Computes the gradient of the weighted loss w.r.t. x_prev and applies\n        a gradient descent step to x_dash.\n\n        Parameters:\n            x_dash: The intermediate sample x'_{i-1} (torch.Tensor).\n            x_prev: The diffusion state x_i; must require gradients.\n            x0_hat: The predicted clean reconstruction x̂₀ from the model.\n            measurement: Observed Poisson-noisy measurement y.\n\n        Returns:\n            Updated tensor x_{i-1} after the Poisson DPS step.\n        \"\"\"\n        # Compute the loss scalar\n        loss = self.compute_weighted_loss(x0_hat, measurement)\n        # Compute gradient ∇_{x_i} L\n        grad = torch.autograd.grad(outputs=loss, inputs=x_prev, retain_graph=True)[0]\n        # Gradient descent update\n        x_updated = x_dash - self.step_size * grad\n        return x_updated",
+            "test": "if __name__ == \"__main__\":\n    # Toy example to demonstrate PoissonDPSUpdater\n    # Define a simple forward operator: A(x) = x (identity)\n    def identity_operator(x: torch.Tensor) -> torch.Tensor:\n        return x\n\n    # Instantiate updater with identity operator and step size\n    updater = PoissonDPSUpdater(operator=identity_operator, step_size=0.5)\n\n    # Create synthetic data\n    # True clean image x_true\n    x_true = torch.tensor([2.0, 4.0, 6.0], dtype=torch.float32)\n    # Simulate Poisson measurement y ≈ Poisson(x_true)\n    torch.manual_seed(0)\n    y = torch.poisson(x_true)\n\n    # Initial diffusion state x_prev (requires grad for gradient computation)\n    x_prev = x_true + 0.1 * torch.randn_like(x_true)\n    x_prev.requires_grad_(True)\n\n    # Model's predicted clean reconstruction (x̂₀)\n    x0_hat = x_prev.clone()\n\n    # Intermediate sample x_dash (x'_{i-1})\n    x_dash = x_prev.clone()\n\n    # Perform one Poisson DPS update\n    x_updated = updater.update(x_dash=x_dash,\n                               x_prev=x_prev,\n                               x0_hat=x0_hat,\n                               measurement=y)\n    print(\"Measurement y:\", y)\n    print(\"Before update x_dash:\", x_dash)\n    print(\"After Poisson DPS update:\", x_updated)",
+            "documentation": "This module encapsulates the core Diffusion Posterior Sampling (DPS) update step tailored for Poisson noise. The `PoissonDPSUpdater` computes a weighted squared‐loss L over the discrepancy between the model’s predicted clean image and the observed noisy measurement, with per-pixel weights Λ_jj = 1/(2 y_j). It then computes the gradient of L with respect to the current diffusion state and performs a gradient descent update on the intermediate sample x'_{i−1}. Users must supply a forward operator A(⋅) (e.g., imaging model), and can configure the step size ζ. The provided test block demonstrates usage on a toy identity operator, synthetic Poisson measurements, and random initialization. This standalone implementation requires only PyTorch.",
+            "package": [
+              "torch"
+            ],
+            "pass_exec": true
+          },
+          "components": [
+            {
+              "name": "Weighted Data-Consistency Gradient",
+              "description": "Enforce consistency with Poisson noise by taking the gradient of the weighted squared error ∑_j (y_j−A(x̂₀)_j)²/(2y_j) with respect to x_i, scaled by step-size ζ_i.",
+              "weight": 0.2,
+              "code": null,
+              "components": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

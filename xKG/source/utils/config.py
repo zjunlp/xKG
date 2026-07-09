@@ -15,9 +15,9 @@ BACKEND_REGISTRY = {
 FINAL_CONFIG: dict = None
 LLM_INSTANCE: LLMBackend = None
 
-# --- 辅助函数：深度合并字典 ---
+# --- Helper function: Deep merge dictionaries ---
 def _deep_merge(source, destination):
-    """递归地将 source 字典合并到 destination 字典中。"""
+    """Recursively merge source dictionary into destination dictionary."""
     for key, value in source.items():
         if isinstance(value, dict):
             node = destination.setdefault(key, {})
@@ -27,7 +27,7 @@ def _deep_merge(source, destination):
     return destination
 
 def _resolve_env_vars(config):
-    """递归解析 ${VAR_NAME} 形式的环境变量。"""
+    """Recursively resolve environment variables in ${VAR_NAME} format."""
     if isinstance(config, dict):
         return {k: _resolve_env_vars(v) for k, v in config.items()}
     elif isinstance(config, list):
@@ -41,39 +41,40 @@ def _resolve_env_vars(config):
     return config
 
 def _setup_logging(log_level: str):
-    """根据给定的级别字符串配置全局日志记录器。"""
+    """Configure global logger based on the given level string."""
     level = getattr(logging, log_level.upper(), logging.INFO)
-    
-    # 获取根日志记录器
+
+    # Get root logger
     root_logger = logging.getLogger()
-    
-    # 如果已经配置过，则不再重复配置
+
+    # Skip reconfiguration if already configured
     if root_logger.hasHandlers():
         return
-        
+
     root_logger.setLevel(level)
-    
-    # 创建一个简单的控制台处理器
+
+    # Create a simple console handler
     console_handler = logging.StreamHandler(sys.stdout)
-    
-    # 创建格式化器
+
+    # Create formatter
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     console_handler.setFormatter(formatter)
-    
-    # 添加处理器到根日志记录器
+
+    # Add handler to root logger
     root_logger.addHandler(console_handler)
     logging.info(f"Logging configured with level: {log_level.upper()}")
         
 def initialize_app(profile_name: str = None, config_path: str = None, kg_path: str = None):
     """
-    加载、解析并设置全局配置字典。不再创建LLM实例。
+    Load, parse, and set the global configuration dictionary.
+    All relative paths will be converted to absolute paths relative to the xKG project root.
 
-    参数：
-        profile_name: 配置profile名称（默认从config.yaml中读取）
-        config_path: 外部指定的config.yaml路径（也可通过XKG_CONFIG_PATH环境变量）
-        kg_path: 外部指定的KG数据目录（也可通过XKG_KG_PATH环境变量）
+    Args:
+        profile_name: Configuration profile name (default read from config.yaml)
+        config_path: Externally specified config.yaml path (can also be set via XKG_CONFIG_PATH env var)
+        kg_path: Externally specified KG data directory (can also be set via XKG_KG_PATH env var)
     """
     global FINAL_CONFIG
 
@@ -81,7 +82,7 @@ def initialize_app(profile_name: str = None, config_path: str = None, kg_path: s
     repo_root = package_root.parent
     load_dotenv(dotenv_path=repo_root / ".env")
 
-    # 1. 确定 config.yaml 来源
+    # 1. Determine config.yaml source
     config_file = Path(config_path or os.environ.get("XKG_CONFIG_PATH") or (package_root / "config.yaml"))
 
     with open(config_file, 'r') as f:
@@ -96,9 +97,21 @@ def initialize_app(profile_name: str = None, config_path: str = None, kg_path: s
     final_config = _resolve_env_vars(active_config)
     final_config['profile_name'] = active_profile_name
 
-    # 2. 允许环境变量覆盖 kg_path 和 raw_index_path
+    # 2. Convert all relative paths to absolute paths (relative to xKG project root)
+    path_keys = ['raw_index_path', 'raw_papers_path', 'raw_code_path', 'kg_path', 'process_path']
+    for key in path_keys:
+        if key in final_config:
+            path_value = final_config[key]
+            # If already absolute path, keep unchanged; otherwise relative to package_root
+            if not Path(path_value).is_absolute():
+                final_config[key] = str((package_root / path_value).resolve())
+
+    # 3. Allow environment variables to override kg_path and raw_index_path
     override_kg_path = kg_path or os.environ.get("XKG_KG_PATH")
     if override_kg_path:
+        # If override_kg_path is relative, also convert to absolute path
+        if not Path(override_kg_path).is_absolute():
+            override_kg_path = str((package_root / override_kg_path).resolve())
         final_config['kg_path'] = override_kg_path
         final_config['raw_index_path'] = override_kg_path
 
@@ -112,13 +125,13 @@ def initialize_app(profile_name: str = None, config_path: str = None, kg_path: s
 
 
 def get_config() -> dict:
-    """获取全局共享的配置字典。如果尚未初始化，则会报错。"""
+    """Get the globally shared configuration dictionary. Raises error if not yet initialized."""
     if FINAL_CONFIG is None:
         raise RuntimeError("Configuration is not initialized. Please call initialize_app() first.")
     return FINAL_CONFIG
 
 def get_llm_backend() -> LLMBackend:
-    """每次调用则新建一个LLM Backend实例并返回。"""
+    """Create and return a new LLM Backend instance on each call."""
     config = get_config()
     api_type = config.get('api_type')
     if not api_type:
@@ -128,11 +141,11 @@ def get_llm_backend() -> LLMBackend:
     if not backend_class:
         raise ValueError(f"Unsupported api_type: '{api_type}'.")
 
-    # 每次都创建一个新的实例并返回
+    # Create and return a new instance on each call
     return backend_class()
 
 def get_code_rag_config() -> dict:
-    """获取嵌入器相关的配置子字典。如果尚未初始化，则会报错。"""
+    """Get the code RAG configuration sub-dictionary. Raises error if not yet initialized."""
     config = get_config()
     embedder_config = config.get('code')
     if embedder_config is None:
@@ -140,7 +153,7 @@ def get_code_rag_config() -> dict:
     return embedder_config
 
 def get_paper_rag_config() -> dict:
-    """获取嵌入器相关的配置子字典。如果尚未初始化，则会报错。"""
+    """Get the paper RAG configuration sub-dictionary. Raises error if not yet initialized."""
     config = get_config()
     embedder_config = config.get('paper')
     if embedder_config is None:
@@ -148,24 +161,46 @@ def get_paper_rag_config() -> dict:
     return embedder_config
 
 def get_raw_papers_path() -> Path:
-    """获取原始论文存储路径。"""
+    """Get the raw papers storage path (absolute path relative to xKG project root)."""
     config = get_config()
     raw_papers_path = config.get('raw_papers_path', 'storage/raw/papers')
-    return Path(raw_papers_path)
+    # Convert to absolute path (relative to xKG project root)
+    abs_path = Path(__file__).parent.parent.parent / raw_papers_path
+    return abs_path.resolve()
 
 def get_raw_code_path() -> Path:
-    """获取原始代码存储路径。"""
+    """Get the raw code storage path (absolute path relative to xKG project root)."""
     config = get_config()
     raw_code_path = config.get('raw_code_path', 'storage/raw/code')
-    return Path(raw_code_path)
+    # Convert to absolute path (relative to xKG project root)
+    abs_path = Path(__file__).parent.parent.parent / raw_code_path
+    return abs_path.resolve()
 
 def get_process_path() -> Path:
-    """获取处理阶段输出路径。"""
+    """Get the processing stage output path (absolute path relative to xKG project root)."""
     config = get_config()
     process_path = config.get('process_path', 'storage/process')
-    return Path(process_path)
+    # Convert to absolute path (relative to xKG project root)
+    abs_path = Path(__file__).parent.parent.parent / process_path
+    return abs_path.resolve()
+
+def get_kg_path() -> Path:
+    """Get the knowledge graph storage path (absolute path relative to xKG project root)."""
+    config = get_config()
+    kg_path = config.get('kg_path', 'storage/kg')
+    # Convert to absolute path (relative to xKG project root)
+    abs_path = Path(__file__).parent.parent.parent / kg_path
+    return abs_path.resolve()
+
+def get_raw_index_path() -> Path:
+    """Get the raw index storage path (absolute path relative to xKG project root)."""
+    config = get_config()
+    raw_index_path = config.get('raw_index_path', 'storage/raw/index')
+    # Convert to absolute path (relative to xKG project root)
+    abs_path = Path(__file__).parent.parent.parent / raw_index_path
+    return abs_path.resolve()
 
 def should_save_process() -> bool:
-    """获取是否保存处理过程的配置。"""
+    """Get the configuration for whether to save process output."""
     config = get_config()
     return config.get('save_process', True)

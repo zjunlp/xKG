@@ -64,7 +64,6 @@ class PersistentDb:
             conn.execute("INSERT INTO test DEFAULT VALUES")
         ```
         """
-        print(f"\nPROBE_DB: Attempting to connect to self.database_file: [{self.database_file}]\n", flush=True)
 
         with (
             # Close db file

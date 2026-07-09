@@ -1,11 +1,11 @@
 """
-CodeVerifier: 自动验证代码片段的可执行性和语法正确性
+CodeVerifier: Automatically verify executability and syntactic correctness of code snippets
 
-核心功能：
-1. 自动提取代码片段中的依赖包
-2. 在Docker环境中自动安装依赖并运行代码
-3. 自动捕获报错并进行debug修复
-4. 验证语法和可执行性，输出最终可运行代码和依赖
+Core features:
+1. Automatically extract dependency packages from code snippets
+2. Automatically install dependencies and run code in a Docker environment
+3. Automatically capture errors and perform debug repairs
+4. Verify syntax and executability, output final runnable code and dependencies
 """
 
 import os

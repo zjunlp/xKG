@@ -22,7 +22,7 @@ from inspect_ai.tool._tool import Tool, ToolResult, tool
 from inspect_ai.tool._tool_with import tool_with
 from openai import LengthFinishReasonError
 from typing_extensions import TypedDict, Unpack
-from utils import generate_patched, prune_messages
+from utils import generate_patched, prune_messages, append_hints
 
 logger = getLogger(__name__)
 
@@ -139,6 +139,8 @@ def basic_agent_plus(
             if os.environ.get("PB_CODE_ONLY", "false") == "true"
             else DEFAULT_SYSTEM_MESSAGE
         )
+        model_name = os.environ.get("MODEL", "")
+        sys_message = append_hints(model_name, sys_message)
         init = system_message(sys_message)
     init = init if isinstance(init, list) else [init]
 
@@ -197,8 +199,8 @@ def basic_agent_plus(
             model = get_model()
             setattr(model, "total_retry_time", 0)
             setattr(model, "generate", generate_patched)
-            if "o3" in model.api.model_name or "o4" in model.api.model_name:
-                model.api.responses_api = True
+            # if "o3" in model.api.model_name or "o4" in model.api.model_name:
+            #     model.api.responses_api = True
 
             # main loop (state.completed checks message_limit and token_limit)
             while not state.completed:
@@ -231,7 +233,7 @@ def basic_agent_plus(
                     else:
                         elapsed_time = time.time() - start_time
                         periodic_msg = f"Info: {format_progress_time(elapsed_time)} time elapsed"
-                    periodic_msg += "\n\nNote: 1. Don't forget to git commit regularly!\n\n 2. Make full use of knowledge base-related tools to aid your code development!"
+                    periodic_msg += "\n\nNote: Don't forget to git commit regularly!"
                     state.messages.append(ChatMessageUser(content=periodic_msg))
 
                 length_finish_error = False

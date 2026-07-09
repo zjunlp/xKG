@@ -1,5 +1,5 @@
-""" 
-定义与llm交互的接口
+"""
+Interface definitions for LLM interaction
 """
 from .llm_def import LLMBackend, OpenAIBackend
 from .llm_utils import *

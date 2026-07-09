@@ -1,5 +1,5 @@
 """
-代码-文本图的数据结构
+Code-text graph data structures
 """
 from .code import *
 from .paper import *

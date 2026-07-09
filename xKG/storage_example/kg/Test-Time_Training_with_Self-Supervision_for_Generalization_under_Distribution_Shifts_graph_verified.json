@@ -1,0 +1,208 @@
+{
+  "paper_title": "Test-Time Training with Self-Supervision for Generalization under  Distribution Shifts",
+  "paper_abstract": "In this paper, we propose Test-Time Training, a general approach for\nimproving the performance of predictive models when training and test data come\nfrom different distributions. We turn a single unlabeled test sample into a\nself-supervised learning problem, on which we update the model parameters\nbefore making a prediction. This also extends naturally to data in an online\nstream. Our simple approach leads to improvements on diverse image\nclassification benchmarks aimed at evaluating robustness to distribution\nshifts.",
+  "paper_references": [
+    "Debiasing Linear Prediction",
+    "Rapid object detection using a boosted cascade of simple features",
+    "Robustness may be at odds with accuracy",
+    "Obfuscated gradients give a false sense of security Circumventing defenses to adversarial examples",
+    "Provably Robust Deep Learning via Adversarially Trained Smoothed Classifiers",
+    "Certified adversarial robustness via randomized smoothing",
+    "Towards deep learning models resistant to adversarial attacks",
+    "Surprising Effectiveness of Few Image Unsupervised Feature Learning",
+    "Semantic photo manipulation with a generative image prior",
+    "Tracking learning detection",
+    "Do Image Classifiers Generalize Across Time",
+    "Do ImageNet Classifiers Generalize to ImageNet",
+    "Do CIFAR 10 Classifiers Generalize to CIFAR 10",
+    "Deep residual learning for image recognition",
+    "Benchmarking neural network robustness to common corruptions and perturbations",
+    "Certifying some distributional robustness with principled adversarial training",
+    "Intriguing properties of neural networks",
+    "Certified defenses against adversarial examples",
+    "Theoretically principled trade off between robustness and accuracy",
+    "Provable defenses against adversarial examples via the convex outer adversarial polytope",
+    "Explaining and harnessing adversarial examples",
+    "The limitations of deep learning in adversarial settings",
+    "Deepfool a simple and accurate method to fool deep neural networks",
+    "Towards evaluating the robustness of neural networks",
+    "Generalisation in humans and deep neural networks",
+    "Provable robustness of relu networks via maximization of linear regions",
+    "Countering adversarial images using input transformations",
+    "Pixeldefend Leveraging generative models to understand and defend against adversarial examples",
+    "Transfer of Adversarial Robustness Between Perturbation Types",
+    "Extracting and composing robust features with denoising autoencoders",
+    "Split brain autoencoders Unsupervised learning by cross channel prediction",
+    "Context encoders Feature learning by inpainting",
+    "Unsupervised learning of visual representations by solving jigsaw puzzles",
+    "Unsupervised visual representation learning by context prediction",
+    "Colorful image colorization",
+    "Unsupervised learning by predicting noise",
+    "Unsupervised representation learning by predicting image rotations",
+    "Deep clustering for unsupervised learning of visual features",
+    "Colorization as a Proxy Task for Visual Understanding",
+    "Learning multiple layers of features from tiny images",
+    "Identity mappings in deep residual networks",
+    "Rethinking imagenet pre training",
+    "Rethinking the value of network pruning",
+    "DistInit Learning Video Representations without a Single Labeled Video",
+    "Deep networks with stochastic depth",
+    "ImageNet Large Scale Visual Recognition Challenge",
+    "Adversarial logit pairing",
+    "Adaptive histogram equalization and its variations",
+    "ImageNet trained CNNs are biased towards texture increasing shape bias improves accuracy and robustness",
+    "Layer normalization",
+    "Instance normalization The missing ingredient for fast stylization",
+    "Group normalization",
+    "Batch normalization Accelerating deep network training by reducing internal covariate shift",
+    "On calibration of modern neural networks",
+    "Adversarially robust generalization requires more data",
+    "Learning transferable features with deep adaptation networks",
+    "Domain adaptation for visual applications A comprehensive survey",
+    "Co training for domain adaptation",
+    "Unsupervised Domain Adaptation through Self Supervision",
+    "Cycada Cycle consistent adversarial domain adaptation",
+    "Unsupervised domain adaptation with residual transfer networks",
+    "Adversarial deep averaging networks for cross lingual sentiment classification",
+    "Geodesic flow kernel for unsupervised domain adaptation",
+    "Zero Shot Super Resolution using Deep Internal Learning",
+    "Unsupervised domain adaptation for zero shot learning",
+    "Domain adversarial training of neural networks",
+    "Adversarial discriminative domain adaptation",
+    "Continuous manifold based adaptation for evolving visual domains",
+    "Online domain adaptation of a pre trained cascade of classifiers",
+    "Domain adaptation with multiple sources",
+    "Online Model Distillation for Efficient Video Inference",
+    "Super resolution from a single image",
+    "Neural Multi Scale Self Supervised Registration for Echocardiogram Dense Tracking",
+    "Boosting Supervision with Self Supervision for Few shot Learning",
+    "Domain Generalization by Solving Jigsaw Puzzles",
+    "Domain generalization for object recognition with multi task autoencoders",
+    "Domain generalization via invariant feature representation",
+    "Generalizing across domains via cross gradient training",
+    "Episodic training for domain generalization",
+    "Deep domain generalization via conditional invariant adversarial networks",
+    "Discovering latent domains for multisource domain adaptation",
+    "Algorithms and theory for multiple source adaptation",
+    "Metareg Towards domain generalization using meta regularization",
+    "Unified deep supervised domain adaptation and generalization",
+    "Learning attributes equals multi source domain generalization",
+    "Deeper broader and artier domain generalization",
+    "AdverTorch v0 1 An Adversarial Robustness Toolbox based on PyTorch",
+    "Online learning and online convex optimization",
+    "Introduction to online convex optimization",
+    "Learning without forgetting",
+    "Gradient episodic memory for continual learning",
+    "Overcoming catastrophic forgetting in neural networks",
+    "Prototypical networks for few shot learning",
+    "Optimization as a model for few shot learning",
+    "One shot learning of object categories",
+    "Matching networks for one shot learning",
+    "Model agnostic meta learning for fast adaptation of deep networks",
+    "Meta SGD Learning to learn quickly for few shot learning",
+    "Meta learning with memory augmented neural networks",
+    "Dynamic few shot visual learning without forgetting",
+    "Learning by transduction",
+    "The nature of statistical learning theory",
+    "A baseline for detecting misclassified and out of distribution examples in neural networks",
+    "Using trusted data to train deep networks on labels corrupted by severe noise",
+    "Using pre training can improve model robustness and uncertainty",
+    "Improving Model Robustness and Uncertainty Estimates with Self Supervised Learning",
+    "Multitask learning",
+    "Unsupervised Learning of Visual Representations using Videos",
+    "Learning Correspondence from the Cycle Consistency of Time"
+  ],
+  "resources": [],
+  "findings": [
+    "Positive Gradient Correlation Condition: A theoretical insight (Theorem 1) showing that for smooth convex loss functions, if the inner product between the gradients of the main task loss ∇θ l_m(x,y;θ) and the auxiliary self-supervised loss ∇θ l_s(x;θ) is positive (greater than some ε>0), then a single gradient step on the auxiliary loss provably decreases the main task loss. Empirically, the paper demonstrates a strong positive correlation between gradient alignment and test-error improvement across multiple corruptions.",
+    "Variable Decision Boundary Concept: The conceptual insight that allowing the model parameters θ to depend on each test input x (θ(x)) effectively implements a variable decision boundary, breaking the fixed-boundary limitation of traditional supervised learning. This enhances capacity by adapting the decision function per sample without requiring known labels.",
+    "Empirical Robustness Under Distribution Shifts: A comprehensive set of experiments showing that Test-Time Training with rotation prediction consistently and significantly reduces error on CIFAR-10-C, ImageNet-C, VID-Robust, and CIFAR-10.1 benchmarks, while maintaining or slightly improving performance on the original, uncorrupted test sets."
+  ],
+  "code_file": "README.md\nmain.py\nmodels/SSHead.py\nscript.sh\nscript_test.py\nshow_plot.py\nshow_table.py\ntest_calls/show_decomp.py\ntest_calls/show_result.py\ntest_calls/test_adapt.py\ntest_calls/test_initial.py\ntest_calls/test_video.py\nutils/adapt_helpers.py\nutils/imagenet_vid.py\nutils/misc.py\nutils/rotation.py\nutils/test_helpers.py\nutils/train_helpers.py",
+  "code_overview": "# Project Overview: Test-Time Training with Self-Supervision for Generalization under Distribution Shifts\n\n## Overview\nThis repository is the official code release for the paper *\"Test-Time Training with Self-Supervision for Generalization under Distribution Shifts\"* (https://arxiv.org/abs/1909.13231). The project focuses on improving model generalization under distribution shifts using test-time training (TTT) with self-supervision. The code produces results on two datasets:\n- **ImageNet-C** (corrupted ImageNet for robustness evaluation)\n- **ImageNet-Video-Robust** (video adaptation of ImageNet for temporal robustness)\n\nKey highlights:\n- Implements test-time adaptation using self-supervised learning tasks\n- Designed to work with PyTorch 1.0+ and Python 3.7+\n- Requires GPU acceleration for training and evaluation\n- Companion repository exists for CIFAR-10 experiments\n\n## System Architecture\n\n### Directory Structure\nThe project follows a modular structure:\n\n1. **Main Scripts** (`main.py`, `script.sh`):\n   - Core training and evaluation pipeline\n   - Batch processing script for full experiment runs\n\n2. **Model Definition** (`models/SSHead.py`):\n   - Contains the self-supervised head architecture\n   - Implements the auxiliary task for test-time training\n\n3. **Utility Modules** (`utils/`):\n   - `adapt_helpers.py`: Test-time adaptation logic\n   - `imagenet_vid.py`: Dataset loader for ImageNet-Video-Robust\n   - `train_helpers.py`: Training procedures and loss functions\n   - `test_helpers.py`: Evaluation metrics and testing procedures\n   - `misc.py`: Miscellaneous helper functions\n   - `rotation.py`: Image rotation utilities (likely for self-supervision)\n\n4. **Testing Scripts** (`test_calls/`):\n   - Specialized scripts for different evaluation scenarios\n   - Includes video testing, decomposition analysis, and initialization tests\n\n5. **Visualization Tools** (`show_plot.py`, `show_table.py`):\n   - Results analysis and visualization\n   - Generates tables and plots for paper figures\n\n### Data Flow\n1. Training:\n   - Main pipeline (`main.py`) loads data via utils\n   - Applies standard training with self-supervised head\n   - Saves checkpoints for evaluation\n\n2. Test-Time Adaptation:\n   - Specialized test scripts load pre-trained models\n   - Perform adaptation using self-supervision during testing\n   - Evaluate on shifted distributions\n\n3. Results Analysis:\n   - Parse and visualize results\n   - Generate publication-ready outputs\n\n## Core Features\n\n1. **Test-Time Training Framework**:\n   - Implements the core TTT algorithm from the paper\n   - Uses self-supervision (likely rotation prediction) for adaptation\n   - Supports both image and video domains\n\n2. **Robustness Evaluation**:\n   - Comprehensive testing on corrupted (ImageNet-C) and temporal (ImageNet-Video-Robust) data\n   - Multiple test scripts for different evaluation scenarios\n\n3. **Self-Supervised Head**:\n   - Modular design in `SSHead.py`\n   - Can potentially be swapped for different auxiliary tasks\n\n4. **Result Visualization**:\n   - Automated table generation (`show_table.py`)\n   - Plotting utilities for paper figures (`show_plot.py`)\n   - Supports LaTeX output for academic publications\n\n5. **Reproducible Experimentation**:\n   - Batch script (`script.sh`) for full experiment pipeline\n   - Detailed configuration via command-line arguments\n   - Structured results storage in `results/` directory\n\n## Dependencies and Setup\n\n### Requirements\n- **PyTorch 1.0+**\n- **Python 3.7+** (Python 2 not officially supported)\n- Additional packages:\n  - tqdm (progress bars)\n  - colorama (colored terminal output)\n\n### Datasets Required\n1. ImageNet-C (from robustness repository)\n2. ImageNet-Video-Robust (from imagenet-vid-robust-example repository)\n\n### Configuration\nKey configuration points:\n- Data root path needs to be set in multiple files\n- Batch processing controlled via `script.sh`\n- Hyperparameters adjustable in `main.py` and test scripts",
+  "techniques": [
+    {
+      "name": "Test-Time Training with Self-Supervision",
+      "description": "An end-to-end procedure to improve a supervised model’s robustness under unknown distribution shifts by fine-tuning on an auxiliary self-supervised task at test time. First, during training, the network is jointly trained on a labeled main task and an unlabeled auxiliary task (rotation prediction) by minimizing the sum of the supervised loss l_m(x,y;θ_e,θ_m) and the self-supervised loss l_s(x;θ_e,θ_s) over the training set (Equation optimize_train). At test time, for each test sample x, the shared feature extractor parameters θ_e are updated by running T steps of SGD on the self-supervised loss l_s(x;θ_e,θ_s) (Equation optimize_test) using only augmented copies of x. The updated parameters θ_e* are then combined with the fixed main-task branch θ_m to produce a per-sample prediction g(x)=f(x;θ_e*,θ_m). This method requires no prior knowledge of the test distribution and preserves accuracy on the original distribution while substantially improving performance under corruption and shift.",
+      "weight": 0.6000000000000001,
+      "code": {
+        "implementation": "import torch\nimport torch.nn as nn\nfrom typing import Callable, List, Tuple\n\n\ndef tensor_rot_90(x: torch.Tensor) -> torch.Tensor:\n    \"\"\"\n    Rotate a tensor by 90 degrees counter-clockwise.\n    Args:\n        x (Tensor): shape (C, H, W)\n    Returns:\n        Tensor: rotated image\n    \"\"\"\n    return x.flip(2).transpose(1, 2)\n\n\ndef tensor_rot_180(x: torch.Tensor) -> torch.Tensor:\n    \"\"\"\n    Rotate a tensor by 180 degrees.\n    Args:\n        x (Tensor): shape (C, H, W)\n    Returns:\n        Tensor: rotated image\n    \"\"\"\n    return x.flip(2).flip(1)\n\n\ndef tensor_rot_270(x: torch.Tensor) -> torch.Tensor:\n    \"\"\"\n    Rotate a tensor by 270 degrees counter-clockwise.\n    Args:\n        x (Tensor): shape (C, H, W)\n    Returns:\n        Tensor: rotated image\n    \"\"\"\n    return x.transpose(1, 2).flip(2)\n\n\ndef rotate_single_with_label(img: torch.Tensor, label: int) -> torch.Tensor:\n    \"\"\"\n    Apply a rotation to img according to label ∈ {0,1,2,3}.\n    0: no rotation, 1: 90°, 2: 180°, 3: 270°.\n    Args:\n        img (Tensor): shape (C, H, W)\n        label (int): rotation class\n    Returns:\n        Tensor: rotated image\n    \"\"\"\n    if label == 1:\n        return tensor_rot_90(img)\n    elif label == 2:\n        return tensor_rot_180(img)\n    elif label == 3:\n        return tensor_rot_270(img)\n    return img\n\n\ndef rotate_batch(\n    batch: List[torch.Tensor],\n    label: str = 'rand'\n) -> Tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"\n    Given a list of images, randomly assign rotation labels and apply them.\n    Args:\n        batch (List[Tensor]): list of shape (C, H, W)\n        label (str|'rand'): if 'rand', sample each label ∈ {0,1,2,3}\n    Returns:\n        Tuple[Tensor, Tensor]: (rotated_images, labels) where\n            rotated_images is (N, C, H, W) and labels is (N,)\n    \"\"\"\n    n = len(batch)\n    if label == 'rand':\n        labels = torch.randint(0, 4, (n,), dtype=torch.long)\n    else:\n        raise ValueError(\"Only 'rand' labeling is supported.\")\n    rotated = [rotate_single_with_label(img, int(l)) for img, l in zip(batch, labels)]\n    return torch.stack(rotated, dim=0), labels\n\n\ndef test_time_adaptation(\n    model_self: nn.Module,\n    image: torch.Tensor,\n    optimizer: torch.optim.Optimizer,\n    criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],\n    n_iter: int = 1,\n    batch_size: int = 8,\n    rotation_transform: Callable[[torch.Tensor], torch.Tensor] = lambda x: x,\n    device: torch.device = torch.device(\"cpu\")\n) -> None:\n    \"\"\"\n    Perform test-time adaptation on a single sample using a self-supervised rotation task.\n    This updates model_self in-place by fine-tuning its feature extractor and self head.\n    Args:\n        model_self (nn.Module): feature-extractor plus self-supervised head\n        image (Tensor): single sample of shape (C, H, W)\n        optimizer (Optimizer): optimizer over model_self.parameters()\n        criterion (callable): returns per-sample loss Tensor\n        n_iter (int): number of SGD steps\n        batch_size (int): number of augmented copies per step\n        rotation_transform (callable): transform applied before rotation\n        device (torch.device): device for computation\n    \"\"\"\n    model_self.train()\n    image = image.to(device)\n    for _ in range(n_iter):\n        # create batch of transformed images\n        inputs = [rotation_transform(image) for _ in range(batch_size)]\n        inputs, labels = rotate_batch(inputs)\n        inputs, labels = inputs.to(device), labels.to(device)\n        optimizer.zero_grad()\n        outputs = model_self(inputs)\n        loss = criterion(outputs, labels).mean()\n        loss.backward()\n        optimizer.step()\n\n\ndef test_time_prediction(\n    model_main: nn.Module,\n    image: torch.Tensor,\n    test_transform: Callable[[torch.Tensor], torch.Tensor] = lambda x: x,\n    device: torch.device = torch.device(\"cpu\")\n) -> torch.Tensor:\n    \"\"\"\n    Make a forward pass on the main task branch after adaptation.\n    Args:\n        model_main (nn.Module): feature-extractor plus main-task head\n        image (Tensor): single sample of shape (C, H, W)\n        test_transform (callable): transform applied before prediction\n        device (torch.device): device for computation\n    Returns:\n        Tensor: logits for main-task classes, shape (1, num_classes)\n    \"\"\"\n    model_main.eval()\n    img = test_transform(image).unsqueeze(0).to(device)\n    with torch.no_grad():\n        logits = model_main(img)\n    return logits",
+        "test": "if __name__ == \"__main__\":\n    # Dummy feature extractor + two heads\n    class DummyFeatureExtractor(nn.Module):\n        def __init__(self, in_channels: int, hidden_dim: int):\n            super().__init__()\n            self.net = nn.Sequential(\n                nn.Flatten(),\n                nn.Linear(in_channels * 32 * 32, hidden_dim),\n                nn.ReLU(inplace=True)\n            )\n\n        def forward(self, x: torch.Tensor) -> torch.Tensor:\n            return self.net(x)\n\n    # Build a multitask model\n    feat = DummyFeatureExtractor(in_channels=3, hidden_dim=128)\n    main_head = nn.Linear(128, 10)   # e.g., 10 classes\n    self_head = nn.Linear(128, 4)    # 4 rotation classes\n\n    model_main = nn.Sequential(feat, main_head)\n    # Note: sharing the same feat in both\n    model_self = nn.Sequential(feat, self_head)\n\n    # Optimizer over both extractor and self head\n    optimizer = torch.optim.SGD(model_self.parameters(), lr=1e-2)\n    criterion = nn.CrossEntropyLoss(reduction='none')\n\n    # Random input image\n    image = torch.randn(3, 32, 32)\n\n    # Adapt at test time\n    test_time_adaptation(\n        model_self=model_self,\n        image=image,\n        optimizer=optimizer,\n        criterion=criterion,\n        n_iter=5,\n        batch_size=16,\n        rotation_transform=lambda x: x,  # identity transform\n        device=torch.device(\"cpu\")\n    )\n\n    # Predict main-task logits\n    logits = test_time_prediction(\n        model_main=model_main,\n        image=image,\n        test_transform=lambda x: x,  # identity transform\n        device=torch.device(\"cpu\")\n    )\n    print(\"Logits shape:\", logits.shape)  # expected (1, 10)",
+        "documentation": "This module implements the core Test-Time Training with Self-Supervision procedure for single-sample adaptation under distribution shift. It provides tensor‐level rotation utilities (90°, 180°, 270°) and functions to generate augmented batches with rotation labels. The `test_time_adaptation` function fine-tunes a combined feature extractor and rotation‐prediction head on an unlabeled test image by minimizing self‐supervised rotation loss over multiple SGD steps. After adaptation, `test_time_prediction` uses the updated feature extractor with a fixed main‐task head to produce per-sample logits. Both functions accept custom transforms and run on a specified device, making them flexible to various data pipelines. A dummy example in the test block demonstrates usage with random data and simple linear heads, ensuring the code runs end-to-end.",
+        "package": [
+          "torch"
+        ],
+        "pass_exec": true
+      },
+      "components": [
+        {
+          "name": "Joint Multi-Task Training",
+          "description": "A training routine that optimizes a shared feature extractor θ_e together with two task-specific branches θ_m (main task) and θ_s (self-supervised task). On each training sample (x_i,y_i), minimize l_m(x_i,y_i;θ_e,θ_m) + l_s(x_i;θ_e,θ_s) by SGD (Equation optimize_train).",
+          "weight": 0.2,
+          "code": {
+            "implementation": "import torch\nfrom torch import nn\nfrom torch.utils.data import DataLoader, Dataset\nfrom typing import Callable, Tuple\n\n\ndef train_joint_epoch(\n    model_main: nn.Module,\n    model_self: nn.Module,\n    dataloader: DataLoader,\n    optimizer: torch.optim.Optimizer,\n    criterion_main: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],\n    criterion_self: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],\n    device: torch.device = torch.device(\"cpu\"),\n) -> Tuple[float, float]:\n    \"\"\"\n    Perform one epoch of Joint Multi-Task Training.\n\n    On each batch, compute:\n      loss_main = criterion_main(outputs_main, labels_main).mean()\n      loss_self = criterion_self(outputs_self, labels_self).mean()\n      total_loss = loss_main + loss_self\n\n    Update the shared feature extractor and both task heads by SGD.\n\n    Args:\n        model_main (nn.Module): The main-task model (shared extractor + main head).\n        model_self (nn.Module): The self-supervised model (shared extractor + self head).\n        dataloader (DataLoader): Provides tuples of\n            (inputs_main, labels_main, inputs_self, labels_self).\n        optimizer (torch.optim.Optimizer): Optimizer over all model parameters.\n        criterion_main (callable): Loss function for the main task; returns per-sample losses.\n        criterion_self (callable): Loss function for the self-supervised task; returns per-sample losses.\n        device (torch.device): Device to run the computations on.\n\n    Returns:\n        avg_loss (float): The average combined loss over all samples.\n        accuracy_main (float): The classification accuracy on the main task.\n    \"\"\"\n    model_main.train()\n    model_self.train()\n\n    total_loss = 0.0\n    total_samples = 0\n    total_correct_main = 0\n\n    for batch in dataloader:\n        inputs_main, labels_main, inputs_self, labels_self = batch\n        inputs_main = inputs_main.to(device)\n        labels_main = labels_main.to(device)\n        inputs_self = inputs_self.to(device)\n        labels_self = labels_self.to(device)\n\n        optimizer.zero_grad()\n\n        # Forward pass for main task\n        outputs_main = model_main(inputs_main)\n        loss_main = criterion_main(outputs_main, labels_main).mean()\n\n        # Forward pass for self-supervised task\n        outputs_self = model_self(inputs_self)\n        loss_self = criterion_self(outputs_self, labels_self).mean()\n\n        # Joint loss and backward\n        loss = loss_main + loss_self\n        loss.backward()\n        optimizer.step()\n\n        # Track statistics\n        batch_size = inputs_main.size(0)\n        total_loss += loss.item() * batch_size\n        total_samples += batch_size\n        preds = outputs_main.argmax(dim=1)\n        total_correct_main += (preds == labels_main).sum().item()\n\n    avg_loss = total_loss / total_samples\n    accuracy_main = total_correct_main / total_samples\n    return avg_loss, accuracy_main",
+            "test": "if __name__ == \"__main__\":\n    # Dummy dataset yielding (inputs_main, labels_main, inputs_self, labels_self)\n    class DummyJointDataset(Dataset):\n        def __init__(\n            self,\n            num_samples: int = 200,\n            input_dim: int = 10,\n            num_classes_main: int = 3,\n            num_classes_self: int = 4,\n        ):\n            self.inputs = torch.randn(num_samples, input_dim)\n            self.labels_main = torch.randint(0, num_classes_main, (num_samples,))\n            self.labels_self = torch.randint(0, num_classes_self, (num_samples,))\n\n        def __len__(self) -> int:\n            return len(self.inputs)\n\n        def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:\n            x = self.inputs[idx]\n            y_main = self.labels_main[idx]\n            # For self-supervision, use the same input but different labels\n            y_self = self.labels_self[idx]\n            return x, y_main, x, y_self\n\n    # Configuration\n    input_dim = 10\n    hidden_dim = 16\n    num_classes_main = 3\n    num_classes_self = 4\n    batch_size = 16\n    lr = 1e-2\n\n    # Shared feature extractor\n    extractor = nn.Sequential(\n        nn.Linear(input_dim, hidden_dim),\n        nn.ReLU()\n    )\n\n    # Task-specific heads\n    head_main = nn.Linear(hidden_dim, num_classes_main)\n    head_self = nn.Linear(hidden_dim, num_classes_self)\n\n    # Models sharing the extractor\n    model_main = nn.Sequential(extractor, head_main)\n    model_self = nn.Sequential(extractor, head_self)\n\n    # Data loader\n    dataset = DummyJointDataset(\n        num_samples=200,\n        input_dim=input_dim,\n        num_classes_main=num_classes_main,\n        num_classes_self=num_classes_self\n    )\n    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)\n\n    # Loss functions and optimizer\n    crit_main = nn.CrossEntropyLoss(reduction='none')\n    crit_self = nn.CrossEntropyLoss(reduction='none')\n    optim = torch.optim.SGD(\n        list(extractor.parameters()) + list(head_main.parameters()) + list(head_self.parameters()),\n        lr=lr,\n        momentum=0.9\n    )\n\n    # Run one epoch of joint training\n    avg_loss, acc_main = train_joint_epoch(\n        model_main,\n        model_self,\n        loader,\n        optim,\n        crit_main,\n        crit_self,\n        device=torch.device(\"cpu\")\n    )\n    print(f\"Average joint loss: {avg_loss:.4f}, Main task accuracy: {acc_main*100:.2f}%\")",
+            "documentation": "This module implements the Joint Multi-Task Training routine, where a shared feature extractor and two task-specific heads (main and self-supervised) are trained in tandem. The function `train_joint_epoch` performs one full pass over the data, computes a per-sample loss for each task, sums them, and applies SGD updates. Users can supply any PyTorch models and loss functions that return per-sample losses. The shared extractor parameters can be easily reused by both models to enforce parameter sharing. A `DummyJointDataset` and simple linear models are provided in the test block to illustrate usage and verify that the routine runs end-to-end. The code is fully self-contained, configurable, and can be extended to real-world datasets and architectures.",
+            "package": [
+              "torch"
+            ],
+            "pass_exec": true
+          },
+          "components": []
+        },
+        {
+          "name": "Rotation Prediction Self-Supervised Task",
+          "description": "An auxiliary pretext task that generates a synthetic label by rotating the input image x by one of {0°,90°,180°,270°}. The network’s self-supervised branch θ_s must predict the rotation angle as a 4-way classification. This loss l_s(x;θ_e,θ_s) is used both during joint training and at test time for fine-tuning.",
+          "weight": 0.2,
+          "code": null,
+          "components": []
+        },
+        {
+          "name": "Test-Time Self-Supervised Fine-Tuning",
+          "description": "A test-time routine: given one test input x, form a small batch of its augmented copies (random crops, flips), then run T steps of SGD on the self-supervised loss l_s(x;θ_e,θ_s) w.r.t. the shared extractor θ_e only (or θ_e and θ_s), using a fixed small learning rate and zero momentum/weight decay. After fine-tuning, apply the updated θ_e to the main branch θ_m to predict the label of x (Equation optimize_test).",
+          "weight": 0.2,
+          "code": null,
+          "components": []
+        }
+      ]
+    },
+    {
+      "name": "Online Test-Time Training",
+      "description": "A streaming variant of Test-Time Training where test samples x_t arrive sequentially. For each new sample x_t, initialize θ_e from the last fine-tuned parameters θ_e(x_{t-1}), take one SGD step on the self-supervised loss l_s(x_t;θ_e,θ_s), then predict using the updated θ_e(x_t) and fixed θ_m. This way, the model continually adapts to gradually changing distribution shifts without ever seeing labels at test time.",
+      "weight": 0.4,
+      "code": {
+        "implementation": "import torch\nimport torch.nn as nn\nimport torch.optim as optim\nfrom typing import List, Tuple\n\ndef rotate_batch(images: List[torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"\n    Generate a batch of rotated images and their corresponding rotation labels.\n    Each input image is rotated by 0°, 90°, 180°, and 270°.\n\n    Parameters:\n        images (List[torch.Tensor]): List of image tensors of shape (C, H, W).\n\n    Returns:\n        inputs (torch.Tensor): Batch tensor of shape (len(images)*4, C, H, W).\n        labels (torch.Tensor): LongTensor of shape (len(images)*4,) with rotation labels 0-3.\n    \"\"\"\n    rotated_imgs: List[torch.Tensor] = []\n    labels: List[int] = []\n    for img in images:\n        for k in range(4):\n            rotated = torch.rot90(img, k, dims=(1, 2))\n            rotated_imgs.append(rotated)\n            labels.append(k)\n    inputs = torch.stack(rotated_imgs, dim=0)\n    labels_tensor = torch.tensor(labels, dtype=torch.long)\n    return inputs, labels_tensor\n\ndef one_step_self_supervised_update(\n    model: nn.Module,\n    image: torch.Tensor,\n    optimizer: optim.Optimizer,\n    criterion: nn.Module,\n    batch_size: int = 4,\n    device: torch.device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n) -> None:\n    \"\"\"\n    Perform one SGD update on the self-supervised rotation-prediction loss\n    for a single test image. This adapts the model parameters minimally\n    before making its final prediction.\n\n    Parameters:\n        model (nn.Module): The neural network model to adapt.\n        image (torch.Tensor): Single image tensor of shape (C, H, W).\n        optimizer (optim.Optimizer): Optimizer for updating model parameters.\n        criterion (nn.Module): Loss function, e.g., nn.CrossEntropyLoss().\n        batch_size (int): Number of duplicates of the image before rotation.\n        device (torch.device): Device on which to perform computations.\n\n    Returns:\n        None: The model parameters are updated in-place.\n    \"\"\"\n    model.train()\n    image = image.to(device)\n    # replicate the image batch_size times\n    imgs = [image for _ in range(batch_size)]\n    inputs, labels = rotate_batch(imgs)\n    inputs, labels = inputs.to(device), labels.to(device)\n\n    optimizer.zero_grad()\n    outputs = model(inputs)\n    loss = criterion(outputs, labels)\n    loss.backward()\n    optimizer.step()",
+        "test": "if __name__ == \"__main__\":\n    # Set random seed for reproducibility\n    torch.manual_seed(0)\n\n    # Define a simple CNN that predicts 4 rotation classes\n    class SimpleCNN(nn.Module):\n        def __init__(self, in_channels: int = 3, num_classes: int = 4):\n            super().__init__()\n            self.features = nn.Sequential(\n                nn.Conv2d(in_channels, 16, kernel_size=3, stride=1, padding=1),\n                nn.ReLU(),\n                nn.AdaptiveAvgPool2d((1, 1))\n            )\n            self.classifier = nn.Linear(16, num_classes)\n\n        def forward(self, x: torch.Tensor) -> torch.Tensor:\n            x = self.features(x)\n            x = torch.flatten(x, 1)\n            x = self.classifier(x)\n            return x\n\n    # Instantiate model, optimizer, and loss\n    device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n    model = SimpleCNN().to(device)\n    optimizer = optim.SGD(model.parameters(), lr=0.01)\n    criterion = nn.CrossEntropyLoss()\n\n    # Create a dummy test image (3x32x32)\n    test_image = torch.randn(3, 32, 32)\n\n    # Perform one self-supervised adaptation step\n    one_step_self_supervised_update(\n        model=model,\n        image=test_image,\n        optimizer=optimizer,\n        criterion=criterion,\n        batch_size=4,\n        device=device\n    )\n\n    # Evaluate on the original (unrotated) image\n    model.eval()\n    with torch.no_grad():\n        input_tensor = test_image.unsqueeze(0).to(device)\n        logits = model(input_tensor)\n        predicted_class = logits.argmax(dim=1).item()\n    print(f\"Predicted rotation class after adaptation: {predicted_class}\")",
+        "documentation": "This module implements the core “One-Step Self-Supervised Update” for test-time training via a rotation-prediction task. The function `rotate_batch` generates four rotated versions (0°, 90°, 180°, 270°) of each input image and labels them accordingly. The `one_step_self_supervised_update` function then replicates a single test image, constructs a rotation-based batch, computes the self-supervised CrossEntropy loss, and applies exactly one SGD update to the model parameters. All operations are device-aware and accept configurable batch sizes, optimizers, and loss criteria. In the test block, a simple CNN is instantiated, a random image is adapted via one rotation-prediction step, and a final prediction is printed. This lightweight adaptation introduces minimal overhead while improving robustness to distribution shifts at test time.",
+        "package": [
+          "torch"
+        ],
+        "pass_exec": true
+      },
+      "components": [
+        {
+          "name": "Sequential Parameter Initialization",
+          "description": "At time t, use the fine-tuned θ_e(x_{t-1}) from the previous test sample x_{t-1} as the starting point for the next self-supervised fine-tuning step on x_t.",
+          "weight": 0.2,
+          "code": null,
+          "components": []
+        },
+        {
+          "name": "One-Step Self-Supervised Update",
+          "description": "For each incoming test image x_t, perform exactly one SGD update on the self-supervised loss l_s(x_t;θ_e,θ_s) to adapt θ_e before prediction, ensuring minimal latency in an online setting.",
+          "weight": 0.2,
+          "code": {
+            "implementation": "import torch\nimport torch.nn as nn\nimport torch.optim as optim\nfrom typing import List, Tuple\n\ndef rotate_batch(images: List[torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"\n    Given a list of images, generate a batch of rotated images\n    by 0°, 90°, 180°, and 270° for each image, and return the\n    stacked batch with corresponding rotation labels.\n\n    Parameters:\n    images (List[torch.Tensor]): List of image tensors of shape (C, H, W).\n\n    Returns:\n    Tuple[torch.Tensor, torch.Tensor]:\n        - inputs: Tensor of shape (len(images)*4, C, H, W)\n        - labels: LongTensor of shape (len(images)*4,) with rotation labels 0-3\n    \"\"\"\n    rotated = []\n    labels = []\n    for img in images:\n        # rotate by k * 90 degrees; dims=(1,2) correspond to H and W\n        for k in range(4):\n            rotated_img = torch.rot90(img, k, dims=(1, 2))\n            rotated.append(rotated_img)\n            labels.append(k)\n    inputs = torch.stack(rotated, dim=0)\n    labels_tensor = torch.tensor(labels, dtype=torch.long)\n    return inputs, labels_tensor\n\ndef one_step_self_supervised_update(\n    model: nn.Module,\n    image: torch.Tensor,\n    optimizer: optim.Optimizer,\n    criterion: nn.Module,\n    batch_size: int = 4,\n    device: torch.device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n) -> None:\n    \"\"\"\n    Perform exactly one SGD update on the self-supervised rotation-prediction loss\n    for an incoming test image, adapting the model parameters in minimal time.\n\n    Parameters:\n    model (nn.Module): The neural network model to adapt.\n    image (torch.Tensor): A single input image tensor of shape (C, H, W).\n    optimizer (optim.Optimizer): Optimizer for updating model parameters.\n    criterion (nn.Module): Loss function, e.g., nn.CrossEntropyLoss().\n    batch_size (int): Number of copies of the image to form a batch before rotation.\n    device (torch.device): Device to perform computation on.\n\n    Returns:\n    None: Model parameters are updated in-place.\n    \"\"\"\n    model.train()\n    image = image.to(device)\n    # replicate image and apply rotations\n    imgs = [image for _ in range(batch_size)]\n    inputs, labels = rotate_batch(imgs)\n    inputs, labels = inputs.to(device), labels.to(device)\n\n    optimizer.zero_grad()\n    outputs = model(inputs)\n    loss = criterion(outputs, labels)\n    loss.backward()\n    optimizer.step()",
+            "test": "if __name__ == \"__main__\":\n    # Create a dummy model for rotation prediction on 32x32 RGB images\n    model = nn.Sequential(\n        nn.Flatten(),\n        nn.Linear(3 * 32 * 32, 128),\n        nn.ReLU(),\n        nn.Linear(128, 4)  # 4 rotation classes\n    )\n    device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n    model.to(device)\n\n    # Instantiate optimizer and rotation classification loss\n    optimizer = optim.SGD(model.parameters(), lr=0.01)\n    criterion = nn.CrossEntropyLoss()\n\n    # Fake test-time image: one random 3x32x32 tensor\n    test_image = torch.randn(3, 32, 32)\n\n    # Perform one-step self-supervised update\n    one_step_self_supervised_update(\n        model=model,\n        image=test_image,\n        optimizer=optimizer,\n        criterion=criterion,\n        batch_size=8,\n        device=device\n    )\n\n    # After adaptation, make a prediction on the original image\n    model.eval()\n    with torch.no_grad():\n        inp = test_image.unsqueeze(0).to(device)\n        logits = model(inp)\n        pred = logits.argmax(dim=1).item()\n    print(f\"Post-adaptation rotation prediction: {pred}\")",
+            "documentation": "This module implements the “One-Step Self-Supervised Update” for test-time training via a rotation-prediction task. \nThe function `rotate_batch` creates a batch of rotated images (0°, 90°, 180°, 270°) from a list of input images and labels each rotation. \n`one_step_self_supervised_update` replicates a single test image, applies rotations, computes the self-supervised loss, and performs exactly one parameter update. \nUsers supply their own model, optimizer, and criterion (e.g., CrossEntropyLoss). \nThe `batch_size` controls how many duplicates of the test image are used before rotation. \nA small test block shows instantiation of a dummy model, performing the rotation update, and making a sample prediction. \nThis lightweight adaptation step introduces minimal compute overhead while improving robustness to distribution shifts.",
+            "package": [
+              "torch"
+            ],
+            "pass_exec": true
+          },
+          "components": []
+        }
+      ]
+    }
+  ]
+}

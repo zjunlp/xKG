@@ -1,5 +1,5 @@
-""" 
-格式化解析对象定义
+"""
+Formatted parsing object definitions
 """
 from typing import List, Optional
 from pydantic import BaseModel, Field

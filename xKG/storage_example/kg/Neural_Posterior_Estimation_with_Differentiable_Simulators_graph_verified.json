@@ -1,0 +1,111 @@
+{
+  "paper_title": "Neural Posterior Estimation with Differentiable Simulators",
+  "paper_abstract": "Simulation-Based Inference (SBI) is a promising Bayesian inference framework\nthat alleviates the need for analytic likelihoods to estimate posterior\ndistributions. Recent advances using neural density estimators in SBI\nalgorithms have demonstrated the ability to achieve high-fidelity posteriors,\nat the expense of a large number of simulations ; which makes their application\npotentially very time-consuming when using complex physical simulations. In\nthis work we focus on boosting the sample-efficiency of posterior density\nestimation using the gradients of the simulator. We present a new method to\nperform Neural Posterior Estimation (NPE) with a differentiable simulator. We\ndemonstrate how gradient information helps constrain the shape of the posterior\nand improves sample-efficiency.",
+  "paper_references": [
+    "Smooth Normalizing Flows",
+    "Variational Inference with Normalizing Flows",
+    "Mining gold from implicit models to improve likelihood free inference",
+    "Sigmoid Weighted Linear Units for Neural Network Function Approximation in Reinforcement Learning",
+    "Sequential Neural Likelihood Fast Likelihood free Inference with Autoregressive Flows",
+    "Statistical inference for noisy nonlinear ecological dynamic systems",
+    "Likelihood free inference with emulator networks",
+    "Non linear regression models for Approximate Bayesian Computation",
+    "Fast epsilon free Inference of Simulation Models with Bayesian Conditional Density Estimation",
+    "Flexible statistical inference for mechanistic models of neural dynamics",
+    "Automatic Posterior Transformation for Likelihood Free Inference",
+    "Approximating Likelihood Ratios with Calibrated Discriminative Classifiers",
+    "High Dimensional Density Ratio Estimation with Extensions to Approximate Likelihood Computation",
+    "Likelihood free inference by ratio estimation",
+    "On Contrastive Learning for Likelihood free Inference",
+    "Efficient and Modular Implicit Differentiation",
+    "Benchmarking Simulation Based Inference",
+    "Density estimation using Real NVP",
+    "FlowPM Distributed TensorFlow Implementation of the FastPM Cosmological N body Solver",
+    "FFJORD Free form Continuous Dynamics for Scalable Reversible Generative Models",
+    "NICE Non linear Independent Components Estimation"
+  ],
+  "resources": [],
+  "findings": [
+    "Affine Coupling Failure under Score Matching: Empirical demonstration on the Two-Moons toy that affine coupling layers (RealNVP) cannot learn a bimodal target solely via the score matching loss due to the coupling’s lack of smooth, non-trivial higher-order gradients.",
+    "Score-Accelerated Density Estimation: On the Two-Moons 2D density estimation task, incorporating simulation gradients via score matching reduces the number of required training samples from ~500 to ~200 to reach comparable negative log-likelihood performance.",
+    "Gradient Utility for Posterior Shape vs. Location: In the Lotka-Volterra inference benchmark, gradient information (score matching) significantly accelerates posterior shape estimation under narrow proposal distributions, but does not improve, and may hinder, the model’s ability to locate the posterior mass when using a wide proposal.",
+    "Latent Stochasticity Reduces Score Benefit: Fixing latent initial conditions in the simulator (making the joint score deterministic) enhances the benefit of score matching in posterior estimation, demonstrating that stochastic latent variables dilute the effectiveness of gradient-based constraints."
+  ],
+  "code_file": "HISTORY.rst\nLICENSE.txt\nREADME.md\ncontributing.md\ndocs/Makefile\ndocs/README.rst\ndocs/conf.py\ndocs/demo-sine-v041.ipynb\ndocs/index.rst\ndocs/make.bat\ndocs/nbi_engine.rst\ndocs/requirements.txt\nexamples/demo-sine-v041.ipynb\npyproject.toml\nsrc/nbi/__init__.py\nsrc/nbi/data.py\nsrc/nbi/engine.py\nsrc/nbi/model.py\nsrc/nbi/nn/__init__.py\nsrc/nbi/nn/flows.py\nsrc/nbi/nn/resnet.py\nsrc/nbi/nn/rnn.py\nsrc/nbi/utils.py\ntest/test_engine.py",
+  "code_overview": "# Overview of kmzzhang_nbi Repository\n\n## Project Overview\n**Name**: nbi (neural bayesian inference)  \n**Description**: A Python package for Neural Posterior Estimation (NPE) focused on astronomical data analysis, particularly light curves and spectra. Provides tools for efficient and scalable inference using hybrid neural network architectures.  \n**License**: BSD 3-Clause  \n**Status**: Actively developed (as evidenced by Mac ARM-specific installation notes)  \n**Documentation**: Available at [nbi.readthedocs.io](https://nbi.readthedocs.io/)  \n**Latest Publication**: Zhang et al. 2023 (NeurIPS 2023 Workshop paper)  \n\n## System Architecture\nThe project follows a modular Python package structure with these key components:\n\n1. **Core Modules**:\n   - `engine.py`: Main inference engine (NBI class) implementing scikit-learn style API\n   - `model.py`: Core neural network architectures\n   - `data.py`: Data handling utilities\n   - `utils.py`: Supporting functions\n\n2. **Neural Network Submodules** (`nn/`):\n   - `flows.py`: Masked Autoregressive Flow implementation (adapted from external source)\n   - `resnet.py`: ResNet architectures\n   - `rnn.py`: GRU (Gated Recurrent Unit) implementations\n   - Hybrid architectures (ResNet-GRU) for sequential data processing\n\n3. **Supporting Infrastructure**:\n   - Comprehensive documentation (docs/)\n   - Example notebooks (examples/)\n   - Unit tests (test/)\n   - CI/CD through GitHub Actions\n   - ReadTheDocs integration\n\n## Core Features\n\n### 1. Neural Posterior Estimation\n- Implements Masked Autoregressive Flows for density estimation\n- Provides asymptotically exact inference through importance-sampling integration\n- Designed for high-throughput inference (thousands/millions of targets)\n\n### 2. Specialized Featurizers for Astronomical Data\n- Hybrid ResNet-GRU architecture for sequential data (light curves/spectra)\n- Configurable network architectures through hyperparameters:\n  - `dim_in`: Input channels\n  - `depth`: Number of ResNet blocks\n  - `max_hidden`: Maximum hidden dimensions\n- Rule-of-thumb guidance for architecture selection\n\n### 3. Cross-Platform Support\n- CPU (standard)\n- CUDA (NVIDIA GPUs)\n- MPS (Apple M1/M2/M3 GPUs) with special installation notes\n- Mac ARM CPU support considerations\n\n### 4. Usability Features\n- Scikit-learn style API (`fit()`, `predict()`)\n- Comprehensive documentation with examples\n- Pre-configured workflow for astronomical inference problems\n- Active development with attention to performance optimization\n\n## Key References\n1. Zhang et al. (2023) - Core NBI methodology\n2. Papamakarios et al. (2017) - Masked Autoregressive Flow\n3. He et al. (2015) - ResNet architecture\n4. Cho et al. (2014) - GRU architecture\n5. Zhang et al. (2021) - ResNet-GRU hybrid\n\n## Project Status Indicators\n- Active CI/CD pipeline (GitHub Actions)\n- Documentation regularly built (ReadTheDocs)\n- PyPI package available\n- Recent academic publication (NeurIPS 2023)\n- Clear installation instructions for edge cases (Mac ARM)",
+  "techniques": [
+    {
+      "name": "Neural Posterior Estimation with Differentiable Simulators",
+      "description": "An amortized simulation-based inference method that extends Neural Posterior Estimation (NPE) by incorporating gradient information (the joint score) from a differentiable simulator. It directly learns an approximate posterior p_φ(θ|x) via a Normalizing Flow (NF) conditioned on simulator outputs x and trained with a combined loss consisting of (1) a negative log-likelihood term on p_φ(θ|x) and (2) a score matching term that penalizes the difference between the simulator’s joint score ∇_θ log p(θ|x,z) and the flow’s score ∇_θ log p_φ(θ|x). To enable stable and expressive gradients in the NF, it adopts Smooth Normalizing Flows with C^∞-diffeomorphic coupling transforms.",
+      "weight": 0.8571428571428571,
+      "code": null,
+      "components": [
+        {
+          "name": "Negative Log-Likelihood Loss",
+          "description": "The standard amortized NPE loss that trains the density estimator p_φ(θ|x) to match the joint distribution p(θ,x). Given M samples {(θ_i, x_i)}, minimize\nL_NLL = E_{p(θ,x)}[ - log p_φ(θ|x) ].\nInput: training samples (θ_i, x_i). Output: scalar loss L_NLL.",
+          "weight": 0.14285714285714285,
+          "code": null,
+          "components": []
+        },
+        {
+          "name": "Score Matching Loss",
+          "description": "A loss that aligns the flow’s score ∇_θ log p_φ(θ|x) with the simulator’s joint score ∇_θ log p(θ|x,z). Given samples (x,z,θ),\nL_SM = E_{p(x,z,θ)}[‖∇_θ log p(θ|x,z) - ∇_θ log p_φ(θ|x)‖_2^2].\nInput: the simulator’s joint score (computed by autodiff through the simulator) and the NF’s score. Output: scalar loss L_SM.",
+          "weight": 0.14285714285714285,
+          "code": null,
+          "components": []
+        },
+        {
+          "name": "Combined Training Loss",
+          "description": "A linear combination of the negative log-likelihood and score matching losses:\nL = L_NLL + λ · L_SM,\nwhere λ ≥ 0 is a hyperparameter balancing density fitting and score alignment. Input: L_NLL and L_SM values. Output: total training objective L.",
+          "weight": 0.14285714285714285,
+          "code": null,
+          "components": []
+        },
+        {
+          "name": "Smooth Normalizing Flow",
+          "description": "A flow-based density estimator whose coupling layers are built from C^∞-diffeomorphic transforms, ensuring well-defined, smooth gradients for score matching. Transforms data z∈ℝ^D to x∈ℝ^D via alternating splits and coupling functions.",
+          "weight": 0.42857142857142855,
+          "code": null,
+          "components": [
+            {
+              "name": "Diffeomorphic Coupling Function",
+              "description": "A bijection f_y^φ:[0,1]→[0,1] parameterized by smooth neural nets a_φ(y), b_φ(y), c_φ(y):\nρ(x)=a_φ(y)[log(x/(1−x))+b_φ(y)],\nσ(x)=c_φ(y)x + (1−c_φ(y))/(1+exp(−ρ(x))),\nf_y^φ(x) = [σ(x)−σ(x0)]/[σ(x1)−σ(x0)]·(1−c_φ(y)) + c_φ(y)x,\nwith fixed x0,x1∈(0,1). Input: scalar x and conditioner y. Output: transformed scalar f_y^φ(x) with C^∞ smoothness.",
+              "weight": 0.14285714285714285,
+              "code": null,
+              "components": []
+            },
+            {
+              "name": "Mixture of Smooth Transforms",
+              "description": "An expressive bijection on [0,1] obtained by summing K smooth diffeomorphic coupling functions:\nf_total(x)=∑_{k=1}^K w_k f^φ_{y,k}(x),\nwhere weights w_k>0, ∑w_k=1. Input: x, y, mixture weights. Output: composite transform maintaining smoothness.",
+              "weight": 0.14285714285714285,
+              "code": null,
+              "components": []
+            },
+            {
+              "name": "Inverse via Newton-Raphson and Implicit Differentiation",
+              "description": "A numerical solver for the inverse of the mixture coupling function using Newton-Raphson iterations. Gradients through the inverse are obtained via the implicit function theorem. Input: target x, initial guess, coupling parameters. Output: z solving f(z)=x and ∂z/∂parameters.",
+              "weight": 0.14285714285714285,
+              "code": null,
+              "components": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Standard Affine RealNVP Coupling",
+      "description": "The classical RealNVP coupling layer: leaves x_{1:d}=z_{1:d}, x_{d+1:D}=σ_φ(z_{1:d})·z_{d+1:D} + μ_φ(z_{1:d}). It fails to provide expressive higher-order derivatives for score matching and therefore cannot be trained under a pure score matching loss.",
+      "weight": 0.14285714285714285,
+      "code": {
+        "implementation": "import torch\nimport torch.nn as nn\nfrom typing import Optional, Tuple\n\n\nclass StandardAffineRealNVPCoupling(nn.Module):\n    \"\"\"\n    Standard Affine RealNVP Coupling layer.\n\n    Implements the classical RealNVP coupling transform:\n      x1 = z1\n      x2 = exp(s(z1)) * z2 + t(z1)\n\n    Attributes:\n        scale_net: Neural network to predict log-scale s(z1).\n        translate_net: Neural network to predict translation t(z1).\n        mask: Binary mask tensor to split inputs.\n    \"\"\"\n\n    def __init__(\n        self,\n        num_inputs: int,\n        num_hidden: int,\n        mask: torch.Tensor,\n        num_cond_inputs: Optional[int] = None,\n        s_act: str = \"tanh\",\n        t_act: str = \"relu\"\n    ) -> None:\n        \"\"\"\n        Initialize the coupling layer.\n\n        Args:\n            num_inputs: Dimension of the input vector.\n            num_hidden: Hidden layer size for scale and translate networks.\n            mask: Binary mask tensor of shape (num_inputs,) indicating which\n                  dimensions are 'pass-through' (1) and which are transformed (0).\n            num_cond_inputs: Optional dimension of conditioning inputs.\n            s_act: Activation for the scale network ('tanh', 'relu', or 'sigmoid').\n            t_act: Activation for the translate network ('tanh', 'relu', or 'sigmoid').\n        \"\"\"\n        super().__init__()\n        self.mask = mask\n\n        activations = {\n            \"relu\": nn.ReLU,\n            \"sigmoid\": nn.Sigmoid,\n            \"tanh\": nn.Tanh\n        }\n        s_activation = activations.get(s_act, nn.Tanh)\n        t_activation = activations.get(t_act, nn.ReLU)\n\n        total_inputs = num_inputs + (num_cond_inputs or 0)\n        # Scale network predicts log-scale s(z1)\n        self.scale_net = nn.Sequential(\n            nn.Linear(total_inputs, num_hidden),\n            s_activation(),\n            nn.Linear(num_hidden, num_hidden),\n            s_activation(),\n            nn.Linear(num_hidden, num_inputs)\n        )\n        # Translate network predicts translation t(z1)\n        self.translate_net = nn.Sequential(\n            nn.Linear(total_inputs, num_hidden),\n            t_activation(),\n            nn.Linear(num_hidden, num_hidden),\n            t_activation(),\n            nn.Linear(num_hidden, num_inputs)\n        )\n\n    def forward(\n        self,\n        inputs: torch.Tensor,\n        cond_inputs: Optional[torch.Tensor] = None,\n        mode: str = \"direct\"\n    ) -> Tuple[torch.Tensor, torch.Tensor]:\n        \"\"\"\n        Forward or inverse pass through the coupling layer.\n\n        Args:\n            inputs: Input tensor of shape (..., num_inputs).\n            cond_inputs: Optional conditioning tensor of shape (..., num_cond_inputs).\n            mode: 'direct' for forward transform, 'inverse' for inverse transform.\n\n        Returns:\n            A tuple (outputs, log_det_jacobian):\n              outputs: Transformed tensor same shape as inputs.\n              log_det_jacobian: Tensor of shape (..., 1) with log-determinant of Jacobian.\n        \"\"\"\n        # Apply mask to separate pass-through and transform dimensions\n        masked = inputs * self.mask\n        if cond_inputs is not None:\n            # concatenate conditioning inputs\n            masked = torch.cat([masked, cond_inputs], dim=-1)\n\n        # compute scale and translation\n        log_s = self.scale_net(masked) * (1 - self.mask)\n        t = self.translate_net(masked) * (1 - self.mask)\n\n        if mode == \"direct\":\n            s = torch.exp(log_s)\n            outputs = inputs * s + t\n            log_det = log_s.sum(dim=-1, keepdim=True)\n            return outputs, log_det\n\n        elif mode == \"inverse\":\n            s_inv = torch.exp(-log_s)\n            outputs = (inputs - t) * s_inv\n            log_det = -log_s.sum(dim=-1, keepdim=True)\n            return outputs, log_det\n\n        else:\n            raise ValueError(f\"Mode '{mode}' not supported; use 'direct' or 'inverse'.\")",
+        "test": "if __name__ == \"__main__\":\n    # Example usage and basic reconstruction test\n    torch.manual_seed(42)\n    batch_size = 4\n    dim = 6\n    hidden = 10\n\n    # Create a simple alternating binary mask [1,1,1,0,0,0]\n    mask = torch.tensor([1, 1, 1, 0, 0, 0], dtype=torch.float32)\n\n    # Instantiate coupling layer\n    coupling = StandardAffineRealNVPCoupling(\n        num_inputs=dim,\n        num_hidden=hidden,\n        mask=mask\n    )\n\n    # Random input\n    x = torch.randn(batch_size, dim)\n\n    # Forward transform\n    y, logdet_fwd = coupling(x, mode=\"direct\")\n    # Inverse transform (should recover x)\n    x_rec, logdet_inv = coupling(y, mode=\"inverse\")\n\n    print(\"Input X:\\n\", x)\n    print(\"Transformed Y:\\n\", y)\n    print(\"Reconstructed X:\\n\", x_rec)\n    print(\"Forward log-det:\\n\", logdet_fwd.squeeze())\n    print(\"Inverse log-det:\\n\", logdet_inv.squeeze())\n    print(\"Reconstruction error:\", torch.norm(x - x_rec))",
+        "documentation": "This module defines a Standard Affine RealNVP Coupling layer, which splits an input vector `x` into masked and transformed parts. The masked subset `x1` is passed through unchanged, while `x2` undergoes an affine transformation parameterized by neural networks predicting `s(x1)` and `t(x1)`. The class supports optional conditioning inputs, configurable activation functions, and both forward and inverse transforms with correct log-Jacobian computation. Users instantiate the layer by specifying input dimension, hidden layer size, and a binary mask tensor. The test block demonstrates forward and inverse transformations on random data and verifies exact reconstruction. The layer can be integrated into normalizing flow architectures such as RealNVP.",
+        "package": [
+          "torch"
+        ],
+        "pass_exec": true
+      },
+      "components": []
+    }
+  ]
+}

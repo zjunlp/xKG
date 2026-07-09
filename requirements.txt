@@ -12,7 +12,7 @@ bibtexparser==1.4.3
 pylatexenc==2.10
 feedparser==6.0.11
 dataclasses-json==0.6.7
-faiss-gpu-cu12==1.12.0
+faiss-cpu==1.13.2 # For GPU support, replace faiss-cpu with: pip install faiss-gpu-cu12==1.12.0
 rank-bm25==0.2.2
 RapidFuzz==3.12.2
 python-dotenv==1.0.1

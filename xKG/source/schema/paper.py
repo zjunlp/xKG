@@ -1,5 +1,5 @@
 """
-Paper数据类
+Paper data classes
 """
 
 from dataclasses import dataclass, field, fields, asdict
